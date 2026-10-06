@@ -951,7 +951,7 @@ export const SupplierProducts: React.FC = () => {
         <div className="bg-[#090d18] border border-white/[0.08] rounded-3xl overflow-hidden shadow-2xl">
           {loading ? (
             <div className="overflow-x-auto lateral-scrollbar">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[850px]">
                 <thead>
                   <tr className="border-b border-white/[0.08] bg-[#0c1222] text-slate-400 uppercase tracking-wider font-semibold font-mono text-[11px]">
                     <th className="py-4 px-6">Producto & Detalles</th>
@@ -1023,7 +1023,7 @@ export const SupplierProducts: React.FC = () => {
             </div>
           ) : (
             <div className="overflow-x-auto lateral-scrollbar">
-              <table className="w-full text-left text-xs">
+              <table className="w-full text-left text-xs min-w-[850px]">
                 <thead>
                   <tr className="border-b border-white/[0.08] bg-[#0c1222] text-slate-400 uppercase tracking-wider font-semibold font-mono text-[11px]">
                     <th className="py-4 px-6">Producto & Detalles</th>

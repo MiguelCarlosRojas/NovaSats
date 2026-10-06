@@ -43,12 +43,16 @@ Este Código de Conducta se aplica a todos los espacios de la comunidad y la pla
 
 ---
 
-## Aplicación
+## Aplicación y Contacto de Moderación
 
-Los casos de comportamiento abusivo, acosador o inaceptable pueden comunicarse a los administradores del proyecto a través de:
-**conducta@novasats.com** o mediante los canales oficiales de soporte.
+Los casos de comportamiento abusivo, acosador o inaceptable pueden comunicarse directamente al mantenedor principal del proyecto:
 
-Todas las quejas serán revisadas e investigadas de manera rápida y justa. Todos los miembros del equipo están obligados a respetar la privacidad y la seguridad de quienes reporten cualquier incidente.
+* **Responsable:** Miguel A. Carlos Rojas
+* **Correo Electrónico:** [isakiangel6@gmail.com](mailto:isakiangel6@gmail.com)
+* **Perfil de GitHub:** [@MiguelCarlosRojas](https://github.com/MiguelCarlosRojas)
+* **Repositorio Oficial:** [MiguelCarlosRojas/NovaSats](https://github.com/MiguelCarlosRojas/NovaSats)
+
+Todas las quejas serán revisadas e investigadas de manera rápida y justa, garantizando la privacidad y seguridad de quienes reporten cualquier incidente.
 
 ---
 

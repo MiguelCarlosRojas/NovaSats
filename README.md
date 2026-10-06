@@ -1,9 +1,28 @@
 # 🪙 NovaSats — Ecosistema de Comercio Descentralizado Web3 & Pagos On-Chain
 
-[![Vercel Production](https://img.shields.io/badge/Production-novasats.vercel.app-10b981?style=flat-square&logo=vercel)](https://novasats.vercel.app)
-[![Supabase](https://img.shields.io/badge/Database-Supabase%20PostgreSQL-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com)
-[![Web3 WalletConnect](https://img.shields.io/badge/Web3-Reown%20AppKit%20v1.8-3b82f6?style=flat-square)](https://cloud.reown.com)
-[![Smart Contract](https://img.shields.io/badge/Contract-Sepolia%200x71C2...C3a9-f59e0b?style=flat-square&logo=ethereum)](https://sepolia.etherscan.io)
+[![Vercel Deployment](https://img.shields.io/badge/deployment-Vercel%20Live-10b981.svg?style=flat-square&logo=vercel)](https://novasats.vercel.app)
+[![React Version](https://img.shields.io/badge/react-18.3-61DAFB.svg?style=flat-square&logo=react)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/typescript-5.6-3178C6.svg?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/vite-4.3-646CFF.svg?style=flat-square&logo=vite)](https://vitejs.dev)
+[![Supabase](https://img.shields.io/badge/database-Supabase%20PostgreSQL-3ECF8E.svg?style=flat-square&logo=supabase)](https://supabase.com)
+[![Web3 AppKit](https://img.shields.io/badge/web3-Reown%20AppKit%20v1.8-3B82F6.svg?style=flat-square)](https://cloud.reown.com)
+[![Smart Contract](https://img.shields.io/badge/contract-Sepolia%200x71C2...C3a9-F59E0B.svg?style=flat-square&logo=ethereum)](https://sepolia.etherscan.io)
+[![Tailwind CSS](https://img.shields.io/badge/style-Tailwind%20CSS%203.4-38B2AC.svg?style=flat-square&logo=tailwindcss)](https://tailwindcss.com)
+
+---
+
+### Metadatos del Repositorio de GitHub
+
+> **Description:**  
+> Plataforma de comercio electrónico Web3 y pagos descentralizados en Bitcoin y redes EVM desarrollada en React, TypeScript, Supabase y Reown AppKit con Smart Contracts en Sepolia.
+>
+> **Website:**  
+> `https://novasats.vercel.app`
+>
+> **Topics:**  
+> `bitcoin`, `crypto`, `ecommerce`, `marketplace`, `novasats`, `react`, `smart-contracts`, `supabase`, `typescript`, `vite`, `web3`
+
+---
 
 **NovaSats** es una plataforma de comercio electrónico descentralizado (*Web3 Non-Custodial Marketplace*) de alto rendimiento diseñada para la compra y venta de hardware cripto, billeteras frías, nodos y tecnología blockchain. Permite la liquidación peer-to-peer (P2P) directa a las billeteras de los comercios y proveedores sin intermediarios bancarios ni custodios centralizados.
 
@@ -19,6 +38,22 @@ Cuenta con integración nativa a contratos inteligentes (`NovaSats.sol`), verifi
 - **Backend & Base de Datos Relacional:** Supabase (PostgreSQL) con esquemas completos para persistencia sin almacenamiento en caché local.
 - **Identidad Generativa:** `@blobatar/react` y `blobatar/expression` para la generación de avatares reactivos y firmas de marca.
 - **Motor de Comprobantes & Reportes:** `jspdf` para generación instantánea de tickets térmicos de 80mm y documentos tributarios A4; `xlsx` para la exportación de libros contables en Excel.
+
+```mermaid
+flowchart TD
+    Buyer["Comprador / Cliente Web3"] -->|Navegación / Carrito| Storefront["NovaSats Storefront (React 18 + Vite)"]
+    Supplier["Proveedor / Comercio"] -->|Gestión / KYC / Catálogo| Portal["Portal de Proveedores (/proveedores)"]
+    
+    Storefront -->|Checkout Non-Custodial| Web3Modal["Reown AppKit / Wagmi Adapter"]
+    Web3Modal -->|Firma TX Directa P2P| EVM["Ethereum / Polygon / Arbitrum / Sepolia"]
+    Web3Modal -->|Liquidación Bitcoin| BTC["Bitcoin On-Chain (Native SegWit / Taproot)"]
+    
+    Storefront -->|Registro de Orden & Garantía| Contract["Smart Contract NovaSats.sol (Sepolia)"]
+    Storefront & Portal -->|Persistencia en Tiempo Real| Supabase[("Supabase Cloud DB (PostgreSQL)")]
+    
+    Portal -->|Generación Comprobantes| VoucherEngine["Motor POS (jsPDF 80mm & Factura A4)"]
+    Portal -->|Exportación Contable| ExcelEngine["Motor XLSX (Libros de Ventas)"]
+```
 
 ---
 
@@ -167,5 +202,22 @@ npm run preview
 
 ## 🌐 Enlaces Oficiales
 
-- **Sitio Web de Producción:** [https://novasats.vercel.app](https://novasats.vercel.app)
-- **Repositorio en GitHub:** [https://github.com/MiguelCarlosRojas/NovaSats](https://github.com/MiguelCarlosRojas/NovaSats)
+- **Aplicación Web en Producción:** [https://novasats.vercel.app](https://novasats.vercel.app)
+- **Repositorio Oficial en GitHub:** [https://github.com/MiguelCarlosRojas/NovaSats](https://github.com/MiguelCarlosRojas/NovaSats)
+
+---
+
+## 👨‍💻 Autor & Desarrollador Principal
+
+- **Desarrollador:** **Miguel A. Carlos Rojas**
+- **GitHub:** [@MiguelCarlosRojas](https://github.com/MiguelCarlosRojas)
+- **Portafolio / Web:** [https://miguelcarlos.pages.dev](https://miguelcarlos.pages.dev)
+- **Contacto:** [isakiangel6@gmail.com](mailto:isakiangel6@gmail.com)
+- **Organización:** Grupo de Inversiones JKL S.A.C.
+
+---
+
+## 📜 Gobernanza, Conducta & Derechos
+
+- [Código de Conducta de la Comunidad (CODE_OF_CONDUCT.md)](./CODE_OF_CONDUCT.md)
+- [Aviso de Derechos de Autor y Propiedad Intelectual (COPYRIGHT.md)](./COPYRIGHT.md)

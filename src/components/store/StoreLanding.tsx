@@ -23,6 +23,7 @@ import {
   SlidersHorizontal,
   Filter,
   ShieldCheck,
+  Store,
   X
 } from 'lucide-react';
 
@@ -616,16 +617,17 @@ export const StoreLanding: React.FC = () => {
     <div className="min-h-screen bg-[#060911] text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black">
       
       {/* MINIMALIST TOP BAR */}
-      <div className="bg-[#04060c] border-b border-white/[0.06] text-[11px] font-mono text-slate-400 py-2 px-4 sm:px-8 lg:px-12 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1.5 text-amber-400 font-bold">
+      <div className="bg-[#04060c] border-b border-white/[0.06] text-[10px] sm:text-[11px] font-mono text-slate-400 py-2 px-3 sm:px-8 lg:px-12 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-4 truncate">
+          <div className="flex items-center gap-1.5 text-amber-400 font-bold shrink-0">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Red Bitcoin: Bloque Verificado</span>
+            <span className="hidden xs:inline">Red Bitcoin: Bloque Verificado</span>
+            <span className="xs:hidden">Bitcoin L1</span>
           </div>
           <span className="hidden sm:inline text-slate-600">|</span>
           <span className="hidden sm:inline text-slate-400">1 BTC = ${BTC_PRICE_USD.toLocaleString()} USD</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <span className="hidden md:inline text-slate-400">Smart Contract: NovaSats.sol v2.0</span>
           <a
             href="#consultar-voucher"
@@ -637,18 +639,18 @@ export const StoreLanding: React.FC = () => {
         </div>
       </div>
 
-      {/* MAIN NAVBAR (Clean & Minimalist: No Wallet button, no Navbar cart button) */}
-      <header className="sticky top-0 z-40 bg-[#060911]/90 backdrop-blur-xl border-b border-white/[0.08] px-4 sm:px-8 lg:px-12 h-20 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
-              <Bitcoin className="w-6 h-6 text-black stroke-[2.5]" />
+      {/* MAIN NAVBAR (Clean & Minimalist: With direct portal and catalog links) */}
+      <header className="sticky top-0 z-40 bg-[#060911]/90 backdrop-blur-xl border-b border-white/[0.08] px-3 sm:px-8 lg:px-12 h-16 sm:h-20 flex items-center justify-between">
+        <div className="flex items-center gap-4 sm:gap-8 min-w-0">
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
+              <Bitcoin className="w-5 h-5 sm:w-6 sm:h-6 text-black stroke-[2.5]" />
             </div>
             <div>
-              <span className="text-xl font-black tracking-tight text-white flex items-center gap-1 font-heading">
+              <span className="text-lg sm:text-xl font-black tracking-tight text-white flex items-center gap-1 font-heading">
                 Nova<span className="text-amber-500">Sats</span>
               </span>
-              <span className="text-[10px] text-amber-400/90 font-bold uppercase tracking-widest block -mt-1 font-mono">
+              <span className="text-[9px] sm:text-[10px] text-amber-400/90 font-bold uppercase tracking-widest block -mt-1 font-mono">
                 Store Marketplace
               </span>
             </div>
@@ -656,28 +658,37 @@ export const StoreLanding: React.FC = () => {
         </div>
 
         {/* Minimal Right Header Info */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <Link
+            to="/proveedores"
+            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-bold text-slate-300 hover:text-white bg-[#0e1424] hover:bg-[#161f38] border border-white/[0.08] hover:border-amber-500/30 rounded-xl transition"
+            title="Portal de Proveedores"
+          >
+            <Store className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Portal Proveedores</span>
+            <span className="sm:hidden text-[11px]">Proveedores</span>
+          </Link>
           <a
             href="#catalogo"
-            className="text-xs font-semibold text-slate-300 hover:text-amber-400 transition flex items-center gap-1.5"
+            className="text-xs font-semibold text-slate-300 hover:text-amber-400 transition hidden xs:flex items-center gap-1.5"
           >
             <Tag className="w-3.5 h-3.5 text-amber-400" />
-            <span>Catálogo Completo ({products.length})</span>
+            <span>Catálogo ({products.length})</span>
           </a>
         </div>
       </header>
 
       {/* MINIMALIST EDITORIAL HERO */}
-      <section className="relative pt-16 pb-20 px-4 sm:px-8 lg:px-12 border-b border-white/[0.08] bg-[#060911] overflow-hidden">
+      <section className="relative pt-12 sm:pt-16 pb-16 sm:pb-20 px-4 sm:px-8 lg:px-12 border-b border-white/[0.08] bg-[#060911] overflow-hidden">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-amber-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-        <div className="max-w-5xl mx-auto text-center relative z-10 space-y-6">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-amber-400 text-xs font-mono font-medium tracking-wide">
+        <div className="max-w-5xl mx-auto text-center relative z-10 space-y-5 sm:space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-white/[0.03] border border-white/[0.08] text-amber-400 text-[11px] sm:text-xs font-mono font-medium tracking-wide">
             <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
             Ecosistema de Comercio Descentralizado On-Chain
           </div>
 
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight font-heading leading-[1.1]">
+          <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight font-heading leading-[1.1] break-words">
             Comercio global con liquidación instantánea en <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 bg-clip-text text-transparent">Bitcoin</span>
           </h1>
 
@@ -1222,7 +1233,7 @@ export const StoreLanding: React.FC = () => {
 
       {/* MINIMALIST STORE FOOTER */}
       <footer className="border-t border-white/[0.08] bg-[#04060c] pt-14 pb-8 px-4 sm:px-8 lg:px-12 text-slate-400 text-xs">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 mb-12">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 sm:gap-10 mb-12">
           
           {/* Brand Col */}
           <div className="space-y-3">

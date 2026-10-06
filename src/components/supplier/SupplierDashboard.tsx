@@ -420,8 +420,8 @@ export const SupplierDashboard: React.FC = () => {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto rounded-xl border border-white/[0.06]">
-              <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto rounded-xl border border-white/[0.06] lateral-scrollbar">
+              <table className="w-full text-left text-xs min-w-[700px]">
                 <thead>
                   <tr className="bg-white/[0.02] border-b border-white/[0.08] text-slate-400 uppercase tracking-wider font-bold text-[10px]">
                     <th className="py-3 px-4">Producto</th>

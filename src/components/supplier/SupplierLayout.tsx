@@ -225,7 +225,7 @@ export const SupplierLayout: React.FC<SupplierLayoutProps> = ({ children, title,
                       expression: parsed.expression,
                       animate: parsed.animProp,
                     }}
-                    className={`w-11 h-11 sm:w-12 sm:h-12 ${parsed.shapeClass} border ${parsed.borderClass} ${parsed.glowClass} shrink-0`}
+                    className={`w-9 h-9 sm:w-11 sm:h-11 ${parsed.shapeClass} border ${parsed.borderClass} ${parsed.glowClass} shrink-0`}
                   />
 
                   {/* Información a la Derecha (Alineada a la Izquierda, No Clickeable) */}
@@ -255,7 +255,7 @@ export const SupplierLayout: React.FC<SupplierLayoutProps> = ({ children, title,
         </header>
 
         {/* Content (Full-width edge-to-edge container) */}
-        <main className="p-3.5 sm:p-8 lg:p-12 flex-1 w-full max-w-full">
+        <main className="p-3 sm:p-8 lg:p-12 flex-1 w-full max-w-full min-w-0">
           {children}
         </main>
 

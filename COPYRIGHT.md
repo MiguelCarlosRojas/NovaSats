@@ -1,14 +1,14 @@
 # Aviso de Derechos de Autor y Propiedad Intelectual
 
-**Copyright (c) 2026 NovaSats Ecosystem. Todos los derechos reservados.**
+**Copyright (c) 2026 Miguel A. Carlos Rojas (@MiguelCarlosRojas). Todos los derechos reservados.**
 
 ---
 
 ## 1. Titularidad del Código y Marca
 
-El código fuente, diseño gráfico, arquitectura del sistema, contratos inteligentes, interfaces de usuario, componentes reactivos, algoritmos de comprobantes criptográficos y documentación técnica contenidos en este repositorio son propiedad de **NovaSats** y sus respectivos contribuyentes autorizados.
+El código fuente, diseño gráfico, arquitectura del sistema, contratos inteligentes, interfaces de usuario, componentes reactivos, algoritmos de comprobantes criptográficos y documentación técnica contenidos en este repositorio son de titularidad de **Miguel A. Carlos Rojas** y el ecosistema **NovaSats**.
 
-La marca "NovaSats", su logotipo, isotipos, esquemas visuales de identidad y la denominación "Ecosistema de Comercio Descentralizado On-Chain" son marcas protegidas bajo las leyes internacionales de propiedad intelectual y derecho de autor.
+La marca "NovaSats", su logotipo, isotipos, esquemas visuales de identidad y la denominación "Ecosistema de Comercio Descentralizado On-Chain" son marcas y obras protegidas bajo las leyes aplicables de propiedad intelectual, derechos de autor y tratados internacionales.
 
 ---
 
@@ -29,7 +29,12 @@ Salvo indicación expresa en contrario:
 
 ---
 
-## 4. Contacto Legal
+## 4. Contacto Legal y Autoría
 
-Para consultas relacionadas con propiedad intelectual, permisos de licenciamiento o reportes de infracción, comuníquese a:
-**legal@novasats.com**
+Para consultas sobre propiedad intelectual, permisos de licenciamiento, colaboraciones institucionales o reportes de infracción:
+
+* **Titular / Desarrollador:** Miguel A. Carlos Rojas
+* **Correo Electrónico:** [isakiangel6@gmail.com](mailto:isakiangel6@gmail.com)
+* **Sitio Web / Portafolio:** [https://miguelcarlos.pages.dev](https://miguelcarlos.pages.dev)
+* **GitHub:** [@MiguelCarlosRojas](https://github.com/MiguelCarlosRojas)
+* **Repositorio Oficial:** [https://github.com/MiguelCarlosRojas/NovaSats](https://github.com/MiguelCarlosRojas/NovaSats)

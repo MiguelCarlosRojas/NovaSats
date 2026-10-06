@@ -336,8 +336,8 @@ export const SupplierSalesReport: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+            <div className="overflow-x-auto lateral-scrollbar">
+              <table className="w-full text-left text-xs min-w-[800px]">
                 <thead>
                   <tr className="border-b border-white/[0.08] bg-white/[0.02] text-slate-400 uppercase tracking-wider font-bold text-[10px]">
                     <th className="py-3.5 px-4">Orden / Voucher</th>
@@ -368,8 +368,8 @@ export const SupplierSalesReport: React.FC = () => {
             <div className="p-16 text-center text-slate-500">No hay ventas registradas con los filtros actuales.</div>
           ) : (
             <>
-              <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
+              <div className="overflow-x-auto lateral-scrollbar">
+                <table className="w-full text-left text-xs min-w-[800px]">
                 <thead>
                   <tr className="border-b border-white/[0.08] bg-white/[0.02] text-slate-400 uppercase tracking-wider font-bold text-[10px]">
                     <th className="py-3 px-4">Orden / Voucher</th>
