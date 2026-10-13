@@ -22,36 +22,147 @@ import {
 
 import { fetchAllStoreProducts, isFreeShippingProduct } from '../../data/productsData';
 
-// Listas de opciones de filtros solicitados por el usuario
-const MARCAS_LIST = ['Apple', 'Samsung', 'Sony', 'Ledger', 'Trezor', 'Bitmain', 'Nintendo', 'ASUS', 'Xiaomi', 'Logitech', 'Nike', 'Adidas'];
-const COLORES_LIST = [
-  { id: 'negro', label: 'Negro', hex: '#111827' },
-  { id: 'blanco', label: 'Blanco', hex: '#F9FAFB' },
-  { id: 'plata', label: 'Plata / Gris', hex: '#9CA3AF' },
-  { id: 'azul', label: 'Azul', hex: '#3B82F6' },
-  { id: 'rojo', label: 'Rojo', hex: '#EF4444' },
-  { id: 'verde', label: 'Verde', hex: '#10B981' },
-  { id: 'dorado', label: 'Dorado', hex: '#F59E0B' }
+// Helper para texto completo de búsqueda
+const getProductSearchableText = (p: Product): string => {
+  return `${p.name} ${p.description} ${p.category || ''} ${p.suppliers?.company_name || ''} ${p.condition || ''}`.toLowerCase();
+};
+
+// 1. Marcas soportadas para detección
+const ALL_KNOWN_BRANDS = [
+  'Apple', 'Samsung', 'Sony', 'Ledger', 'Trezor', 'Bitmain', 'Nintendo',
+  'ASUS', 'Xiaomi', 'Logitech', 'Nike', 'Adidas', 'Intel', 'AMD', 'Dell',
+  'HP', 'Lenovo', 'Microsoft', 'NovaSats'
 ];
 
-const CAPACIDADES_LIST = ['64 GB', '128 GB', '256 GB', '512 GB', '1 TB', '2 TB'];
-const CONECTIVIDAD_LIST = ['Wi-Fi', 'Bluetooth', 'USB-C', '5G', 'Ethernet', 'Lightning'];
-const ESRB_LIST = [
-  { id: 'E', label: 'Everyone (E)' },
-  { id: 'E10+', label: 'Everyone 10+ (E10+)' },
-  { id: 'T', label: 'Teen (T)' },
-  { id: 'M', label: 'Mature 17+ (M)' },
-  { id: 'AO', label: 'Adults Only 18+ (AO)' }
+const matchesBrand = (p: Product, brand: string): boolean => {
+  const text = getProductSearchableText(p);
+  return text.includes(brand.toLowerCase());
+};
+
+// 2. Colores soportados para detección
+const ALL_KNOWN_COLORS = [
+  { id: 'negro', label: 'Negro', hex: '#111827', keywords: ['negro', 'black'] },
+  { id: 'blanco', label: 'Blanco', hex: '#F9FAFB', keywords: ['blanco', 'white'] },
+  { id: 'plata', label: 'Plata / Gris', hex: '#9CA3AF', keywords: ['plata', 'silver', 'gris', 'gray', 'grey'] },
+  { id: 'azul', label: 'Azul', hex: '#3B82F6', keywords: ['azul', 'blue'] },
+  { id: 'rojo', label: 'Rojo', hex: '#EF4444', keywords: ['rojo', 'red'] },
+  { id: 'verde', label: 'Verde', hex: '#10B981', keywords: ['verde', 'green'] },
+  { id: 'dorado', label: 'Dorado', hex: '#F59E0B', keywords: ['dorado', 'gold'] }
 ];
-const PANTALLA_LIST = [
-  { id: 'under-6', label: 'Menos de 6"' },
-  { id: '6-7', label: '6" a 6.9"' },
-  { id: '10-13', label: '10" a 12.9"' },
-  { id: '13-14', label: '13" a 14"' },
-  { id: '15-16', label: '15" a 16"' },
-  { id: '24-27', label: '24" a 27"' },
-  { id: '32-plus', label: '32" o más' }
+
+const matchesColor = (p: Product, colorId: string): boolean => {
+  const text = getProductSearchableText(p);
+  const colorDef = ALL_KNOWN_COLORS.find((c) => c.id === colorId);
+  if (!colorDef) return false;
+  return colorDef.keywords.some((k) => text.includes(k));
+};
+
+// 3. Capacidades de almacenamiento
+const ALL_KNOWN_CAPACITIES = [
+  { id: '64 GB', keywords: ['64 gb', '64gb'] },
+  { id: '128 GB', keywords: ['128 gb', '128gb'] },
+  { id: '256 GB', keywords: ['256 gb', '256gb'] },
+  { id: '512 GB', keywords: ['512 gb', '512gb'] },
+  { id: '1 TB', keywords: ['1 tb', '1tb'] },
+  { id: '2 TB', keywords: ['2 tb', '2tb'] }
 ];
+
+const matchesCapacity = (p: Product, capacityId: string): boolean => {
+  const text = getProductSearchableText(p);
+  const capDef = ALL_KNOWN_CAPACITIES.find((c) => c.id === capacityId);
+  if (!capDef) return false;
+  return capDef.keywords.some((k) => text.includes(k));
+};
+
+// 4. Conectividad
+const ALL_KNOWN_CONNECTIVITIES = [
+  { id: 'Wi-Fi', keywords: ['wi-fi', 'wifi', 'inalámbrico', 'wireless'] },
+  { id: 'Bluetooth', keywords: ['bluetooth', 'bt '] },
+  { id: 'USB-C', keywords: ['usb-c', 'usbc', 'tipo c', 'type-c'] },
+  { id: '5G', keywords: ['5g', 'celular', 'lte', 'sim'] },
+  { id: 'Ethernet', keywords: ['ethernet', 'rj45', 'lan'] },
+  { id: 'Lightning', keywords: ['lightning'] }
+];
+
+const matchesConnectivity = (p: Product, connId: string): boolean => {
+  const text = getProductSearchableText(p);
+  const connDef = ALL_KNOWN_CONNECTIVITIES.find((c) => c.id === connId);
+  if (!connDef) return false;
+  return connDef.keywords.some((k) => text.includes(k));
+};
+
+// 5. ESRB
+const ALL_KNOWN_ESRB = [
+  { id: 'E', label: 'Everyone (E)', keywords: ['esrb e', 'everyone (e)', 'para todos', 'clasificación e'] },
+  { id: 'E10+', label: 'Everyone 10+ (E10+)', keywords: ['e10+', 'everyone 10+'] },
+  { id: 'T', label: 'Teen (T)', keywords: ['esrb t', 'teen (t)', 'adolescentes'] },
+  { id: 'M', label: 'Mature 17+ (M)', keywords: ['esrb m', 'mature', 'adultos 17', 'clasificación m'] },
+  { id: 'AO', label: 'Adults Only 18+ (AO)', keywords: ['adults only', 'ao 18'] }
+];
+
+const isVideoGameProduct = (p: Product): boolean => {
+  const text = getProductSearchableText(p);
+  return (
+    text.includes('juego') ||
+    text.includes('game') ||
+    text.includes('videojuego') ||
+    text.includes('esrb') ||
+    (p.category || '').toLowerCase().includes('juego') ||
+    (p.category || '').toLowerCase().includes('gaming')
+  );
+};
+
+const matchesEsrb = (p: Product, esrbId: string): boolean => {
+  if (!isVideoGameProduct(p)) return false;
+  const text = getProductSearchableText(p);
+  const esrbDef = ALL_KNOWN_ESRB.find((e) => e.id === esrbId);
+  if (!esrbDef) return false;
+  return esrbDef.keywords.some((k) => text.includes(k));
+};
+
+// 6. Tamaño de pantalla
+const ALL_KNOWN_SCREEN_SIZES = [
+  { id: 'under-6', label: 'Menos de 6"', test: (t: string) => /5\.[0-9]|4\.[0-9]|5"|4"/.test(t) },
+  { id: '6-7', label: '6" a 6.9"', test: (t: string) => /6\.[0-9]|6"/.test(t) },
+  { id: '10-13', label: '10" a 12.9"', test: (t: string) => /10\.[0-9]|11\.[0-9]|12\.[0-9]|10"|11"|12"/.test(t) },
+  { id: '13-14', label: '13" a 14"', test: (t: string) => /13\.[0-9]|14\.[0-9]|13"|14"/.test(t) },
+  { id: '15-16', label: '15" a 16"', test: (t: string) => /15\.[0-9]|16\.[0-9]|15"|16"/.test(t) },
+  { id: '24-27', label: '24" a 27"', test: (t: string) => /24\.[0-9]|27\.[0-9]|24"|27"/.test(t) },
+  { id: '32-plus', label: '32" o más', test: (t: string) => /32\.[0-9]|4[0-9]\.[0-9]|5[0-9]\.[0-9]|32"|40"|43"|50"|55"|65"/.test(t) }
+];
+
+const hasScreen = (p: Product): boolean => {
+  const text = getProductSearchableText(p);
+  return (
+    text.includes('pantalla') ||
+    text.includes('display') ||
+    text.includes('monitor') ||
+    text.includes('oled') ||
+    text.includes('amoled') ||
+    text.includes('lcd') ||
+    text.includes('pulgada') ||
+    text.includes('"') ||
+    (p.category || '').toLowerCase().includes('celular') ||
+    (p.category || '').toLowerCase().includes('laptop') ||
+    (p.category || '').toLowerCase().includes('tv')
+  );
+};
+
+const matchesScreenSize = (p: Product, sizeId: string): boolean => {
+  if (!hasScreen(p)) return false;
+  const text = getProductSearchableText(p);
+  const sizeDef = ALL_KNOWN_SCREEN_SIZES.find((s) => s.id === sizeId);
+  if (!sizeDef) return false;
+  return sizeDef.test(text);
+};
+
+const matchesCondition = (p: Product, condId: string): boolean => {
+  const c = (p.condition || 'Nuevo').toLowerCase();
+  if (condId === 'new') return !p.condition || c.includes('nuevo') || c.includes('new');
+  if (condId === 'refurbished') return c.includes('reacon') || c.includes('refurb');
+  if (condId === 'used') return c.includes('usad') || c.includes('used');
+  return true;
+};
 
 export const CatalogPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,7 +173,7 @@ export const CatalogPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Estados de los 12 filtros solicitados
+  // Estados de filtros
   const [searchQuery, setSearchQuery] = useState(urlQ);
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<'all' | 'domicilio' | 'retiro'>('all');
   const [selectedCategory, setSelectedCategory] = useState(urlCategoria);
@@ -108,12 +219,142 @@ export const CatalogPage: React.FC = () => {
     if (catParam !== selectedCategory) setSelectedCategory(catParam);
   }, [searchParams]);
 
-  // Categorías disponibles
+  // Categorías disponibles en el catálogo
   const categories = useMemo(() => {
     return ['Todas', ...Array.from(new Set(products.map((p) => p.category || 'General')))];
   }, [products]);
 
-  // Conteo de filtros activos
+  // Conjunto de productos en el ámbito actual (filtrado por categoría y búsqueda básica)
+  // para determinar qué filtros realmente aplican y deben visualizarse
+  const productsInScope = useMemo(() => {
+    return products.filter((p) => {
+      if (selectedCategory !== 'Todas' && (p.category || 'General') !== selectedCategory) {
+        return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase().trim();
+        const text = getProductSearchableText(p);
+        if (!text.includes(q)) return false;
+      }
+      return true;
+    });
+  }, [products, selectedCategory, searchQuery]);
+
+  // =========================================================================
+  // DETECCIÓN DINÁMICA: Si un filtro no existe en los productos, NO SE MUESTRA
+  // =========================================================================
+
+  // 1. Marcas realmente existentes en los productos disponibles
+  const availableBrands = useMemo(() => {
+    return ALL_KNOWN_BRANDS.filter((brand) =>
+      productsInScope.some((p) => matchesBrand(p, brand))
+    );
+  }, [productsInScope]);
+
+  // 2. Colores realmente existentes
+  const availableColors = useMemo(() => {
+    return ALL_KNOWN_COLORS.filter((color) =>
+      productsInScope.some((p) => matchesColor(p, color.id))
+    );
+  }, [productsInScope]);
+
+  // 3. Capacidades realmente existentes
+  const availableCapacities = useMemo(() => {
+    return ALL_KNOWN_CAPACITIES.filter((cap) =>
+      productsInScope.some((p) => matchesCapacity(p, cap.id))
+    );
+  }, [productsInScope]);
+
+  // 4. Conectividades realmente existentes
+  const availableConnectivities = useMemo(() => {
+    return ALL_KNOWN_CONNECTIVITIES.filter((conn) =>
+      productsInScope.some((p) => matchesConnectivity(p, conn.id))
+    );
+  }, [productsInScope]);
+
+  // 5. ESRB (solo si hay videojuegos o productos con clasificación ESRB)
+  const availableEsrb = useMemo(() => {
+    return ALL_KNOWN_ESRB.filter((esrb) =>
+      productsInScope.some((p) => matchesEsrb(p, esrb.id))
+    );
+  }, [productsInScope]);
+
+  // 6. Pantallas (solo si hay productos con pantalla/monitor/display)
+  const availableScreenSizes = useMemo(() => {
+    return ALL_KNOWN_SCREEN_SIZES.filter((screen) =>
+      productsInScope.some((p) => matchesScreenSize(p, screen.id))
+    );
+  }, [productsInScope]);
+
+  // 7. Calificación (solo si hay productos con rating > 0)
+  const hasRatingProducts = useMemo(() => {
+    return productsInScope.some((p) => (p.rating || 0) > 0);
+  }, [productsInScope]);
+
+  // 8. Condiciones existentes
+  const availableConditions = useMemo(() => {
+    const list: Array<'new' | 'refurbished' | 'used'> = [];
+    if (productsInScope.some((p) => matchesCondition(p, 'new'))) list.push('new');
+    if (productsInScope.some((p) => matchesCondition(p, 'refurbished'))) list.push('refurbished');
+    if (productsInScope.some((p) => matchesCondition(p, 'used'))) list.push('used');
+    return list;
+  }, [productsInScope]);
+
+  // 9. Vendedores
+  const hasOfficialSellers = useMemo(() => {
+    return productsInScope.some((p) =>
+      (p.suppliers?.company_name || '').toLowerCase().includes('novasats') ||
+      (p.suppliers?.company_name || '').toLowerCase().includes('oficial')
+    );
+  }, [productsInScope]);
+
+  const hasVerifiedSellers = useMemo(() => {
+    return productsInScope.some((p) => Boolean(p.suppliers?.wallet_address && p.suppliers?.company_name));
+  }, [productsInScope]);
+
+  // 10. Tipo de entrega
+  const hasDomicilio = useMemo(() => {
+    return productsInScope.some((p) => isFreeShippingProduct(p) || p.shipping_type === 'express' || p.shipping_type === 'free' || !p.shipping_type);
+  }, [productsInScope]);
+
+  const hasRetiro = useMemo(() => {
+    return productsInScope.some((p) => p.stock > 0);
+  }, [productsInScope]);
+
+  // Resetear filtros activos si ya no están disponibles en la categoría o búsqueda actual
+  useEffect(() => {
+    if (selectedBrand !== 'Todas' && !availableBrands.includes(selectedBrand)) {
+      setSelectedBrand('Todas');
+    }
+    if (selectedColor !== 'all' && !availableColors.some((c) => c.id === selectedColor)) {
+      setSelectedColor('all');
+    }
+    if (selectedCapacity !== 'all' && !availableCapacities.some((c) => c.id === selectedCapacity)) {
+      setSelectedCapacity('all');
+    }
+    if (selectedConnectivity !== 'all' && !availableConnectivities.some((c) => c.id === selectedConnectivity)) {
+      setSelectedConnectivity('all');
+    }
+    if (selectedEsrb !== 'all' && !availableEsrb.some((e) => e.id === selectedEsrb)) {
+      setSelectedEsrb('all');
+    }
+    if (selectedScreenSize !== 'all' && !availableScreenSizes.some((s) => s.id === selectedScreenSize)) {
+      setSelectedScreenSize('all');
+    }
+    if (!hasRatingProducts && minRating > 0) {
+      setMinRating(0);
+    }
+    if (availableConditions.length <= 1 && conditionFilter !== 'all') {
+      setConditionFilter('all');
+    }
+  }, [
+    availableBrands, availableColors, availableCapacities, availableConnectivities,
+    availableEsrb, availableScreenSizes, hasRatingProducts, availableConditions,
+    selectedBrand, selectedColor, selectedCapacity, selectedConnectivity,
+    selectedEsrb, selectedScreenSize, minRating, conditionFilter
+  ]);
+
+  // Conteo de filtros activos aplicados
   const activeFiltersCount = useMemo(() => {
     let count = 0;
     if (searchQuery.trim()) count++;
@@ -154,11 +395,11 @@ export const CatalogPage: React.FC = () => {
     setSearchParams({}, { replace: true });
   };
 
-  // Pipeline de Filtrado y Ordenamiento
+  // Pipeline final de filtrado
   const filteredProducts = useMemo(() => {
     return products
       .filter((p) => {
-        const textToSearch = `${p.name} ${p.description} ${p.category || ''} ${p.suppliers?.company_name || ''}`.toLowerCase();
+        const textToSearch = getProductSearchableText(p);
 
         // 1. Buscador
         if (searchQuery.trim()) {
@@ -166,15 +407,12 @@ export const CatalogPage: React.FC = () => {
           if (!textToSearch.includes(q)) return false;
         }
 
-        // 2. Tipo de Entrega (Envío a domicilio / Retiro en un punto)
+        // 2. Tipo de Entrega
         if (deliveryTypeFilter === 'domicilio') {
-          // Coincide con envío gratis o express o domicilio
           const isDomicilio = isFreeShippingProduct(p) || p.shipping_type === 'express' || p.shipping_type === 'free' || !p.shipping_type;
           if (!isDomicilio) return false;
         } else if (deliveryTypeFilter === 'retiro') {
-          // Productos disponibles para retiro local o estándar
-          const isRetiro = p.stock > 0;
-          if (!isRetiro) return false;
+          if (p.stock <= 0) return false;
         }
 
         // 3. Categoría
@@ -182,10 +420,9 @@ export const CatalogPage: React.FC = () => {
           return false;
         }
 
-        // 4. Marca
+        // 4. Marca (solo filtra si la marca aplica)
         if (selectedBrand !== 'Todas') {
-          const brandMatch = textToSearch.includes(selectedBrand.toLowerCase());
-          if (!brandMatch) return false;
+          if (!matchesBrand(p, selectedBrand)) return false;
         }
 
         // 5. Precio
@@ -194,7 +431,7 @@ export const CatalogPage: React.FC = () => {
         if (priceRange === '150-500' && (p.price_usd <= 150 || p.price_usd > 500)) return false;
         if (priceRange === 'over-500' && p.price_usd <= 500) return false;
 
-        // 6. Calificación del producto
+        // 6. Calificación
         if (minRating > 0 && (p.rating || 0) < minRating) return false;
 
         // 7. Vendido por
@@ -206,61 +443,34 @@ export const CatalogPage: React.FC = () => {
           if (!isVerified) return false;
         }
 
-        // 8. Color
+        // 8. Color (solo si el producto tiene color)
         if (selectedColor !== 'all') {
-          const colorMatch = textToSearch.includes(selectedColor) || 
-            (selectedColor === 'negro' && textToSearch.includes('black')) ||
-            (selectedColor === 'blanco' && textToSearch.includes('white')) ||
-            (selectedColor === 'plata' && (textToSearch.includes('silver') || textToSearch.includes('gris'))) ||
-            (selectedColor === 'azul' && textToSearch.includes('blue')) ||
-            (selectedColor === 'rojo' && textToSearch.includes('red')) ||
-            (selectedColor === 'verde' && textToSearch.includes('green')) ||
-            (selectedColor === 'dorado' && textToSearch.includes('gold'));
-          if (!colorMatch) return false;
+          if (!matchesColor(p, selectedColor)) return false;
         }
 
-        // 9. Condición del producto
-        if (conditionFilter === 'new') {
-          const isNew = !p.condition || p.condition.toLowerCase().includes('nuevo') || p.condition.toLowerCase().includes('new');
-          if (!isNew) return false;
-        } else if (conditionFilter === 'refurbished') {
-          const isRefurb = Boolean(p.condition && (p.condition.toLowerCase().includes('reacon') || p.condition.toLowerCase().includes('refurb')));
-          if (!isRefurb) return false;
-        } else if (conditionFilter === 'used') {
-          const isUsed = Boolean(p.condition && (p.condition.toLowerCase().includes('usado') || p.condition.toLowerCase().includes('used')));
-          if (!isUsed) return false;
+        // 9. Condición
+        if (conditionFilter !== 'all') {
+          if (!matchesCondition(p, conditionFilter)) return false;
         }
 
-        // 10. Capacidad
+        // 10. Capacidad (solo si el producto tiene capacidad)
         if (selectedCapacity !== 'all') {
-          const capMatch = textToSearch.includes(selectedCapacity.toLowerCase()) || 
-            textToSearch.includes(selectedCapacity.replace(' ', '').toLowerCase());
-          if (!capMatch) return false;
+          if (!matchesCapacity(p, selectedCapacity)) return false;
         }
 
-        // 11. Conectividad
+        // 11. Conectividad (solo si el producto tiene conectividad)
         if (selectedConnectivity !== 'all') {
-          const conMatch = textToSearch.includes(selectedConnectivity.toLowerCase()) ||
-            (selectedConnectivity === 'Wi-Fi' && textToSearch.includes('wifi')) ||
-            (selectedConnectivity === 'USB-C' && (textToSearch.includes('usbc') || textToSearch.includes('tipo c')));
-          if (!conMatch) return false;
+          if (!matchesConnectivity(p, selectedConnectivity)) return false;
         }
 
-        // 12. ESRB (Para juegos/entretenimiento o mención en texto)
+        // 12. ESRB (solo si es videojuego)
         if (selectedEsrb !== 'all') {
-          const esrbMatch = textToSearch.includes(selectedEsrb.toLowerCase()) || textToSearch.includes('esrb');
-          if (!esrbMatch) return false;
+          if (!matchesEsrb(p, selectedEsrb)) return false;
         }
 
-        // 13. Tamaño de pantalla
+        // 13. Tamaño de pantalla (solo si tiene pantalla)
         if (selectedScreenSize !== 'all') {
-          if (selectedScreenSize === 'under-6' && !textToSearch.includes('5.') && !textToSearch.includes('4.')) return false;
-          if (selectedScreenSize === '6-7' && !textToSearch.includes('6.') && !textToSearch.includes('6"')) return false;
-          if (selectedScreenSize === '10-13' && !textToSearch.includes('10.') && !textToSearch.includes('11.') && !textToSearch.includes('12.')) return false;
-          if (selectedScreenSize === '13-14' && !textToSearch.includes('13.') && !textToSearch.includes('14.')) return false;
-          if (selectedScreenSize === '15-16' && !textToSearch.includes('15.') && !textToSearch.includes('16.')) return false;
-          if (selectedScreenSize === '24-27' && !textToSearch.includes('24.') && !textToSearch.includes('27.')) return false;
-          if (selectedScreenSize === '32-plus' && !textToSearch.includes('32.') && !textToSearch.includes('40.') && !textToSearch.includes('50.')) return false;
+          if (!matchesScreenSize(p, selectedScreenSize)) return false;
         }
 
         return true;
@@ -271,7 +481,7 @@ export const CatalogPage: React.FC = () => {
         if (sortBy === 'discount') return (b.discount_percent || 0) - (a.discount_percent || 0);
         if (sortBy === 'rating') return (b.rating || 0) - (a.rating || 0);
         if (sortBy === 'newest') return new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime();
-        return 0; // default featured
+        return 0;
       });
   }, [
     products, searchQuery, deliveryTypeFilter, selectedCategory, selectedBrand,
@@ -302,7 +512,7 @@ export const CatalogPage: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // RENDERIZADO DEL SIDEBAR DE FILTROS COMPLETOS
+  // RENDERIZADO DEL SIDEBAR DE FILTROS DINÁMICOS
   const renderSidebarContent = () => (
     <div className="space-y-6 text-xs">
       
@@ -323,396 +533,478 @@ export const CatalogPage: React.FC = () => {
         )}
       </div>
 
-      {/* 1. TIPO DE ENTREGA */}
-      <div className="space-y-2">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Tipo de Entrega
-        </label>
-        <div className="space-y-1.5">
-          <button
-            type="button"
-            onClick={() => setDeliveryTypeFilter(deliveryTypeFilter === 'domicilio' ? 'all' : 'domicilio')}
-            className={`w-full text-left p-2.5 rounded-xl border transition flex items-start justify-between ${
-              deliveryTypeFilter === 'domicilio'
-                ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-semibold'
-                : 'border-white/[0.06] bg-[#0c1222] text-slate-300 hover:border-white/[0.2]'
-            }`}
-          >
-            <div>
-              <div className="flex items-center gap-1.5">
-                <Truck className="w-3.5 h-3.5 text-amber-400" />
-                <span className="font-bold text-xs text-white">Envío a domicilio</span>
-              </div>
-              <span className="text-[10px] text-emerald-400 font-mono block mt-0.5">
-                ⚡ Llega mañana
-              </span>
-            </div>
-            {deliveryTypeFilter === 'domicilio' && <Check className="w-4 h-4 text-amber-400" />}
-          </button>
+      {/* 1. TIPO DE ENTREGA (Solo si los productos aplican) */}
+      {(hasDomicilio || hasRetiro) && (
+        <div className="space-y-2">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Tipo de Entrega
+          </label>
+          <div className="space-y-1.5">
+            {hasDomicilio && (
+              <button
+                type="button"
+                onClick={() => setDeliveryTypeFilter(deliveryTypeFilter === 'domicilio' ? 'all' : 'domicilio')}
+                className={`w-full text-left p-2.5 rounded-xl border transition flex items-start justify-between ${
+                  deliveryTypeFilter === 'domicilio'
+                    ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-semibold'
+                    : 'border-white/[0.06] bg-[#0c1222] text-slate-300 hover:border-white/[0.2]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <Truck className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="font-bold text-xs text-white">Envío a domicilio</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 font-mono block mt-0.5">
+                    ⚡ Llega mañana
+                  </span>
+                </div>
+                {deliveryTypeFilter === 'domicilio' && <Check className="w-4 h-4 text-amber-400" />}
+              </button>
+            )}
 
-          <button
-            type="button"
-            onClick={() => setDeliveryTypeFilter(deliveryTypeFilter === 'retiro' ? 'all' : 'retiro')}
-            className={`w-full text-left p-2.5 rounded-xl border transition flex items-start justify-between ${
-              deliveryTypeFilter === 'retiro'
-                ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-semibold'
-                : 'border-white/[0.06] bg-[#0c1222] text-slate-300 hover:border-white/[0.2]'
-            }`}
-          >
-            <div>
-              <div className="flex items-center gap-1.5">
-                <Store className="w-3.5 h-3.5 text-amber-400" />
-                <span className="font-bold text-xs text-white">Retiro en un punto</span>
-              </div>
-              <span className="text-[10px] text-cyan-400 font-mono block mt-0.5">
-                📍 Retira mañana
-              </span>
-            </div>
-            {deliveryTypeFilter === 'retiro' && <Check className="w-4 h-4 text-amber-400" />}
-          </button>
+            {hasRetiro && (
+              <button
+                type="button"
+                onClick={() => setDeliveryTypeFilter(deliveryTypeFilter === 'retiro' ? 'all' : 'retiro')}
+                className={`w-full text-left p-2.5 rounded-xl border transition flex items-start justify-between ${
+                  deliveryTypeFilter === 'retiro'
+                    ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-semibold'
+                    : 'border-white/[0.06] bg-[#0c1222] text-slate-300 hover:border-white/[0.2]'
+                }`}
+              >
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <Store className="w-3.5 h-3.5 text-amber-400" />
+                    <span className="font-bold text-xs text-white">Retiro en un punto</span>
+                  </div>
+                  <span className="text-[10px] text-cyan-400 font-mono block mt-0.5">
+                    📍 Retira mañana
+                  </span>
+                </div>
+                {deliveryTypeFilter === 'retiro' && <Check className="w-4 h-4 text-amber-400" />}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 2. CATEGORÍA */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Categoría
-        </label>
-        <div className="space-y-1 max-h-44 overflow-y-auto pr-1">
-          {categories.map((cat) => (
+      {/* 2. CATEGORÍA (Solo si hay más de 1 categoría además de 'Todas') */}
+      {categories.length > 2 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Categoría
+          </label>
+          <div className="space-y-1 max-h-44 overflow-y-auto pr-1">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => setSelectedCategory(cat)}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                  selectedCategory === cat
+                    ? 'bg-amber-500 text-black font-bold shadow-sm'
+                    : 'text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>{cat}</span>
+                {selectedCategory === cat && <Check className="w-3.5 h-3.5 text-black" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 3. MARCA (Solo si hay al menos una marca detectada en los productos) */}
+      {availableBrands.length > 0 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Marca
+          </label>
+          <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
             <button
-              key={cat}
               type="button"
-              onClick={() => setSelectedCategory(cat)}
+              onClick={() => setSelectedBrand('Todas')}
               className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                selectedCategory === cat
-                  ? 'bg-amber-500 text-black font-bold shadow-sm'
+                selectedBrand === 'Todas'
+                  ? 'bg-amber-500 text-black font-bold'
                   : 'text-slate-300 hover:bg-white/[0.05]'
               }`}
             >
-              <span>{cat}</span>
-              {selectedCategory === cat && <Check className="w-3.5 h-3.5 text-black" />}
+              <span>Todas las marcas</span>
             </button>
-          ))}
+            {availableBrands.map((marca) => (
+              <button
+                key={marca}
+                type="button"
+                onClick={() => setSelectedBrand(selectedBrand === marca ? 'Todas' : marca)}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                  selectedBrand === marca
+                    ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>{marca}</span>
+                {selectedBrand === marca && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 3. MARCA */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Marca
-        </label>
-        <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
-          <button
-            type="button"
-            onClick={() => setSelectedBrand('Todas')}
-            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-              selectedBrand === 'Todas'
-                ? 'bg-amber-500 text-black font-bold'
-                : 'text-slate-300 hover:bg-white/[0.05]'
-            }`}
-          >
-            <span>Todas las marcas</span>
-          </button>
-          {MARCAS_LIST.map((marca) => (
+      {/* 4. PRECIO (Solo si hay productos con precios) */}
+      {productsInScope.length > 0 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Precio
+          </label>
+          <div className="space-y-1">
+            {[
+              { id: 'all', label: 'Cualquier precio', count: productsInScope.length },
+              { id: 'under-50', label: 'Menos de $50 USD', count: productsInScope.filter((p) => p.price_usd < 50).length },
+              { id: '50-150', label: '$50 a $150 USD', count: productsInScope.filter((p) => p.price_usd >= 50 && p.price_usd <= 150).length },
+              { id: '150-500', label: '$150 a $500 USD', count: productsInScope.filter((p) => p.price_usd > 150 && p.price_usd <= 500).length },
+              { id: 'over-500', label: 'Más de $500 USD', count: productsInScope.filter((p) => p.price_usd > 500).length },
+            ]
+              .filter((p) => p.id === 'all' || p.count > 0)
+              .map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPriceRange(p.id as any)}
+                  className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                    priceRange === p.id
+                      ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+                      : 'text-slate-300 hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <span>{p.label}</span>
+                  {priceRange === p.id && <Check className="w-3.5 h-3.5 text-amber-400" />}
+                </button>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* 5. CALIFICACIÓN DEL PRODUCTO (Solo si hay productos con calificación) */}
+      {hasRatingProducts && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Calificación del producto
+          </label>
+          <div className="space-y-1">
+            {[
+              { val: 0, label: 'Cualquier calificación' },
+              { val: 4.5, label: '4.5+ Estrellas' },
+              { val: 4.0, label: '4.0+ Estrellas' },
+              { val: 3.0, label: '3.0+ Estrellas' },
+            ].map((r) => (
+              <button
+                key={r.val}
+                type="button"
+                onClick={() => setMinRating(r.val)}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                  minRating === r.val
+                    ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>{r.label}</span>
+                {r.val > 0 && <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 6. VENDIDO POR (Solo si hay variedad de vendedores en el catálogo) */}
+      {(hasOfficialSellers || hasVerifiedSellers) && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Vendido por
+          </label>
+          <div className="space-y-1">
             <button
-              key={marca}
               type="button"
-              onClick={() => setSelectedBrand(selectedBrand === marca ? 'Todas' : marca)}
+              onClick={() => setSoldByFilter('all')}
               className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                selectedBrand === marca
-                  ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+                soldByFilter === 'all'
+                  ? 'bg-amber-500 text-black font-bold'
                   : 'text-slate-300 hover:bg-white/[0.05]'
               }`}
             >
-              <span>{marca}</span>
-              {selectedBrand === marca && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              <span>Todos los vendedores</span>
             </button>
-          ))}
+            {hasOfficialSellers && (
+              <button
+                type="button"
+                onClick={() => setSoldByFilter(soldByFilter === 'official' ? 'all' : 'official')}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                  soldByFilter === 'official'
+                    ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>NovaSats Oficial</span>
+                {soldByFilter === 'official' && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              </button>
+            )}
+            {hasVerifiedSellers && (
+              <button
+                type="button"
+                onClick={() => setSoldByFilter(soldByFilter === 'verified' ? 'all' : 'verified')}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                  soldByFilter === 'verified'
+                    ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>Proveedores Verificados</span>
+                {soldByFilter === 'verified' && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 4. PRECIO */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Precio
-        </label>
-        <div className="space-y-1">
-          {[
-            { id: 'all', label: 'Cualquier precio' },
-            { id: 'under-50', label: 'Menos de $50 USD' },
-            { id: '50-150', label: '$50 a $150 USD' },
-            { id: '150-500', label: '$150 a $500 USD' },
-            { id: 'over-500', label: 'Más de $500 USD' },
-          ].map((p) => (
+      {/* 7. COLOR (Solo si hay al menos un producto con color) */}
+      {availableColors.length > 0 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Color
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
             <button
-              key={p.id}
               type="button"
-              onClick={() => setPriceRange(p.id as any)}
-              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                priceRange === p.id
-                  ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+              onClick={() => setSelectedColor('all')}
+              className={`col-span-2 text-left px-2 py-1 rounded-lg text-xs transition flex items-center justify-between ${
+                selectedColor === 'all'
+                  ? 'bg-amber-500 text-black font-bold'
                   : 'text-slate-300 hover:bg-white/[0.05]'
               }`}
             >
-              <span>{p.label}</span>
-              {priceRange === p.id && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              <span>Todos los colores</span>
             </button>
-          ))}
+            {availableColors.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setSelectedColor(selectedColor === c.id ? 'all' : c.id)}
+                className={`p-1.5 rounded-lg border text-left flex items-center gap-2 transition ${
+                  selectedColor === c.id
+                    ? 'border-amber-500 bg-amber-500/10 text-white font-semibold'
+                    : 'border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span
+                  className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0"
+                  style={{ backgroundColor: c.hex }}
+                />
+                <span className="truncate text-[11px]">{c.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 5. CALIFICACIÓN DEL PRODUCTO */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Calificación del producto
-        </label>
-        <div className="space-y-1">
-          {[
-            { val: 0, label: 'Cualquier calificación' },
-            { val: 4.5, label: '4.5+ Estrellas' },
-            { val: 4.0, label: '4.0+ Estrellas' },
-            { val: 3.0, label: '3.0+ Estrellas' },
-          ].map((r) => (
+      {/* 8. CONDICIÓN DEL PRODUCTO (Solo si hay más de 1 condición entre los productos) */}
+      {availableConditions.length > 1 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Condición del producto
+          </label>
+          <div className="grid grid-cols-3 gap-1">
             <button
-              key={r.val}
               type="button"
-              onClick={() => setMinRating(r.val)}
-              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                minRating === r.val
-                  ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
-                  : 'text-slate-300 hover:bg-white/[0.05]'
-              }`}
-            >
-              <span>{r.label}</span>
-              {r.val > 0 && <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 6. VENDIDO POR */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Vendido por
-        </label>
-        <div className="space-y-1">
-          {[
-            { id: 'all', label: 'Todos los vendedores' },
-            { id: 'official', label: 'NovaSats Oficial' },
-            { id: 'verified', label: 'Proveedores Verificados' },
-          ].map((v) => (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => setSoldByFilter(v.id as any)}
-              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                soldByFilter === v.id
-                  ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
-                  : 'text-slate-300 hover:bg-white/[0.05]'
-              }`}
-            >
-              <span>{v.label}</span>
-              {soldByFilter === v.id && <Check className="w-3.5 h-3.5 text-amber-400" />}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 7. COLOR */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Color
-        </label>
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
-            type="button"
-            onClick={() => setSelectedColor('all')}
-            className={`col-span-2 text-left px-2 py-1 rounded-lg text-xs transition flex items-center justify-between ${
-              selectedColor === 'all'
-                ? 'bg-amber-500 text-black font-bold'
-                : 'text-slate-300 hover:bg-white/[0.05]'
-            }`}
-          >
-            <span>Todos los colores</span>
-          </button>
-          {COLORES_LIST.map((c) => (
-            <button
-              key={c.id}
-              type="button"
-              onClick={() => setSelectedColor(selectedColor === c.id ? 'all' : c.id)}
-              className={`p-1.5 rounded-lg border text-left flex items-center gap-2 transition ${
-                selectedColor === c.id
-                  ? 'border-amber-500 bg-amber-500/10 text-white font-semibold'
-                  : 'border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
-              }`}
-            >
-              <span
-                className="w-3.5 h-3.5 rounded-full border border-white/20 shrink-0"
-                style={{ backgroundColor: c.hex }}
-              />
-              <span className="truncate text-[11px]">{c.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* 8. CONDICIÓN DEL PRODUCTO */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Condición del producto
-        </label>
-        <div className="grid grid-cols-3 gap-1">
-          {[
-            { id: 'all', label: 'Todas' },
-            { id: 'new', label: 'Nuevo' },
-            { id: 'refurbished', label: 'Reacond.' },
-          ].map((cond) => (
-            <button
-              key={cond.id}
-              type="button"
-              onClick={() => setConditionFilter(cond.id as any)}
+              onClick={() => setConditionFilter('all')}
               className={`py-1.5 px-2 rounded-lg text-center text-[11px] font-semibold transition ${
-                conditionFilter === cond.id
+                conditionFilter === 'all'
                   ? 'bg-amber-500 text-black font-bold'
                   : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]'
               }`}
             >
-              {cond.label}
+              Todas
             </button>
-          ))}
+            {availableConditions.includes('new') && (
+              <button
+                type="button"
+                onClick={() => setConditionFilter(conditionFilter === 'new' ? 'all' : 'new')}
+                className={`py-1.5 px-2 rounded-lg text-center text-[11px] font-semibold transition ${
+                  conditionFilter === 'new'
+                    ? 'bg-amber-500 text-black font-bold'
+                    : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]'
+                }`}
+              >
+                Nuevo
+              </button>
+            )}
+            {availableConditions.includes('refurbished') && (
+              <button
+                type="button"
+                onClick={() => setConditionFilter(conditionFilter === 'refurbished' ? 'all' : 'refurbished')}
+                className={`py-1.5 px-2 rounded-lg text-center text-[11px] font-semibold transition ${
+                  conditionFilter === 'refurbished'
+                    ? 'bg-amber-500 text-black font-bold'
+                    : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]'
+                }`}
+              >
+                Reacond.
+              </button>
+            )}
+            {availableConditions.includes('used') && (
+              <button
+                type="button"
+                onClick={() => setConditionFilter(conditionFilter === 'used' ? 'all' : 'used')}
+                className={`py-1.5 px-2 rounded-lg text-center text-[11px] font-semibold transition ${
+                  conditionFilter === 'used'
+                    ? 'bg-amber-500 text-black font-bold'
+                    : 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]'
+                }`}
+              >
+                Usado
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 9. CAPACIDAD */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Capacidad
-        </label>
-        <div className="grid grid-cols-3 gap-1.5">
-          <button
-            type="button"
-            onClick={() => setSelectedCapacity('all')}
-            className={`col-span-3 text-left px-2 py-1 rounded-lg text-xs transition ${
-              selectedCapacity === 'all' ? 'bg-amber-500 text-black font-bold' : 'text-slate-300 hover:bg-white/[0.05]'
-            }`}
-          >
-            Cualquier capacidad
-          </button>
-          {CAPACIDADES_LIST.map((cap) => (
+      {/* 9. CAPACIDAD (Solo si hay productos con almacenamiento en GB/TB) */}
+      {availableCapacities.length > 0 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Capacidad
+          </label>
+          <div className="grid grid-cols-3 gap-1.5">
             <button
-              key={cap}
               type="button"
-              onClick={() => setSelectedCapacity(selectedCapacity === cap ? 'all' : cap)}
-              className={`p-1.5 rounded-lg text-center text-[11px] font-mono font-semibold transition border ${
-                selectedCapacity === cap
-                  ? 'border-amber-500 bg-amber-500/20 text-amber-300'
-                  : 'border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
+              onClick={() => setSelectedCapacity('all')}
+              className={`col-span-3 text-left px-2 py-1 rounded-lg text-xs transition ${
+                selectedCapacity === 'all' ? 'bg-amber-500 text-black font-bold' : 'text-slate-300 hover:bg-white/[0.05]'
               }`}
             >
-              {cap}
+              Cualquier capacidad
             </button>
-          ))}
+            {availableCapacities.map((cap) => (
+              <button
+                key={cap.id}
+                type="button"
+                onClick={() => setSelectedCapacity(selectedCapacity === cap.id ? 'all' : cap.id)}
+                className={`p-1.5 rounded-lg text-center text-[11px] font-mono font-semibold transition border ${
+                  selectedCapacity === cap.id
+                    ? 'border-amber-500 bg-amber-500/20 text-amber-300'
+                    : 'border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                {cap.id}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 10. CONECTIVIDAD / CONEXIÓN */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Conectividad/conexión
-        </label>
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
-            type="button"
-            onClick={() => setSelectedConnectivity('all')}
-            className={`col-span-2 text-left px-2 py-1 rounded-lg text-xs transition ${
-              selectedConnectivity === 'all' ? 'bg-amber-500 text-black font-bold' : 'text-slate-300 hover:bg-white/[0.05]'
-            }`}
-          >
-            Todas las conexiones
-          </button>
-          {CONECTIVIDAD_LIST.map((con) => (
+      {/* 10. CONECTIVIDAD / CONEXIÓN (Solo si hay productos con conectividad detectada) */}
+      {availableConnectivities.length > 0 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Conectividad/conexión
+          </label>
+          <div className="grid grid-cols-2 gap-1.5">
             <button
-              key={con}
               type="button"
-              onClick={() => setSelectedConnectivity(selectedConnectivity === con ? 'all' : con)}
-              className={`p-1.5 rounded-lg text-left text-[11px] font-semibold transition border truncate ${
-                selectedConnectivity === con
-                  ? 'border-amber-500 bg-amber-500/20 text-amber-300'
-                  : 'border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
+              onClick={() => setSelectedConnectivity('all')}
+              className={`col-span-2 text-left px-2 py-1 rounded-lg text-xs transition ${
+                selectedConnectivity === 'all' ? 'bg-amber-500 text-black font-bold' : 'text-slate-300 hover:bg-white/[0.05]'
               }`}
             >
-              {con}
+              Todas las conexiones
             </button>
-          ))}
+            {availableConnectivities.map((con) => (
+              <button
+                key={con.id}
+                type="button"
+                onClick={() => setSelectedConnectivity(selectedConnectivity === con.id ? 'all' : con.id)}
+                className={`p-1.5 rounded-lg text-left text-[11px] font-semibold transition border truncate ${
+                  selectedConnectivity === con.id
+                    ? 'border-amber-500 bg-amber-500/20 text-amber-300'
+                    : 'border-white/[0.06] text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                {con.id}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 11. ESRB */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          ESRB
-        </label>
-        <div className="space-y-1">
-          <button
-            type="button"
-            onClick={() => setSelectedEsrb('all')}
-            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition ${
-              selectedEsrb === 'all' ? 'bg-amber-500 text-black font-bold' : 'text-slate-300 hover:bg-white/[0.05]'
-            }`}
-          >
-            Todas las clasificaciones
-          </button>
-          {ESRB_LIST.map((e) => (
+      {/* 11. ESRB (Solo si hay videojuegos o productos con clasificación ESRB) */}
+      {availableEsrb.length > 0 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            ESRB
+          </label>
+          <div className="space-y-1">
             <button
-              key={e.id}
               type="button"
-              onClick={() => setSelectedEsrb(selectedEsrb === e.id ? 'all' : e.id)}
-              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                selectedEsrb === e.id
-                  ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
-                  : 'text-slate-300 hover:bg-white/[0.05]'
+              onClick={() => setSelectedEsrb('all')}
+              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition ${
+                selectedEsrb === 'all' ? 'bg-amber-500 text-black font-bold' : 'text-slate-300 hover:bg-white/[0.05]'
               }`}
             >
-              <span>{e.label}</span>
-              {selectedEsrb === e.id && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              Todas las clasificaciones
             </button>
-          ))}
+            {availableEsrb.map((e) => (
+              <button
+                key={e.id}
+                type="button"
+                onClick={() => setSelectedEsrb(selectedEsrb === e.id ? 'all' : e.id)}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                  selectedEsrb === e.id
+                    ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>{e.label}</span>
+                {selectedEsrb === e.id && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* 12. TAMAÑO DE LA PANTALLA */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-          Tamaño de la pantalla
-        </label>
-        <div className="space-y-1">
-          <button
-            type="button"
-            onClick={() => setSelectedScreenSize('all')}
-            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition ${
-              selectedScreenSize === 'all' ? 'bg-amber-500 text-black font-bold' : 'text-slate-300 hover:bg-white/[0.05]'
-            }`}
-          >
-            Cualquier tamaño
-          </button>
-          {PANTALLA_LIST.map((s) => (
+      {/* 12. TAMAÑO DE LA PANTALLA (Solo si hay productos con pantalla/monitor/display) */}
+      {availableScreenSizes.length > 0 && (
+        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
+            Tamaño de la pantalla
+          </label>
+          <div className="space-y-1">
             <button
-              key={s.id}
               type="button"
-              onClick={() => setSelectedScreenSize(selectedScreenSize === s.id ? 'all' : s.id)}
-              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                selectedScreenSize === s.id
-                  ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
-                  : 'text-slate-300 hover:bg-white/[0.05]'
+              onClick={() => setSelectedScreenSize('all')}
+              className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition ${
+                selectedScreenSize === 'all' ? 'bg-amber-500 text-black font-bold' : 'text-slate-300 hover:bg-white/[0.05]'
               }`}
             >
-              <span>{s.label}</span>
-              {selectedScreenSize === s.id && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              Cualquier tamaño
             </button>
-          ))}
+            {availableScreenSizes.map((s) => (
+              <button
+                key={s.id}
+                type="button"
+                onClick={() => setSelectedScreenSize(selectedScreenSize === s.id ? 'all' : s.id)}
+                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                  selectedScreenSize === s.id
+                    ? 'bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30'
+                    : 'text-slate-300 hover:bg-white/[0.05]'
+                }`}
+              >
+                <span>{s.label}</span>
+                {selectedScreenSize === s.id && <Check className="w-3.5 h-3.5 text-amber-400" />}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );
@@ -720,7 +1012,7 @@ export const CatalogPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#060911] text-slate-100 flex flex-col font-sans selection:bg-amber-500 selection:text-black">
       
-      {/* HEADER LIMPIO (Sin Portal Proveedores, con enlaces directos y buscador) */}
+      {/* HEADER LIMPIO (Sin Portal Proveedores, sin botón de donar, con buscador) */}
       <header className="sticky top-0 z-40 bg-[#060911]/90 backdrop-blur-xl border-b border-white/[0.08] px-3 sm:px-8 lg:px-12 h-16 sm:h-20 flex items-center justify-between">
         
         {/* Logo */}
@@ -800,7 +1092,7 @@ export const CatalogPage: React.FC = () => {
         </div>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL: FILTROS LATERALES + CATÁLOGO DE PRODUCTOS */}
+      {/* CONTENEDOR PRINCIPAL: FILTROS LATERALES DINÁMICOS + PRODUCTOS */}
       <main className="py-6 sm:py-8 px-4 sm:px-8 lg:px-12 max-w-7xl mx-auto w-full flex-1">
         
         {/* Buscador móvil */}
@@ -826,7 +1118,7 @@ export const CatalogPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Barra superior de herramientas: Botón de filtro móvil, chips activos y ordenamiento */}
+        {/* Barra superior de herramientas: Botón de filtro móvil, contador y ordenamiento */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/[0.06]">
           
           <div className="flex items-center gap-2">
@@ -963,7 +1255,7 @@ export const CatalogPage: React.FC = () => {
                   <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
                       <Filter className="w-4 h-4 text-amber-400" />
-                      <span>Filtros de Búsqueda</span>
+                      <span>Filtros Adaptativos</span>
                     </h3>
                     <button
                       onClick={() => setShowMobileFilters(false)}
@@ -1064,7 +1356,7 @@ export const CatalogPage: React.FC = () => {
                             {product.description}
                           </p>
 
-                          {/* Badges de entrega rápida */}
+                          {/* Badges de entrega */}
                           <div className="flex flex-wrap gap-1.5 pt-1">
                             {isFreeShippingProduct(product) && (
                               <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -1160,7 +1452,7 @@ export const CatalogPage: React.FC = () => {
               <span className="text-base font-black text-white">Nova<span className="text-amber-500">Sats</span></span>
             </div>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Catálogo completo de hardware y mercancía con liquidación directa en Bitcoin on-chain.
+              Catálogo de productos con liquidación directa en Bitcoin on-chain y comprobantes digitales inmutables.
             </p>
             <div className="pt-1">
               <span className="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-mono font-bold">
