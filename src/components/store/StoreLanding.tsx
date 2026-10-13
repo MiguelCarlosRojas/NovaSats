@@ -15,9 +15,6 @@ import {
   Tag,
   Star,
   Heart,
-  QrCode,
-  ExternalLink,
-  DollarSign,
   ArrowRight,
   Sparkles,
   Layers,
@@ -37,9 +34,6 @@ export const StoreLanding: React.FC = () => {
   const [lookupError, setLookupError] = useState('');
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showLookupModal, setShowLookupModal] = useState(false);
-
-  // QR Modal para Yape
-  const [showYapeModal, setShowYapeModal] = useState(false);
 
   const { addToCart, itemCount, setIsCartOpen } = useCart();
 
@@ -155,7 +149,7 @@ export const StoreLanding: React.FC = () => {
           </Link>
         </div>
 
-        {/* Enlaces de Cabecera */}
+        {/* Enlaces de Cabecera (Sin botón de donar) */}
         <div className="flex items-center gap-2 sm:gap-4 shrink-0">
           <Link
             to="/catalogo"
@@ -164,14 +158,6 @@ export const StoreLanding: React.FC = () => {
             <Tag className="w-3.5 h-3.5" />
             <span>Catálogo Completo</span>
           </Link>
-
-          <a
-            href="#donaciones"
-            className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs font-semibold text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 rounded-xl transition"
-          >
-            <Heart className="w-3.5 h-3.5 fill-amber-400" />
-            <span className="hidden xs:inline">Donaciones</span>
-          </a>
         </div>
       </header>
 
@@ -205,14 +191,6 @@ export const StoreLanding: React.FC = () => {
               <span>Explorar Catálogo Completo</span>
               <ChevronRight className="w-4 h-4" />
             </Link>
-
-            <a
-              href="#donaciones"
-              className="px-5 sm:px-6 py-3.5 sm:py-4 bg-[#0e1424] hover:bg-[#161f38] border border-white/[0.08] hover:border-amber-500/40 text-slate-200 text-xs sm:text-sm font-bold rounded-xl transition flex items-center gap-2"
-            >
-              <Heart className="w-4 h-4 text-amber-400 fill-amber-400" />
-              <span>Apoyar con Donación</span>
-            </a>
 
             <a
               href="#consultar-voucher"
@@ -417,175 +395,35 @@ export const StoreLanding: React.FC = () => {
       </section>
 
       {/* =================================================================== */}
-      {/* SECCIÓN DE DONACIONES (PayPal & Yape QR)                             */}
+      {/* SESIÓN DE DONACIONES (Lleva a la página dedicada completa /donaciones) */}
       {/* =================================================================== */}
-      <section id="donaciones" className="py-16 sm:py-24 px-4 sm:px-8 lg:px-12 max-w-6xl mx-auto w-full">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-mono font-bold">
-            <Heart className="w-3.5 h-3.5 fill-rose-400" />
-            <span>Comunidad & Desarrollo Libre</span>
-          </div>
-          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight font-heading">
-            Apoya a NovaSats con una Donación
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-            Tu apoyo permite mantener los servidores, la infraestructura de nodos Bitcoin, el desarrollo de contratos inteligentes y nuevas herramientas de código abierto.
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-          
-          {/* Tarjeta 1: Donaciones por PayPal */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#0b101f] border border-white/[0.08] hover:border-blue-500/40 transition flex flex-col justify-between space-y-6 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
-                <DollarSign className="w-6 h-6" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-blue-400 font-bold block mb-1">
-                  Donación Internacional
-                </span>
-                <h3 className="text-xl font-bold text-white">
-                  PayPal Me
-                </h3>
-                <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                  Puedes enviar cualquier monto de donación de forma segura usando tu tarjeta de crédito, débito o saldo en cuenta PayPal.
-                </p>
-              </div>
-
-              <div className="p-3 bg-white/[0.02] border border-white/[0.06] rounded-xl text-xs font-mono text-slate-300 flex items-center justify-between">
-                <span>Destinatario:</span>
-                <span className="font-bold text-blue-400">@miguelcarlosrojas</span>
-              </div>
+      <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-12 max-w-6xl mx-auto w-full">
+        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-rose-500/10 via-purple-500/10 to-amber-500/10 border border-white/[0.08] relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
+          <div className="space-y-3 text-center md:text-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-mono font-bold">
+              <Heart className="w-3.5 h-3.5 fill-rose-400" />
+              <span>Comunidad & Desarrollo Abierto</span>
             </div>
-
-            <div>
-              <a
-                href="https://paypal.me/miguelcarlosrojas"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-blue-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-blue-500/20 transition flex items-center justify-center gap-2"
-              >
-                <span>Donar con PayPal</span>
-                <ExternalLink className="w-4 h-4" />
-              </a>
-              <p className="text-[11px] text-center text-slate-500 mt-2">
-                Enlace oficial seguro: paypal.me/miguelcarlosrojas
-              </p>
-            </div>
+            <h2 className="text-2xl sm:text-4xl font-black text-white font-heading tracking-tight">
+              Apoya a NovaSats con una Donación
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-300 max-w-xl leading-relaxed">
+              Tus donaciones permiten mantener nuestra infraestructura descentralizada, servidores de alta disponibilidad y el desarrollo continuo de contratos inteligentes en Bitcoin. Contamos con donaciones por PayPal y Yape con código QR.
+            </p>
           </div>
 
-          {/* Tarjeta 2: Donaciones por Yape (QR) */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#0b101f] border border-white/[0.08] hover:border-purple-500/40 transition flex flex-col justify-between space-y-6 relative overflow-hidden group">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
-
-            <div className="space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                <QrCode className="w-6 h-6" />
-              </div>
-              <div>
-                <span className="text-[10px] font-mono uppercase tracking-wider text-purple-400 font-bold block mb-1">
-                  Donación Móvil Perú
-                </span>
-                <h3 className="text-xl font-bold text-white">
-                  Yape con Código QR
-                </h3>
-                <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                  Escanea el código QR de Yape desde tu celular para transferir al instante desde cualquier cuenta en Perú.
-                </p>
-              </div>
-
-              {/* Vista previa del QR de Yape */}
-              <div className="flex items-center gap-4 p-3 bg-white/[0.02] border border-white/[0.06] rounded-2xl">
-                <div
-                  onClick={() => setShowYapeModal(true)}
-                  className="w-20 h-20 sm:w-24 sm:h-24 bg-white p-1 rounded-xl cursor-pointer hover:scale-105 transition shrink-0 shadow-md"
-                  title="Click para ampliar QR"
-                >
-                  <img
-                    src="/yape-qr.png"
-                    alt="Código QR de Yape"
-                    className="w-full h-full object-contain rounded-lg"
-                  />
-                </div>
-                <div className="text-xs space-y-1">
-                  <p className="font-bold text-white">Yape a Miguel Carlos</p>
-                  <p className="text-slate-400 text-[11px]">Válido para Yape y billeteras interoperables (Plin, bancos).</p>
-                  <button
-                    type="button"
-                    onClick={() => setShowYapeModal(true)}
-                    className="text-purple-400 hover:text-purple-300 font-bold text-[11px] underline flex items-center gap-1 pt-1"
-                  >
-                    <span>Ver QR en pantalla completa</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <button
-                type="button"
-                onClick={() => setShowYapeModal(true)}
-                className="w-full py-3.5 px-4 bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-purple-500/20 transition flex items-center justify-center gap-2"
-              >
-                <QrCode className="w-4 h-4" />
-                <span>Mostrar Código QR de Yape</span>
-              </button>
-              <p className="text-[11px] text-center text-slate-500 mt-2">
-                Escaneo inmediato desde la App de Yape
-              </p>
-            </div>
+          <div className="shrink-0 w-full md:w-auto">
+            <Link
+              to="/donaciones"
+              className="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs uppercase tracking-wider rounded-2xl shadow-xl shadow-amber-500/20 transition flex items-center justify-center gap-2.5 active:scale-95"
+            >
+              <Heart className="w-4 h-4 fill-black" />
+              <span>Ir a la Página de Donaciones</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
-
         </div>
       </section>
-
-      {/* MODAL PARA VER EL QR DE YAPE EN GRANDE */}
-      {showYapeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="relative bg-[#0d1222] border border-white/[0.1] rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center space-y-5 shadow-2xl">
-            <button
-              onClick={() => setShowYapeModal(false)}
-              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white rounded-lg hover:bg-white/[0.05] transition"
-            >
-              ✕
-            </button>
-
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-mono font-bold">
-              <QrCode className="w-3.5 h-3.5" />
-              <span>Yape Oficial</span>
-            </div>
-
-            <h3 className="text-lg font-bold text-white">
-              Escanea para Donar por Yape
-            </h3>
-
-            {/* Imagen grande del QR */}
-            <div className="bg-white p-4 rounded-2xl shadow-xl mx-auto w-64 h-64 flex items-center justify-center">
-              <img
-                src="/yape-qr.png"
-                alt="QR Yape Grande"
-                className="w-full h-full object-contain rounded-lg"
-              />
-            </div>
-
-            <p className="text-xs text-slate-300">
-              Abre tu app <strong>Yape</strong>, selecciona "Escanear QR" y enfoca tu cámara sobre esta pantalla.
-            </p>
-
-            <button
-              type="button"
-              onClick={() => setShowYapeModal(false)}
-              className="w-full py-2.5 bg-white/[0.08] hover:bg-white/[0.12] text-white text-xs font-bold rounded-xl transition"
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* SECCIÓN CONSULTAR VOUCHER */}
       <section id="consultar-voucher" className="py-14 sm:py-20 px-4 sm:px-8 lg:px-12 bg-[#04060c] border-t border-white/[0.06]">
@@ -665,9 +503,9 @@ export const StoreLanding: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <a href="#donaciones" className="hover:text-amber-400 transition block">
+                <Link to="/donaciones" className="hover:text-amber-400 transition block">
                   Donaciones (PayPal & Yape)
-                </a>
+                </Link>
               </li>
               <li>
                 <a href="#consultar-voucher" className="hover:text-amber-400 transition block">

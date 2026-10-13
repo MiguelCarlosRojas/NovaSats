@@ -430,53 +430,48 @@ export const CartDrawer: React.FC = () => {
                 </button>
               </div>
 
-              {/* Indicador de 3 Pasos */}
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
-                    step === 1
-                      ? 'bg-amber-500 text-black shadow-sm'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">1</span>
-                  <span>Carro</span>
-                </button>
+              {/* Indicador de 3 Pasos (Solo visible a partir del Paso 2 por solicitud) */}
+              {step > 1 && (
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                  >
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">1</span>
+                    <span>Carro</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (cart.length > 0) setStep(2);
-                  }}
-                  disabled={cart.length === 0}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
-                    step === 2
-                      ? 'bg-amber-500 text-black shadow-sm'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">2</span>
-                  <span>Entrega</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => setStep(2)}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                      step === 2
+                        ? 'bg-amber-500 text-black shadow-sm font-bold'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">2</span>
+                    <span>Entrega</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (customerEmail && direccion) setStep(3);
-                  }}
-                  disabled={!customerEmail || !direccion}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
-                    step === 3
-                      ? 'bg-amber-500 text-black shadow-sm'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">3</span>
-                  <span>Pago</span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (customerEmail && direccion) setStep(3);
+                    }}
+                    disabled={!customerEmail || !direccion}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                      step === 3
+                        ? 'bg-amber-500 text-black shadow-sm font-bold'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">3</span>
+                    <span>Pago</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Error banner */}

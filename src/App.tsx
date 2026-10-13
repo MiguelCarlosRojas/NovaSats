@@ -16,6 +16,7 @@ const RouteTitleUpdater: React.FC = () => {
       '/': 'NovaSats | Marketplace Web3 & Pagos Bitcoin',
       '/catalogo': 'Catálogo de Productos | NovaSats Store',
       '/tienda': 'Catálogo de Productos | NovaSats Store',
+      '/donaciones': 'Donaciones & Apoyo Comunitario | NovaSats',
       '/trabaja-con-nosotros': 'Trabaja con Nosotros | NovaSats Marketplace',
       '/nosotros': 'Sobre Nosotros | NovaSats Ecosistema',
       '/sobre-nosotros': 'Sobre Nosotros | NovaSats Ecosistema',
@@ -69,6 +70,7 @@ const RouteTitleUpdater: React.FC = () => {
 // Store Components
 import { StoreLanding } from './components/store/StoreLanding';
 import { CatalogPage } from './components/store/CatalogPage';
+import { DonacionesPage } from './components/store/DonacionesPage';
 import { ProductDetailPage } from './components/store/ProductDetailPage';
 
 // Dedicated Separate Pages (Each in its own page, completely separate)
@@ -130,6 +132,9 @@ const App: React.FC = () => {
               {/* Dedicated Complete Catalog Page */}
               <Route path="/catalogo" element={<CatalogPage />} />
               <Route path="/tienda" element={<CatalogPage />} />
+
+              {/* Dedicated Donations Page */}
+              <Route path="/donaciones" element={<DonacionesPage />} />
 
               {/* Dedicated Product Detail Page with URL */}
               <Route path="/producto/:id" element={<ProductDetailPage />} />
