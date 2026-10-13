@@ -14,6 +14,7 @@ const RouteTitleUpdater: React.FC = () => {
 
     const titleMap: Record<string, string> = {
       '/': 'NovaSats | Marketplace Web3 & Pagos Bitcoin',
+      '/catalogo': 'Catálogo de Productos | NovaSats Store',
       '/tienda': 'Catálogo de Productos | NovaSats Store',
       '/trabaja-con-nosotros': 'Trabaja con Nosotros | NovaSats Marketplace',
       '/nosotros': 'Sobre Nosotros | NovaSats Ecosistema',
@@ -67,6 +68,7 @@ const RouteTitleUpdater: React.FC = () => {
 
 // Store Components
 import { StoreLanding } from './components/store/StoreLanding';
+import { CatalogPage } from './components/store/CatalogPage';
 import { ProductDetailPage } from './components/store/ProductDetailPage';
 
 // Dedicated Separate Pages (Each in its own page, completely separate)
@@ -124,7 +126,10 @@ const App: React.FC = () => {
                 <Routes>
               {/* Store Landing Page (Default Home) */}
               <Route path="/" element={<StoreLanding />} />
-              <Route path="/tienda" element={<StoreLanding />} />
+
+              {/* Dedicated Complete Catalog Page */}
+              <Route path="/catalogo" element={<CatalogPage />} />
+              <Route path="/tienda" element={<CatalogPage />} />
 
               {/* Dedicated Product Detail Page with URL */}
               <Route path="/producto/:id" element={<ProductDetailPage />} />

@@ -300,12 +300,12 @@ export const ProductDetailPage: React.FC = () => {
 
         <div className="flex items-center gap-2 shrink-0">
           <Link
-            to="/"
+            to="/catalogo"
             className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold text-slate-300 hover:text-white bg-[#0e1424] hover:bg-[#161f38] border border-white/[0.08] hover:border-amber-500/30 rounded-xl transition"
           >
             <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Volver a la Tienda</span>
-            <span className="sm:hidden text-[11px]">Volver</span>
+            <span className="hidden sm:inline">Volver al Catálogo</span>
+            <span className="sm:hidden text-[11px]">Catálogo</span>
           </Link>
         </div>
       </header>
@@ -314,8 +314,12 @@ export const ProductDetailPage: React.FC = () => {
       <div className="bg-[#04060c] border-b border-white/[0.06] py-3.5 px-4 sm:px-8 lg:px-12">
         <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-slate-400 font-medium overflow-x-auto">
           <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1 shrink-0">
+            <span>Inicio</span>
+          </Link>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+          <Link to="/catalogo" className="hover:text-amber-400 transition flex items-center gap-1 shrink-0">
             <Store className="w-3.5 h-3.5 text-slate-500" />
-            <span>Tienda</span>
+            <span>Catálogo</span>
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
           <span className="text-slate-400 shrink-0">{product.category || 'General'}</span>
