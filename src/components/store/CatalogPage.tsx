@@ -23,7 +23,6 @@ import {
   SlidersHorizontal,
   Filter,
   ShieldCheck,
-  Store,
   Home,
   Heart,
   X
@@ -226,7 +225,7 @@ export const CatalogPage: React.FC = () => {
         if (minRating > 0 && (p.rating || 0) < minRating) return false;
 
         // Warranty
-        if (onlyOfficialWarranty && !p.warranty_months) return false;
+        if (onlyOfficialWarranty && (!p.warranty || !p.warranty.trim() || p.warranty.toLowerCase().includes('sin'))) return false;
 
         return true;
       })

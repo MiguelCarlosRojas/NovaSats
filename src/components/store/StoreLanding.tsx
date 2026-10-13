@@ -8,15 +8,12 @@ import { Link } from 'react-router-dom';
 import {
   ShoppingBag,
   Bitcoin,
-  Search,
   Receipt,
   ChevronRight,
   Package,
-  Truck,
   Zap,
   Tag,
   Star,
-  ShieldCheck,
   Heart,
   QrCode,
   ExternalLink,
@@ -25,7 +22,6 @@ import {
   Sparkles,
   Layers,
   Lock,
-  CheckCircle2,
   AlertCircle
 } from 'lucide-react';
 
