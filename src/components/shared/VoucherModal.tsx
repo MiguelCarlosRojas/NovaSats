@@ -716,14 +716,15 @@ ${fiscalInfo.web}`;
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-3xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden my-6">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-3xl bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden my-auto max-h-[92vh] flex flex-col">
         
         {/* Modal Header */}
-        <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white p-5 sm:p-6 relative border-b border-white/10">
+        <div className="shrink-0 bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950 text-white p-4 sm:p-6 relative border-b border-white/10">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-gray-300 hover:text-white rounded-full hover:bg-white/10 transition"
+            className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-2 text-gray-300 hover:text-white rounded-full hover:bg-white/10 transition"
+            aria-label="Cerrar modal"
           >
             <X className="w-5 h-5" />
           </button>
@@ -784,7 +785,7 @@ ${fiscalInfo.web}`;
 
         {/* Modal Body */}
         {viewMode === 'preview80mm' ? (
-          <div className="p-5 sm:p-6 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4">
             {isMobileDevice ? (
               /* En Celular: Mensaje y Botón de Descarga Directa */
               <div className="p-6 bg-slate-900 border border-amber-500/30 rounded-2xl text-center space-y-4">
@@ -888,7 +889,7 @@ ${fiscalInfo.web}`;
           </div>
         ) : (
           /* Vista Previa del A4 (Factura / Boleta Electrónica Oficial) */
-          <div className="p-5 sm:p-6 space-y-4">
+          <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-4">
             {isMobileDevice ? (
               /* En Celular: Mensaje y Botón de Descarga Directa A4 */
               <div className="p-6 bg-slate-900 border border-blue-500/30 rounded-2xl text-center space-y-4">

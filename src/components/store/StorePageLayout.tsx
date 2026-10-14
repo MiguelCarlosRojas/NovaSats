@@ -82,21 +82,21 @@ export const StorePageLayout: React.FC<StorePageLayoutProps> = ({
       </header>
 
       {/* Breadcrumb Bar */}
-      <div className="bg-[#04060c] border-b border-white/[0.06] py-3.5 px-4 sm:px-8 lg:px-12">
-        <div className="w-full flex items-center gap-2 text-xs text-slate-400 font-medium">
-          <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1">
+      <div className="bg-[#04060c] border-b border-white/[0.06] py-3 px-3.5 sm:px-8 lg:px-12">
+        <div className="w-full max-w-7xl mx-auto flex items-center gap-2 text-xs text-slate-400 font-medium overflow-x-auto whitespace-nowrap lateral-scrollbar">
+          <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1 shrink-0">
             <Store className="w-3.5 h-3.5 text-slate-500" />
             <span>Tienda</span>
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-          <span className="text-slate-400">{categoryName}</span>
+          <span className="text-slate-400 shrink-0">{categoryName}</span>
           <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-          <span className="text-amber-400 font-bold truncate">{pageTitle}</span>
+          <span className="text-amber-400 font-bold truncate max-w-[200px] sm:max-w-none">{pageTitle}</span>
         </div>
       </div>
 
-      {/* Main Page Content (Full available width) */}
-      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-10">
+      {/* Main Page Content (Full available width with maximum bounds) */}
+      <main className="flex-1 w-full max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 xl:px-12 py-8 sm:py-12">
         {children}
       </main>
 

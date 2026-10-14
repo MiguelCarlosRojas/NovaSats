@@ -29,7 +29,9 @@ import {
   Store,
   Navigation,
   ExternalLink,
-  Mail
+  Mail,
+  Search,
+  LocateFixed
 } from 'lucide-react';
 
 // Departamentos y provincias de Perú
@@ -173,6 +175,9 @@ export const CartDrawer: React.FC = () => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState('');
   const [gpsSuccess, setGpsSuccess] = useState(false);
+  const [mapSearchInput, setMapSearchInput] = useState('');
+  const [mapSearching, setMapSearching] = useState(false);
+  const [mapSearchMessage, setMapSearchMessage] = useState('');
 
   // Tasa de cambio Soles / USD
   const PEN_RATE = 3.75;
@@ -247,8 +252,9 @@ export const CartDrawer: React.FC = () => {
               const road = data.address.road || data.address.pedestrian || data.address.suburb || '';
               const houseNum = data.address.house_number || '';
               const foundAddr = `${road} ${houseNum}`.trim();
-              if (foundAddr && !direccion) {
+              if (foundAddr) {
                 setDireccion(foundAddr);
+                setMapSearchInput(foundAddr);
               }
               if (data.address.state && !departamento) {
                 const matched = Object.keys(PERU_LOCATIONS).find(d =>
@@ -275,6 +281,40 @@ export const CartDrawer: React.FC = () => {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
+  };
+
+  // Buscar dirección ingresada en el mapa y sincronizar coordenadas
+  const handleMapSearch = async (queryText?: string) => {
+    const q = (queryText !== undefined ? queryText : mapSearchInput || direccion).trim();
+    if (!q) return;
+
+    setMapSearching(true);
+    setMapSearchMessage('');
+    try {
+      const searchParam = `${q}, ${distrito ? distrito + ', ' : ''}${departamento ? departamento + ', ' : ''}Peru`;
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchParam)}&limit=1`
+      );
+      if (res.ok) {
+        const results = await res.json();
+        if (results && results.length > 0) {
+          const first = results[0];
+          const newLat = parseFloat(first.lat);
+          const newLng = parseFloat(first.lon);
+          setCoords({ lat: newLat, lng: newLng });
+          setMapSearchMessage('Ubicación localizada en el mapa.');
+          if (!direccion) {
+            setDireccion(q);
+          }
+        } else {
+          setMapSearchMessage('No se hallaron coordenadas exactas; mostrando referencia en el mapa.');
+        }
+      }
+    } catch {
+      setMapSearchMessage('Buscando referencia en Google Maps...');
+    } finally {
+      setMapSearching(false);
+    }
   };
 
   // Estado de checkout y pago
@@ -549,18 +589,20 @@ export const CartDrawer: React.FC = () => {
         {/* Backdrop */}
         <div
           onClick={() => setIsCartOpen(false)}
-          className="absolute inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+          className="absolute inset-0 bg-black/75 backdrop-blur-sm transition-opacity"
         />
 
-        <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-10">
-          <div className="w-full sm:w-screen sm:max-w-md bg-white dark:bg-gray-900 shadow-2xl flex flex-col border-l border-gray-200 dark:border-gray-800">
+        <div className="fixed inset-y-0 right-0 max-w-full flex pl-0 sm:pl-6 md:pl-10">
+          <div className="w-full sm:max-w-lg md:max-w-xl bg-white dark:bg-gray-900 shadow-2xl flex flex-col border-l border-gray-200 dark:border-gray-800 h-[100dvh] max-h-[100dvh]">
             
             {/* Header con Stepper */}
-            <div className="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-800">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5 text-amber-500" />
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+            <div className="shrink-0 p-3.5 sm:p-5 border-b border-gray-200 dark:border-gray-800 bg-white/95 dark:bg-gray-900/95 backdrop-blur z-10">
+              <div className="flex items-center justify-between mb-2.5">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+                    <ShoppingBag className="w-4 h-4" />
+                  </div>
+                  <h2 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white truncate">
                     {step === 1 && `Carrito de Compras (${itemCount})`}
                     {step === 2 && 'Datos de Entrega'}
                     {step === 3 && 'Confirmar y Pagar'}
@@ -568,35 +610,36 @@ export const CartDrawer: React.FC = () => {
                 </div>
                 <button
                   onClick={() => setIsCartOpen(false)}
-                  className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+                  className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition shrink-0"
+                  aria-label="Cerrar carrito"
                 >
                   <X className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* Indicador de 3 Pasos (Solo visible a partir del Paso 2 por solicitud) */}
+              {/* Indicador de 3 Pasos (Visible a partir del Paso 2) */}
               {step > 1 && (
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <div className="grid grid-cols-3 gap-1.5 sm:gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                    className="flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-1.5 sm:px-2 rounded-lg text-[11px] sm:text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
                   >
-                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">1</span>
-                    <span>Carro</span>
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold shrink-0">1</span>
+                    <span className="truncate">Carro</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                    className={`flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-1.5 sm:px-2 rounded-lg text-[11px] sm:text-xs font-semibold transition ${
                       step === 2
                         ? 'bg-amber-500 text-black shadow-sm font-bold'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">2</span>
-                    <span>Entrega</span>
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold shrink-0">2</span>
+                    <span className="truncate">Entrega</span>
                   </button>
 
                   <button
@@ -605,14 +648,14 @@ export const CartDrawer: React.FC = () => {
                       if (customerEmail && direccion) setStep(3);
                     }}
                     disabled={!customerEmail || !direccion}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                    className={`flex items-center justify-center gap-1 sm:gap-1.5 py-1.5 px-1.5 sm:px-2 rounded-lg text-[11px] sm:text-xs font-semibold transition ${
                       step === 3
                         ? 'bg-amber-500 text-black shadow-sm font-bold'
                         : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
-                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">3</span>
-                    <span>Pago</span>
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold shrink-0">3</span>
+                    <span className="truncate">Pago</span>
                   </button>
                 </div>
               )}
@@ -620,67 +663,82 @@ export const CartDrawer: React.FC = () => {
 
             {/* Error banner */}
             {errorMessage && (
-              <div className="mx-4 mt-3 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-2 text-xs text-red-700 dark:text-red-300">
+              <div className="shrink-0 mx-3 sm:mx-5 mt-3 p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-xl flex items-center gap-2 text-xs text-red-700 dark:text-red-300">
                 <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{errorMessage}</span>
+                <span className="flex-1">{errorMessage}</span>
               </div>
             )}
 
-            {/* Contenido según el paso */}
-            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
-              
-              {/* ======================================================== */}
-              {/* PASO 1: CARRO (Con control de teclas Arriba / Abajo)     */}
-              {/* ======================================================== */}
-              {step === 1 && (
-                <>
+            {/* ======================================================== */}
+            {/* PASO 1: CARRO (Con control de teclas Arriba / Abajo)     */}
+            {/* ======================================================== */}
+            {step === 1 && (
+              <div className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3">
                   {cart.length === 0 ? (
-                    <div className="h-full flex flex-col items-center justify-center text-center p-6 text-gray-500">
+                    <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-6 text-gray-500">
                       <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500 mb-4">
                         <ShoppingBag className="w-8 h-8" />
                       </div>
                       <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Tu carrito está vacío</h3>
-                      <p className="text-xs text-gray-500 max-w-xs">
-                        Explora los productos en el catálogo y agrégalos para comprar con Bitcoin.
+                      <p className="text-xs text-gray-500 max-w-xs mb-5">
+                        Explora los productos en el catálogo y agrégalos para comprar con Bitcoin de manera segura.
                       </p>
+                      <button
+                        type="button"
+                        onClick={() => setIsCartOpen(false)}
+                        className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition active:scale-95"
+                      >
+                        Explorar Catálogo
+                      </button>
                     </div>
                   ) : (
-                      <div className="space-y-3">
-                        {cart.map((item) => (
+                    <div className="space-y-3">
+                      {cart.map((item) => {
+                        const itemPenTotal = getItemCurrentPen(item);
+                        return (
                           <div
                             key={item.product.id}
-                            className="flex gap-3 p-3.5 bg-gray-50 dark:bg-gray-800/70 rounded-2xl border border-gray-200 dark:border-gray-700/80 hover:border-amber-500/40 transition group"
+                            className="flex gap-3 p-3 sm:p-3.5 bg-gray-50 dark:bg-gray-800/70 rounded-2xl border border-gray-200 dark:border-gray-700/80 hover:border-amber-500/40 transition group"
                           >
                             <img
                               src={item.product.image_url}
                               alt={item.product.name}
-                              className="w-18 h-18 sm:w-20 sm:h-20 object-cover rounded-xl bg-gray-200 dark:bg-gray-700 shrink-0"
+                              className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl bg-gray-200 dark:bg-gray-700 shrink-0"
                             />
                             <div className="flex-1 min-w-0 flex flex-col justify-between">
                               <div>
-                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                <h4 className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug">
                                   {item.product.name}
                                 </h4>
-                                <p className="text-xs text-amber-600 dark:text-amber-400 font-mono font-bold mt-0.5">
-                                  ${Number(item.product.price_usd).toFixed(2)} USD
-                                </p>
-                                <p className="text-[10px] text-gray-500 font-mono">
+                                <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5 mt-1">
+                                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400 font-mono">
+                                    S/ {itemPenTotal.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                  <span className="text-[10px] text-gray-500 font-mono">
+                                    (${Number(item.product.price_usd).toFixed(2)} USD c/u)
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-gray-500 font-mono mt-0.5 truncate">
                                   {Number(item.product.price_btc).toFixed(8)} ₿ c/u
                                 </p>
                               </div>
                               
                               <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200/60 dark:border-gray-700/60">
-                                {/* Selector de cantidad: Teclas Arriba/Abajo, sin botones nativos y botón de menos solo si cantidad > 1 */}
+                                {/* Selector de cantidad táctil y con soporte de flechas Arriba/Abajo */}
                                 <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
-                                  {item.quantity > 1 && (
+                                  {item.quantity > 1 ? (
                                     <button
                                       type="button"
                                       onClick={() => updateQuantity(item.product.id, Math.max(1, item.quantity - 1))}
-                                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition"
+                                      className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition"
                                       title="Disminuir cantidad"
+                                      aria-label="Disminuir cantidad"
                                     >
                                       <Minus className="w-3.5 h-3.5" />
                                     </button>
+                                  ) : (
+                                    <div className="w-2" />
                                   )}
                                   <input
                                     type="text"
@@ -695,15 +753,16 @@ export const CartDrawer: React.FC = () => {
                                       }
                                     }}
                                     onKeyDown={(e) => handleKeyDownQuantity(e, item.product.id, item.quantity, item.product.stock)}
-                                    className="w-12 text-center text-xs font-bold text-gray-900 dark:text-white bg-transparent focus:outline-none"
+                                    className="w-10 sm:w-12 text-center text-xs font-bold text-gray-900 dark:text-white bg-transparent focus:outline-none"
                                     title="Usa flechas Arriba/Abajo para cambiar cantidad"
                                   />
                                   <button
                                     type="button"
                                     onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                                     disabled={item.quantity >= item.product.stock}
-                                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-30 transition"
+                                    className="p-1.5 sm:p-2 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-30 transition"
                                     title="Aumentar cantidad"
+                                    aria-label="Aumentar cantidad"
                                   >
                                     <Plus className="w-3.5 h-3.5" />
                                   </button>
@@ -714,27 +773,89 @@ export const CartDrawer: React.FC = () => {
                                   onClick={() => removeFromCart(item.product.id)}
                                   className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition"
                                   title="Eliminar producto"
+                                  aria-label="Eliminar producto"
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </button>
                               </div>
                             </div>
                           </div>
-                        ))}
-                      </div>
+                        );
+                      })}
+                    </div>
                   )}
-                </>
-              )}
+                </div>
 
-              {/* ======================================================== */}
-              {/* PASO 2: ENTREGA (Secuencial: 1 -> 2 -> 3)               */}
-              {/* ======================================================== */}
-              {step === 2 && (
-                <div className="space-y-4">
-                  {/* SUB-PASO 1: Contacto & Comprobante */}
-                  {deliverySubStep === 1 && (
-                    <form onSubmit={handleContinueToAddress} className="space-y-4">
-                      <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 space-y-3">
+                {/* Footer anclado para Paso 1 */}
+                {cart.length > 0 && (
+                  <div className="shrink-0 p-3.5 sm:p-5 border-t border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur space-y-3">
+                    <div className="flex justify-between items-baseline font-bold text-gray-900 dark:text-white">
+                      <div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400 block font-normal">Total a Pagar</span>
+                        <span className="text-xl sm:text-2xl font-black">
+                          S/ {totalCurrentPen.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <div className="text-right font-mono">
+                        <span className="text-sm font-bold text-gray-800 dark:text-gray-200">${totalUsd.toFixed(2)} USD</span>
+                        <p className="text-[11px] text-amber-500 font-semibold">
+                          {totalBtc.toFixed(8)} ₿
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={clearCart}
+                        className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition shrink-0"
+                        title="Vaciar carrito"
+                        aria-label="Vaciar carrito"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleGoToDelivery}
+                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold rounded-xl shadow-lg shadow-orange-500/25 transition text-xs sm:text-sm uppercase tracking-wider active:scale-95"
+                      >
+                        <span>Continuar a Entrega</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ======================================================== */}
+            {/* PASO 2: ENTREGA (Secuencial: 1 -> 2 -> 3)               */}
+            {/* ======================================================== */}
+            {step === 2 && (
+              <div className="flex-1 flex flex-col min-h-0">
+                {/* Sub-paso indicator de entrega */}
+                <div className="shrink-0 px-3.5 sm:px-5 py-2 bg-gray-100/70 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between text-[11px] font-semibold text-gray-600 dark:text-gray-400">
+                  <div className={`flex items-center gap-1 ${deliverySubStep === 1 ? 'text-amber-500 font-bold' : ''}`}>
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-amber-500/20 text-amber-500">1</span>
+                    <span>Contacto</span>
+                  </div>
+                  <span className="text-gray-300 dark:text-gray-700">›</span>
+                  <div className={`flex items-center gap-1 ${deliverySubStep === 2 ? 'text-amber-500 font-bold' : ''}`}>
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-amber-500/20 text-amber-500">2</span>
+                    <span>Dirección</span>
+                  </div>
+                  <span className="text-gray-300 dark:text-gray-700">›</span>
+                  <div className={`flex items-center gap-1 ${deliverySubStep === 3 ? 'text-amber-500 font-bold' : ''}`}>
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-amber-500/20 text-amber-500">3</span>
+                    <span>Envío</span>
+                  </div>
+                </div>
+
+                {/* SUB-PASO 1: Contacto & Comprobante */}
+                {deliverySubStep === 1 && (
+                  <form onSubmit={handleContinueToAddress} className="flex-1 flex flex-col min-h-0">
+                    <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-4">
+                      <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 space-y-3.5">
                         <div className="flex items-center gap-2">
                           <Mail className="w-4 h-4 text-amber-500" />
                           <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
@@ -751,7 +872,7 @@ export const CartDrawer: React.FC = () => {
                             value={customerName}
                             onChange={(e) => setCustomerName(e.target.value)}
                             placeholder="Ej: Miguel Carlos Rojas"
-                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
+                            className="w-full px-3 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
                           />
                         </div>
                         <div>
@@ -764,38 +885,40 @@ export const CartDrawer: React.FC = () => {
                             value={customerEmail}
                             onChange={(e) => setCustomerEmail(e.target.value)}
                             placeholder="tu.correo@gmail.com"
-                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
+                            className="w-full px-3 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
                           />
-                          <p className="text-[11px] text-gray-500 mt-1">
-                            Te enviaremos el comprobante digital criptográfico directamente a tu Gmail.
+                          <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1.5 leading-relaxed">
+                            Te enviaremos el comprobante digital criptográfico directamente a tu Gmail con el respaldo de NovaSats.sol.
                           </p>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="flex gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setStep(1)}
-                          className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
-                        >
-                          <ArrowLeft className="w-3.5 h-3.5" />
-                          <span>Volver al Carro</span>
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition"
-                        >
-                          <span>Continuar</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </form>
-                  )}
+                    <div className="shrink-0 p-3.5 sm:p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setStep(1)}
+                        className="px-3.5 sm:px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shrink-0"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Carro</span>
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition active:scale-95"
+                      >
+                        <span>Continuar a Dirección</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </form>
+                )}
 
-                  {/* SUB-PASO 2: Agregar Dirección con Google Maps & GPS */}
-                  {deliverySubStep === 2 && (
-                    <form onSubmit={handleContinueToDeliveryType} className="space-y-4">
-                      <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 space-y-3">
+                {/* SUB-PASO 2: Agregar Dirección con Google Maps & GPS */}
+                {deliverySubStep === 2 && (
+                  <form onSubmit={handleContinueToDeliveryType} className="flex-1 flex flex-col min-h-0">
+                    <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5">
+                      <div className="bg-gray-50 dark:bg-gray-800/60 p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 space-y-3">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <MapPin className="w-4 h-4 text-amber-500" />
@@ -810,211 +933,286 @@ export const CartDrawer: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Permiso de Ubicación del Sistema (GPS) */}
-                        <div className="p-3 bg-white dark:bg-gray-900 border border-amber-500/30 rounded-xl space-y-2">
-                          <div className="flex items-start justify-between gap-2">
+                        {/* Ubicación selectores */}
+                        <div className="space-y-3">
+                          {/* Departamento */}
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                              Departamento *
+                            </label>
+                            <select
+                              required
+                              value={departamento}
+                              onChange={(e) => handleDeptChange(e.target.value)}
+                              className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
+                            >
+                              <option value="">Selecciona una opción</option>
+                              {Object.keys(PERU_LOCATIONS).map((dept) => (
+                                <option key={dept} value={dept}>{dept}</option>
+                              ))}
+                            </select>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* Provincia */}
                             <div>
-                              <p className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                                <Navigation className="w-3.5 h-3.5 text-amber-500" />
-                                Ubicación del Sistema (GPS)
-                              </p>
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                Detecta tu ubicación exacta con el permiso de tu dispositivo o navegador.
-                              </p>
+                              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                Provincia *
+                              </label>
+                              <select
+                                required
+                                value={provincia}
+                                onChange={(e) => handleProvChange(e.target.value)}
+                                disabled={!departamento}
+                                className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white disabled:opacity-50"
+                              >
+                                <option value="">Selecciona una opción</option>
+                                {availableProvincias.map((prov) => (
+                                  <option key={prov} value={prov}>{prov}</option>
+                                ))}
+                              </select>
                             </div>
-                            <button
-                              type="button"
-                              onClick={requestSystemLocation}
-                              disabled={gpsLoading}
-                              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-lg transition shrink-0 flex items-center gap-1 shadow-sm disabled:opacity-50"
-                            >
-                              {gpsLoading ? (
-                                <>
+
+                            {/* Distrito */}
+                            <div>
+                              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                                Distrito *
+                              </label>
+                              <select
+                                required
+                                value={distrito}
+                                onChange={(e) => setDistrito(e.target.value)}
+                                disabled={!provincia}
+                                className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white disabled:opacity-50"
+                              >
+                                <option value="">Selecciona una opción</option>
+                                {availableDistritos.map((dist) => (
+                                  <option key={dist} value={dist}>{dist}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Dirección de Entrega con botón de Permiso GPS integrado */}
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                                Dirección de Entrega *
+                              </label>
+                              <button
+                                type="button"
+                                onClick={requestSystemLocation}
+                                disabled={gpsLoading}
+                                className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1 transition disabled:opacity-50"
+                                title="Solicitar permiso y autocompletar con sensor GPS"
+                              >
+                                {gpsLoading ? (
+                                  <>
+                                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                    <span>Detectando...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <LocateFixed className="w-3.5 h-3.5" />
+                                    <span>Usar mi GPS</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            <div className="relative">
+                              <input
+                                type="text"
+                                required
+                                value={direccion}
+                                onChange={(e) => {
+                                  setDireccion(e.target.value);
+                                  setMapSearchInput(e.target.value);
+                                }}
+                                onBlur={() => {
+                                  if (direccion.trim()) {
+                                    handleMapSearch(direccion);
+                                  }
+                                }}
+                                placeholder="Ingresa calle y número / Mz / Lote / Urb"
+                                className="w-full pl-3.5 pr-24 py-2.5 text-xs sm:text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
+                              />
+                              <button
+                                type="button"
+                                onClick={requestSystemLocation}
+                                disabled={gpsLoading}
+                                className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-black font-bold text-[11px] rounded-lg transition flex items-center gap-1 shadow-sm disabled:opacity-50"
+                              >
+                                {gpsLoading ? (
                                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  <span>Detectando...</span>
-                                </>
-                              ) : (
-                                <>
+                                ) : (
                                   <Navigation className="w-3.5 h-3.5" />
-                                  <span>Detectar GPS</span>
-                                </>
-                              )}
-                            </button>
+                                )}
+                                <span className="hidden xs:inline">Permiso GPS</span>
+                              </button>
+                            </div>
+
+                            {gpsSuccess && (
+                              <p className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Permiso concedido y dirección localizada por GPS.
+                              </p>
+                            )}
+                            {gpsError && (
+                              <p className="text-[11px] text-amber-600 dark:text-amber-400">
+                                {gpsError}
+                              </p>
+                            )}
                           </div>
 
-                          {gpsSuccess && (
-                            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Permiso concedido y ubicación GPS detectada.
-                            </p>
-                          )}
-                          {gpsError && (
-                            <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                              {gpsError}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Mapa de Google Interactivo */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                              Mapa de Google - Destino de Entrega
-                            </span>
-                            <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                coords ? `${coords.lat},${coords.lng}` : `${direccion || 'Lima'}, ${distrito || ''}, ${provincia || ''}, Peru`
-                              )}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 font-medium"
-                            >
-                              <span>Ver en Google Maps</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-                          <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 relative">
-                            <iframe
-                              title="Google Maps Destino"
-                              width="100%"
-                              height="100%"
-                              frameBorder="0"
-                              scrolling="no"
-                              marginHeight={0}
-                              marginWidth={0}
-                              src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                                coords
-                                  ? `${coords.lat},${coords.lng}`
-                                  : `${direccion || 'Lima Perú'}, ${distrito || ''}, ${provincia || ''}, Peru`
-                              )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                              className="w-full h-full"
+                          {/* Depto, casa, piso, interior (opcional) */}
+                          <div>
+                            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                              Depto, casa, piso, interior (opcional)
+                            </label>
+                            <input
+                              type="text"
+                              value={deptoInterior}
+                              onChange={(e) => setDeptoInterior(e.target.value)}
+                              placeholder="Ejemplo: Depto. 101, Torre B"
+                              className="w-full px-3 py-2 text-xs sm:text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
                             />
                           </div>
-                        </div>
 
-                        {/* Departamento */}
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Departamento *
-                          </label>
-                          <select
-                            required
-                            value={departamento}
-                            onChange={(e) => handleDeptChange(e.target.value)}
-                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
-                          >
-                            <option value="">Selecciona una opción</option>
-                            {Object.keys(PERU_LOCATIONS).map((dept) => (
-                              <option key={dept} value={dept}>{dept}</option>
-                            ))}
-                          </select>
-                        </div>
+                          {/* Mapa Interactivo con manipulación, buscador y selector integrado */}
+                          <div className="pt-2 space-y-2">
+                            <div className="flex flex-col xs:flex-row xs:items-center justify-between gap-1">
+                              <span className="text-xs font-bold text-gray-800 dark:text-gray-200 flex items-center gap-1.5">
+                                <MapPin className="w-3.5 h-3.5 text-amber-500" />
+                                Mapa Interactivo (Buscar / Manipular Destino)
+                              </span>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={requestSystemLocation}
+                                  className="text-[10px] text-amber-600 dark:text-amber-400 font-bold hover:underline flex items-center gap-0.5"
+                                >
+                                  <Navigation className="w-3 h-3" />
+                                  <span>Mi ubicación GPS</span>
+                                </button>
+                                <span className="text-gray-300 dark:text-gray-700">|</span>
+                                <a
+                                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                    coords ? `${coords.lat},${coords.lng}` : `${direccion || 'Lima'}, ${distrito || ''}, ${provincia || ''}, Peru`
+                                  )}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 font-medium"
+                                >
+                                  <span>Abrir Google Maps</span>
+                                  <ExternalLink className="w-3 h-3" />
+                                </a>
+                              </div>
+                            </div>
 
-                        {/* Provincia */}
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Provincia *
-                          </label>
-                          <select
-                            required
-                            value={provincia}
-                            onChange={(e) => handleProvChange(e.target.value)}
-                            disabled={!departamento}
-                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white disabled:opacity-50"
-                          >
-                            <option value="">Selecciona una opción</option>
-                            {availableProvincias.map((prov) => (
-                              <option key={prov} value={prov}>{prov}</option>
-                            ))}
-                          </select>
-                        </div>
+                            {/* Barra para escribir y buscar directamente en el mapa */}
+                            <div className="flex gap-1.5">
+                              <div className="relative flex-1">
+                                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input
+                                  type="text"
+                                  value={mapSearchInput}
+                                  onChange={(e) => setMapSearchInput(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault();
+                                      handleMapSearch();
+                                    }
+                                  }}
+                                  placeholder="Escribe o busca dirección en el mapa..."
+                                  className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-1 focus:ring-amber-500 focus:outline-none dark:text-white"
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => handleMapSearch()}
+                                disabled={mapSearching}
+                                className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-lg transition flex items-center gap-1 shrink-0 disabled:opacity-50"
+                              >
+                                {mapSearching ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                ) : (
+                                  <Search className="w-3.5 h-3.5 text-amber-500" />
+                                )}
+                                <span>Buscar</span>
+                              </button>
+                            </div>
 
-                        {/* Distrito */}
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Distrito *
-                          </label>
-                          <select
-                            required
-                            value={distrito}
-                            onChange={(e) => setDistrito(e.target.value)}
-                            disabled={!provincia}
-                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white disabled:opacity-50"
-                          >
-                            <option value="">Selecciona una opción</option>
-                            {availableDistritos.map((dist) => (
-                              <option key={dist} value={dist}>{dist}</option>
-                            ))}
-                          </select>
-                        </div>
+                            {mapSearchMessage && (
+                              <p className="text-[10px] text-slate-500 dark:text-slate-400 italic">
+                                {mapSearchMessage}
+                              </p>
+                            )}
 
-                        {/* Dirección */}
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Dirección *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={direccion}
-                            onChange={(e) => setDireccion(e.target.value)}
-                            placeholder="Ingresa calle y número / Mz / Lote / Urb"
-                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
-                          />
-                        </div>
+                            {/* Contenedor del Mapa interactivo de Google */}
+                            <div className="w-full h-40 sm:h-48 rounded-xl overflow-hidden border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 relative shadow-inner">
+                              <iframe
+                                title="Google Maps Destino"
+                                width="100%"
+                                height="100%"
+                                frameBorder="0"
+                                scrolling="no"
+                                marginHeight={0}
+                                marginWidth={0}
+                                src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                                  coords
+                                    ? `${coords.lat},${coords.lng}`
+                                    : `${mapSearchInput || direccion || 'Lima Perú'}, ${distrito || ''}, ${provincia || ''}, Peru`
+                                )}&t=&z=16&ie=UTF8&iwloc=&output=embed`}
+                                className="w-full h-full"
+                              />
+                            </div>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                              Tip: Puedes hacer zoom, desplazarte dentro del mapa o escribir una nueva referencia arriba para ubicar tu punto exacto de entrega.
+                            </p>
+                          </div>
 
-                        {/* Depto, casa, piso, interior (opcional) */}
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Depto, casa, piso, interior (opcional)
-                          </label>
-                          <input
-                            type="text"
-                            value={deptoInterior}
-                            onChange={(e) => setDeptoInterior(e.target.value)}
-                            placeholder="Ejemplo: Depto. 101, casa 3"
-                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
-                          />
-                        </div>
-
-                        {/* Guardar como dirección principal */}
-                        <div className="flex items-center gap-2 pt-1">
-                          <input
-                            type="checkbox"
-                            id="guardarPrincipal"
-                            checked={guardarPrincipal}
-                            onChange={(e) => setGuardarPrincipal(e.target.checked)}
-                            className="w-4 h-4 text-amber-500 rounded border-gray-300 focus:ring-amber-400 accent-amber-500 cursor-pointer"
-                          />
-                          <label htmlFor="guardarPrincipal" className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer select-none">
-                            Guardar como dirección principal.
-                          </label>
+                          {/* Guardar como dirección principal */}
+                          <div className="flex items-center gap-2 pt-1">
+                            <input
+                              type="checkbox"
+                              id="guardarPrincipal"
+                              checked={guardarPrincipal}
+                              onChange={(e) => setGuardarPrincipal(e.target.checked)}
+                              className="w-4 h-4 text-amber-500 rounded border-gray-300 focus:ring-amber-400 accent-amber-500 cursor-pointer"
+                            />
+                            <label htmlFor="guardarPrincipal" className="text-xs text-gray-700 dark:text-gray-300 cursor-pointer select-none">
+                              Guardar como dirección principal de entrega.
+                            </label>
+                          </div>
                         </div>
                       </div>
+                    </div>
 
-                      <div className="flex gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setDeliverySubStep(1)}
-                          className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
-                        >
-                          <ArrowLeft className="w-3.5 h-3.5" />
-                          <span>Atrás</span>
-                        </button>
-                        <button
-                          type="submit"
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition"
-                        >
-                          <span>Continuar</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </form>
-                  )}
+                    <div className="shrink-0 p-3.5 sm:p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDeliverySubStep(1)}
+                        className="px-3.5 sm:px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shrink-0"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Atrás</span>
+                      </button>
+                      <button
+                        type="submit"
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition active:scale-95"
+                      >
+                        <span>Continuar a Tipo de Envío</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </form>
+                )}
 
-                  {/* SUB-PASO 3: Elige un tipo de entrega */}
-                  {deliverySubStep === 3 && (
-                    <div className="space-y-4">
-                      <div className="bg-gray-50 dark:bg-gray-800/60 p-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 space-y-4">
+                {/* SUB-PASO 3: Elige un tipo de entrega */}
+                {deliverySubStep === 3 && (
+                  <div className="flex-1 flex flex-col min-h-0">
+                    <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5">
+                      <div className="bg-gray-50 dark:bg-gray-800/60 p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-gray-700/80 space-y-3">
                         <div className="flex items-center gap-2">
                           <Truck className="w-4 h-4 text-amber-500" />
                           <h3 className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">
@@ -1022,7 +1220,7 @@ export const CartDrawer: React.FC = () => {
                           </h3>
                         </div>
 
-                        <div className="space-y-2.5">
+                        <div className="space-y-2">
                           {/* Retira tu pedido */}
                           <label
                             className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition ${
@@ -1037,18 +1235,18 @@ export const CartDrawer: React.FC = () => {
                               value="retira"
                               checked={deliveryType === 'retira'}
                               onChange={() => setDeliveryType('retira')}
-                              className="mt-1 accent-amber-500"
+                              className="mt-1 accent-amber-500 shrink-0"
                             />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                  <Store className="w-3.5 h-3.5 text-amber-500" />
-                                  <span className="text-xs font-bold text-gray-900 dark:text-white">Retira tu pedido</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <Store className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                  <span className="text-xs font-bold text-gray-900 dark:text-white truncate">Retira tu pedido</span>
                                 </div>
-                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Gratis</span>
+                                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 shrink-0">Gratis</span>
                               </div>
                               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                Elige el lugar donde quieres hacer tu retiro
+                                Elige el lugar donde quieres hacer tu retiro presencial
                               </p>
                             </div>
                           </label>
@@ -1067,18 +1265,18 @@ export const CartDrawer: React.FC = () => {
                               value="express"
                               checked={deliveryType === 'express'}
                               onChange={() => setDeliveryType('express')}
-                              className="mt-1 accent-amber-500"
+                              className="mt-1 accent-amber-500 shrink-0"
                             />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                  <Zap className="w-3.5 h-3.5 text-amber-500" />
-                                  <span className="text-xs font-bold text-gray-900 dark:text-white">Envío Express</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                  <span className="text-xs font-bold text-gray-900 dark:text-white truncate">Envío Express</span>
                                 </div>
-                                <span className="text-xs font-bold text-gray-900 dark:text-white">S/ 15.00</span>
+                                <span className="text-xs font-bold text-gray-900 dark:text-white shrink-0">S/ 15.00</span>
                               </div>
                               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                Entrega prioritaria en 2 a 3 horas
+                                Entrega prioritaria en 2 a 3 horas en Lima Metropolitana
                               </p>
                             </div>
                           </label>
@@ -1097,15 +1295,15 @@ export const CartDrawer: React.FC = () => {
                               value="programada"
                               checked={deliveryType === 'programada'}
                               onChange={() => setDeliveryType('programada')}
-                              className="mt-1 accent-amber-500"
+                              className="mt-1 accent-amber-500 shrink-0"
                             />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                  <Calendar className="w-3.5 h-3.5 text-amber-500" />
-                                  <span className="text-xs font-bold text-gray-900 dark:text-white">Envío en fecha programada</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <Calendar className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                  <span className="text-xs font-bold text-gray-900 dark:text-white truncate">Envío en fecha programada</span>
                                 </div>
-                                <span className="text-xs font-bold text-gray-900 dark:text-white">S/ 7.90</span>
+                                <span className="text-xs font-bold text-gray-900 dark:text-white shrink-0">S/ 7.90</span>
                               </div>
                               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                                 Elige el día y la franja horaria que prefieras
@@ -1127,18 +1325,18 @@ export const CartDrawer: React.FC = () => {
                               value="rango"
                               checked={deliveryType === 'rango'}
                               onChange={() => setDeliveryType('rango')}
-                              className="mt-1 accent-amber-500"
+                              className="mt-1 accent-amber-500 shrink-0"
                             />
-                            <div className="flex-1">
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-1.5">
-                                  <Clock className="w-3.5 h-3.5 text-amber-500" />
-                                  <span className="text-xs font-bold text-gray-900 dark:text-white">Envío en rango de fechas</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-1.5 truncate">
+                                  <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                                  <span className="text-xs font-bold text-gray-900 dark:text-white truncate">Envío en rango de fechas</span>
                                 </div>
-                                <span className="text-xs font-bold text-gray-900 dark:text-white">S/ 7.90</span>
+                                <span className="text-xs font-bold text-gray-900 dark:text-white shrink-0">S/ 7.90</span>
                               </div>
                               <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                Llega entre el 16/10 y el 18/10
+                                Entrega regular en 2 a 4 días hábiles
                               </p>
                             </div>
                           </label>
@@ -1146,7 +1344,7 @@ export const CartDrawer: React.FC = () => {
 
                         {/* Campos específicos por Tipo de Entrega */}
                         {deliveryType === 'retira' && (
-                          <div className="p-3.5 bg-white dark:bg-gray-900 rounded-xl border border-amber-500/20 space-y-3">
+                          <div className="p-3 sm:p-3.5 bg-white dark:bg-gray-900 rounded-xl border border-amber-500/20 space-y-3">
                             <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200">
                               Punto de Retiro y Responsable
                             </h4>
@@ -1165,7 +1363,7 @@ export const CartDrawer: React.FC = () => {
                                 <option value="Punto San Miguel - Av. La Marina 2000">Punto San Miguel - Av. La Marina 2000, San Miguel</option>
                               </select>
                             </div>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                               <div>
                                 <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                   Nombre de quien retira
@@ -1195,7 +1393,7 @@ export const CartDrawer: React.FC = () => {
                         )}
 
                         {deliveryType === 'express' && (
-                          <div className="p-3.5 bg-white dark:bg-gray-900 rounded-xl border border-amber-500/20 space-y-3">
+                          <div className="p-3 sm:p-3.5 bg-white dark:bg-gray-900 rounded-xl border border-amber-500/20 space-y-3">
                             <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200">
                               Detalles del Envío Express
                             </h4>
@@ -1231,11 +1429,11 @@ export const CartDrawer: React.FC = () => {
                         )}
 
                         {deliveryType === 'programada' && (
-                          <div className="p-3.5 bg-white dark:bg-gray-900 rounded-xl border border-amber-500/20 space-y-3">
+                          <div className="p-3 sm:p-3.5 bg-white dark:bg-gray-900 rounded-xl border border-amber-500/20 space-y-3">
                             <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200">
                               Programación de Fecha y Horario
                             </h4>
-                            <div className="grid grid-cols-2 gap-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                               <div>
                                 <label className="block text-[11px] font-semibold text-gray-700 dark:text-gray-300 mb-1">
                                   Fecha deseada
@@ -1267,54 +1465,56 @@ export const CartDrawer: React.FC = () => {
                         )}
 
                         {deliveryType === 'rango' && (
-                          <div className="p-3.5 bg-white dark:bg-gray-900 rounded-xl border border-amber-500/20 space-y-2">
+                          <div className="p-3 sm:p-3.5 bg-white dark:bg-gray-900 rounded-xl border border-amber-500/20 space-y-2">
                             <h4 className="text-xs font-bold text-gray-800 dark:text-gray-200">
                               Ventana de Entrega Estimada
                             </h4>
-                            <p className="text-[11px] text-gray-600 dark:text-gray-300">
-                              Tu pedido llegará entre el <strong>16/10</strong> y el <strong>18/10</strong> en horario regular de 8:00 am a 7:00 pm.
+                            <p className="text-[11px] text-gray-600 dark:text-gray-300 leading-relaxed">
+                              Tu pedido llegará en un rango de 2 a 4 días hábiles en horario regular de 8:00 am a 7:00 pm.
                             </p>
                           </div>
                         )}
                       </div>
-
-                      <div className="flex gap-2 pt-2">
-                        <button
-                          type="button"
-                          onClick={() => setDeliverySubStep(2)}
-                          className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
-                        >
-                          <ArrowLeft className="w-3.5 h-3.5" />
-                          <span>Atrás</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={handleGoToPayment}
-                          className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition"
-                        >
-                          <span>Continuar al Pago</span>
-                          <ArrowRight className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
                     </div>
-                  )}
-                </div>
-              )}
 
-              {/* ======================================================== */}
-              {/* PASO 3: PAGO Y RESUMEN EXACTO DE LA COMPRA               */}
-              {/* ======================================================== */}
-              {step === 3 && (
-                <form onSubmit={handleProcessOrder} className="space-y-4">
+                    <div className="shrink-0 p-3.5 sm:p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setDeliverySubStep(2)}
+                        className="px-3.5 sm:px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shrink-0"
+                      >
+                        <ArrowLeft className="w-3.5 h-3.5" />
+                        <span>Atrás</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleGoToPayment}
+                        className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md transition active:scale-95"
+                      >
+                        <span>Continuar al Pago</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ======================================================== */}
+            {/* PASO 3: PAGO Y RESUMEN EXACTO DE LA COMPRA               */}
+            {/* ======================================================== */}
+            {step === 3 && (
+              <form onSubmit={handleProcessOrder} className="flex-1 flex flex-col min-h-0">
+                <div className="flex-1 overflow-y-auto p-3.5 sm:p-5 space-y-3.5">
                   {/* Bloque: Resumen de la compra */}
-                  <div className="bg-gray-50 dark:bg-gray-800/70 p-4 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-4">
-                    <h3 className="text-base font-bold text-gray-900 dark:text-white">
+                  <div className="bg-gray-50 dark:bg-gray-800/70 p-3.5 sm:p-4 rounded-2xl border border-gray-200 dark:border-gray-700 space-y-3.5">
+                    <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
                       Resumen de la compra
                     </h3>
 
                     {/* Productos */}
                     <div className="space-y-3 pb-3 border-b border-gray-200 dark:border-gray-700">
-                      <div className="flex justify-between items-center text-sm font-bold text-gray-900 dark:text-white">
+                      <div className="flex justify-between items-center text-xs sm:text-sm font-bold text-gray-900 dark:text-white">
                         <span>Productos ({cart.reduce((sum, item) => sum + item.quantity, 0)})</span>
                         <span>
                           S/ {totalOriginalPen.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1322,16 +1522,16 @@ export const CartDrawer: React.FC = () => {
                       </div>
 
                       {/* Lista de productos con detalle */}
-                      <div className="space-y-3">
+                      <div className="space-y-2.5">
                         {cart.map((item) => {
                           const origPen = getItemOriginalPen(item);
                           const currentPen = getItemCurrentPen(item);
                           const hasDiscount = origPen > currentPen;
 
                           return (
-                            <div key={item.product.id} className="flex gap-3 text-xs">
+                            <div key={item.product.id} className="flex gap-2.5 sm:gap-3 text-xs">
                               {/* Imagen del producto */}
-                              <div className="w-14 h-14 bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shrink-0 flex items-center justify-center">
+                              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-white dark:bg-gray-900 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shrink-0 flex items-center justify-center">
                                 {item.product.image_url ? (
                                   <img
                                     src={item.product.image_url}
@@ -1339,7 +1539,7 @@ export const CartDrawer: React.FC = () => {
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <ShoppingBag className="w-6 h-6 text-gray-400" />
+                                  <ShoppingBag className="w-5 h-5 text-gray-400" />
                                 )}
                               </div>
 
@@ -1348,7 +1548,7 @@ export const CartDrawer: React.FC = () => {
                                 <p className="font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug">
                                   {item.product.name}
                                 </p>
-                                <div className="flex items-baseline gap-2">
+                                <div className="flex flex-wrap items-baseline gap-1.5 sm:gap-2">
                                   <span className="font-bold text-gray-900 dark:text-white">
                                     S/ {currentPen.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </span>
@@ -1358,8 +1558,8 @@ export const CartDrawer: React.FC = () => {
                                     </span>
                                   )}
                                 </div>
-                                <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium">
-                                  {item.quantity} Un.
+                                <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium">
+                                  {item.quantity} {item.quantity === 1 ? 'Unidad' : 'Unidades'}
                                 </p>
                               </div>
                             </div>
@@ -1370,8 +1570,8 @@ export const CartDrawer: React.FC = () => {
 
                     {/* Descuentos (si los hay) */}
                     {totalDiscountsPen > 0 && (
-                      <div className="space-y-2 pb-3 border-b border-gray-200 dark:border-gray-700 text-xs">
-                        <div className="flex justify-between items-center font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                      <div className="space-y-1.5 pb-3 border-b border-gray-200 dark:border-gray-700 text-xs">
+                        <div className="flex justify-between items-center font-bold text-emerald-600 dark:text-emerald-400">
                           <span>
                             Descuentos ({cart.filter((it) => getItemOriginalPen(it) > getItemCurrentPen(it)).length})
                           </span>
@@ -1385,7 +1585,7 @@ export const CartDrawer: React.FC = () => {
                           .map((it) => {
                             const discountPen = getItemOriginalPen(it) - getItemCurrentPen(it);
                             return (
-                              <div key={it.product.id} className="flex justify-between items-start gap-2 text-gray-600 dark:text-gray-300">
+                              <div key={it.product.id} className="flex justify-between items-start gap-2 text-gray-600 dark:text-gray-300 text-[11px]">
                                 <span className="truncate">{it.product.name}</span>
                                 <span className="font-semibold text-emerald-600 dark:text-emerald-400 shrink-0">
                                   - S/ {discountPen.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -1398,28 +1598,28 @@ export const CartDrawer: React.FC = () => {
 
                     {/* Entregas */}
                     <div className="space-y-1.5 pb-3 border-b border-gray-200 dark:border-gray-700 text-xs">
-                      <div className="flex justify-between items-center font-bold text-gray-900 dark:text-white text-sm">
+                      <div className="flex justify-between items-center font-bold text-gray-900 dark:text-white">
                         <span>Entregas (1)</span>
                         <span>
                           {deliveryCostPen === 0 ? 'Gratis' : `S/ ${deliveryCostPen.toFixed(2)}`}
                         </span>
                       </div>
-                      <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 text-xs">
-                        <span>1 - {getDeliveryEstimatedDateText()}</span>
-                        <span className="font-medium text-gray-900 dark:text-white">
+                      <div className="flex justify-between items-center text-gray-600 dark:text-gray-300 text-[11px]">
+                        <span className="truncate">{getDeliveryEstimatedDateText()}</span>
+                        <span className="font-medium text-gray-900 dark:text-white shrink-0 ml-2">
                           {deliveryCostPen === 0 ? 'Gratis' : `S/ ${deliveryCostPen.toFixed(2)}`}
                         </span>
                       </div>
                     </div>
 
-                    {/* Total Final */}
+                    {/* Total Final en Resumen */}
                     <div className="pt-1 flex justify-between items-baseline">
-                      <span className="text-base font-bold text-gray-900 dark:text-white">Total:</span>
+                      <span className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">Total:</span>
                       <div className="text-right">
-                        <p className="text-2xl font-black text-gray-900 dark:text-white">
+                        <p className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
                           S/ {grandTotalPen.toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </p>
-                        <p className="text-xs font-mono font-bold text-amber-500 mt-0.5">
+                        <p className="text-[11px] font-mono font-bold text-amber-500 mt-0.5">
                           ${grandTotalUsd.toFixed(2)} USD • {grandTotalBtc.toFixed(8)} ₿
                         </p>
                       </div>
@@ -1427,15 +1627,15 @@ export const CartDrawer: React.FC = () => {
                   </div>
 
                   {/* Resumen Destino */}
-                  <div className="p-3 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl space-y-1 text-xs">
+                  <div className="p-3 sm:p-3.5 bg-gray-50 dark:bg-gray-800/60 border border-gray-200 dark:border-gray-700/80 rounded-xl space-y-1 text-xs">
                     <p className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
                       <MapPin className="w-3.5 h-3.5 text-amber-500" />
                       Destino de Entrega
                     </p>
-                    <p className="text-gray-600 dark:text-gray-300">
+                    <p className="text-gray-600 dark:text-gray-300 truncate">
                       <strong>Cliente:</strong> {customerName} ({customerEmail})
                     </p>
-                    <p className="text-gray-600 dark:text-gray-300">
+                    <p className="text-gray-600 dark:text-gray-300 line-clamp-2">
                       <strong>Dirección:</strong> {direccion} {deptoInterior ? `(${deptoInterior})` : ''}, {distrito}, {provincia}, {departamento}
                     </p>
                     <p className="text-gray-500 dark:text-gray-400 text-[11px] capitalize">
@@ -1459,13 +1659,15 @@ export const CartDrawer: React.FC = () => {
                       onClick={() => open()}
                       className="w-full py-2.5 px-4 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl shadow-md transition flex items-center justify-center gap-2 active:scale-95"
                     >
-                      <Wallet className="w-4 h-4" />
-                      <span>{effectiveWallet ? `Conectado: ${effectiveWallet.slice(0, 6)}...${effectiveWallet.slice(-4)}` : 'Conectar con WalletConnect'}</span>
+                      <Wallet className="w-4 h-4 shrink-0" />
+                      <span className="truncate">
+                        {effectiveWallet ? `Conectado: ${effectiveWallet.slice(0, 6)}...${effectiveWallet.slice(-4)}` : 'Conectar con WalletConnect'}
+                      </span>
                     </button>
 
                     {effectiveWallet && (
-                      <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 rounded-xl flex items-center justify-between">
-                        <div className="flex items-center gap-2 overflow-hidden">
+                      <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-300 dark:border-emerald-800 rounded-xl flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2 overflow-hidden min-w-0">
                           <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
                           <div className="truncate">
                             <p className="text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">Wallet Pagadora Autorizada</p>
@@ -1482,81 +1684,49 @@ export const CartDrawer: React.FC = () => {
                   {/* Nota de Seguridad */}
                   <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-xl text-xs text-gray-600 dark:text-gray-400 space-y-1">
                     <p className="flex items-center gap-1.5 font-medium text-gray-900 dark:text-white">
-                      <Bitcoin className="w-4 h-4 text-amber-500" />
+                      <Bitcoin className="w-4 h-4 text-amber-500 shrink-0" />
                       Firma NovaSats.sol y Envío a Gmail
                     </p>
-                    <p>
-                      Al presionar pagar, se confirmará la transacción on-chain, se reservará tu stock y recibirás tu comprobante voucher con código único y PDF.
-                    </p>
-                  </div>
-
-                  {/* Botones de acción Paso 3 */}
-                  <div className="flex gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStep(2);
-                        setDeliverySubStep(3);
-                      }}
-                      className="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5"
-                    >
-                      <ArrowLeft className="w-3.5 h-3.5" />
-                      <span>Volver</span>
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={processingPayment}
-                      className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-sm rounded-xl shadow-lg shadow-orange-500/25 transition disabled:opacity-50"
-                    >
-                      {processingPayment ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Procesando en Blockchain...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Bitcoin className="w-4 h-4" />
-                          <span>Pagar {grandTotalBtc.toFixed(8)} BTC</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </form>
-              )}
-
-            </div>
-
-            {/* Footer de navegación para Paso 1 */}
-            {cart.length > 0 && step === 1 && (
-              <div className="p-4 sm:p-5 border-t border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/80 space-y-3">
-                <div className="flex justify-between items-baseline font-bold text-gray-900 dark:text-white">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">Total a Pagar</span>
-                  <div className="text-right">
-                    <span className="text-lg">${totalUsd.toFixed(2)} USD</span>
-                    <p className="text-xs font-mono font-medium text-amber-500">
-                      {totalBtc.toFixed(8)} BTC
+                    <p className="leading-relaxed text-[11px]">
+                      Al confirmar el pago, la orden se firmará criptográficamente en el contrato inteligente, se actualizará el stock del proveedor y recibirás tu voucher con código QR en PDF y a tu Gmail.
                     </p>
                   </div>
                 </div>
 
-                <div className="flex gap-2">
+                {/* Footer anclado para Paso 3 */}
+                <div className="shrink-0 p-3.5 sm:p-4 border-t border-gray-200 dark:border-gray-800 bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur flex gap-2">
                   <button
-                    onClick={clearCart}
-                    className="p-2.5 text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition"
-                    title="Vaciar carrito"
+                    type="button"
+                    onClick={() => {
+                      setStep(2);
+                      setDeliverySubStep(3);
+                    }}
+                    className="px-3.5 sm:px-4 py-2.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs font-semibold rounded-xl transition flex items-center gap-1.5 shrink-0"
                   >
-                    <Trash2 className="w-5 h-5" />
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Volver</span>
                   </button>
                   <button
-                    onClick={handleGoToDelivery}
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold rounded-xl shadow-lg shadow-orange-500/25 transition text-sm"
+                    type="submit"
+                    disabled={processingPayment}
+                    className="flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-black font-bold text-xs sm:text-sm rounded-xl shadow-lg shadow-orange-500/25 transition disabled:opacity-50 active:scale-95"
                   >
-                    <span>Continuar a Entrega</span>
-                    <ArrowRight className="w-4 h-4" />
+                    {processingPayment ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                        <span className="truncate">Procesando en Blockchain...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Bitcoin className="w-4 h-4 shrink-0" />
+                        <span className="truncate">Pagar {grandTotalBtc.toFixed(8)} BTC</span>
+                      </>
+                    )}
                   </button>
                 </div>
-              </div>
+              </form>
             )}
+
           </div>
         </div>
       </div>
