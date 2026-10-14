@@ -11,18 +11,15 @@ import {
   Receipt,
   ChevronRight,
   Package,
-  Zap,
   Tag,
-  Star,
   Heart,
   ArrowRight,
-  Sparkles,
-  Layers,
   Lock,
   AlertCircle
 } from 'lucide-react';
 
 import { fetchAllStoreProducts, BTC_PRICE_USD } from '../../data/productsData';
+import { CATEGORY_CATALOG } from '../../data/categories';
 
 export const StoreLanding: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -53,15 +50,8 @@ export const StoreLanding: React.FC = () => {
     fetchProducts();
   }, []);
 
-  // Categorías con conteo
-  const categoryList = [
-    { name: 'Tecnología', icon: Zap, desc: 'Hardware, minería y gadgets cripto' },
-    { name: 'Moda', icon: Sparkles, desc: 'Indumentaria y estilo cypherpunk' },
-    { name: 'Hogar', icon: Layers, desc: 'Equipamiento y accesorios para el hogar' },
-    { name: 'Accesorios', icon: Tag, desc: 'Wallets físicas, cables y periféricos' },
-    { name: 'Libros', icon: Package, desc: 'Economía austriaca, Bitcoin y programación' },
-    { name: 'Calzado', icon: Star, desc: 'Zapatillas y calzado de calidad' },
-  ];
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const displayedCategories = showAllCategories ? CATEGORY_CATALOG : CATEGORY_CATALOG.slice(0, 12);
 
   // Productos destacados (primeros 6 u 8)
   const featuredProducts = products.slice(0, 8);
@@ -256,33 +246,46 @@ export const StoreLanding: React.FC = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
-          {categoryList.map((cat) => {
-            const Icon = cat.icon;
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
+          {displayedCategories.map((cat) => {
             return (
               <Link
-                key={cat.name}
+                key={cat.id}
                 to={`/catalogo?categoria=${encodeURIComponent(cat.name)}`}
                 className="group p-4 rounded-2xl bg-[#0e1424]/70 border border-white/[0.06] hover:border-amber-500/40 hover:bg-[#141d34] transition flex flex-col justify-between"
               >
                 <div>
                   <div className="w-10 h-10 rounded-xl bg-amber-500/10 group-hover:bg-amber-500 group-hover:text-black text-amber-400 flex items-center justify-center mb-3 transition">
-                    <Icon className="w-5 h-5" />
+                    <Package className="w-5 h-5" />
                   </div>
                   <h3 className="text-sm font-bold text-white group-hover:text-amber-400 transition">
                     {cat.name}
                   </h3>
                   <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
-                    {cat.desc}
+                    {cat.description}
                   </p>
+                  <div className="mt-2 text-[10px] text-amber-400/80 font-mono">
+                    {cat.subcategories.length} sub-catálogos
+                  </div>
                 </div>
                 <div className="mt-3 pt-3 border-t border-white/[0.04] flex items-center justify-between text-[11px] text-slate-500 group-hover:text-amber-400 font-mono">
-                  <span>Ver items</span>
+                  <span>Explorar</span>
                   <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition" />
                 </div>
               </Link>
             );
           })}
+        </div>
+
+        <div className="mt-8 text-center">
+          <button
+            type="button"
+            onClick={() => setShowAllCategories(!showAllCategories)}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] border border-white/[0.1] text-xs font-bold text-slate-200 transition"
+          >
+            <span>{showAllCategories ? 'Mostrar menos catálogos' : 'Ver todos los 21 catálogos completos'}</span>
+            <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllCategories ? '-rotate-90' : 'rotate-90'}`} />
+          </button>
         </div>
       </section>
 

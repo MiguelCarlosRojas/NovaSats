@@ -4,6 +4,7 @@ import { useSupplier } from '../../context/SupplierContext';
 import { supabase } from '../../lib/supabaseClient';
 import { Product } from '../../types/store';
 import { encodeProductDescription, parseProductDescription } from '../../lib/productMeta';
+import { CATEGORY_NAMES, getSubcategoriesForCategory } from '../../data/categories';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   Package,
@@ -99,7 +100,8 @@ export const SupplierProducts: React.FC = () => {
   // Form Fields (Exact match with ProductDetailPage fields)
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('Hardware Wallets');
+  const [category, setCategory] = useState(CATEGORY_NAMES[0]);
+  const [subcategory, setSubcategory] = useState(getSubcategoriesForCategory(CATEGORY_NAMES[0])[0] || '');
   const [sku, setSku] = useState('');
   const [condition, setCondition] = useState('Nuevo en Caja Sellada');
   const [warranty, setWarranty] = useState('12 Meses con NovaSats.sol');
@@ -126,11 +128,16 @@ export const SupplierProducts: React.FC = () => {
 
   const [initialFormJson, setInitialFormJson] = useState('');
 
+  const availableSubcategories = useMemo(() => {
+    return getSubcategoriesForCategory(category);
+  }, [category]);
+
   const currentFormJson = useMemo(() => {
     return JSON.stringify({
       name: name.trim(),
       description: description.trim(),
       category,
+      subcategory,
       priceUsd: priceUsd.trim(),
       priceBtc: priceBtc.trim(),
       stock: stock.trim(),
@@ -148,6 +155,7 @@ export const SupplierProducts: React.FC = () => {
     name,
     description,
     category,
+    subcategory,
     priceUsd,
     priceBtc,
     stock,
@@ -198,17 +206,7 @@ export const SupplierProducts: React.FC = () => {
     else if (modalTab === 'pricing') setModalTab('general');
   };
 
-  const categories = [
-    'Hardware Wallets',
-    'Billeteras Frías',
-    'Minería ASIC',
-    'Seguridad',
-    'Seguridad & Seed',
-    'Merchandising & Arte',
-    'Hardware & Nodos',
-    'Accesorios Cripto',
-    'General'
-  ];
+  const categories = CATEGORY_NAMES;
 
   const showToast = (type: 'success' | 'error', text: string) => {
     setToastMessage({ type, text });
@@ -275,11 +273,14 @@ export const SupplierProducts: React.FC = () => {
   // Open modal for Adding new product
   const handleOpenAddModal = () => {
     const defaultSku = `NEX-${Math.floor(1000 + Math.random() * 9000)}`;
+    const defaultCat = 'Tecnología';
+    const defaultSubcat = getSubcategoriesForCategory(defaultCat)[0] || '';
     setEditingProduct(null);
     setModalTab('general');
     setName('');
     setDescription('');
-    setCategory('General');
+    setCategory(defaultCat);
+    setSubcategory(defaultSubcat);
     setPriceUsd('');
     setPriceBtc('');
     setStock('0');
@@ -299,7 +300,8 @@ export const SupplierProducts: React.FC = () => {
       JSON.stringify({
         name: '',
         description: '',
-        category: 'General',
+        category: defaultCat,
+        subcategory: defaultSubcat,
         priceUsd: '',
         priceBtc: '',
         stock: '0',
@@ -325,7 +327,8 @@ export const SupplierProducts: React.FC = () => {
     
     const initialName = p.name || '';
     const initialDesc = cleanDescription || p.description || '';
-    const initialCat = p.category || 'General';
+    const initialCat = p.category && CATEGORY_NAMES.includes(p.category) ? p.category : (p.category || 'Tecnología');
+    const initialSubcat = p.subcategory || meta.subcategory || (getSubcategoriesForCategory(initialCat)[0] || '');
     const initialPUsd = String(p.price_usd || '');
     const initialPBtc = String(p.price_btc || '');
     const initialStk = String(p.stock ?? 0);
@@ -342,6 +345,7 @@ export const SupplierProducts: React.FC = () => {
     setName(initialName);
     setDescription(initialDesc);
     setCategory(initialCat);
+    setSubcategory(initialSubcat);
     setPriceUsd(initialPUsd);
     setPriceBtc(initialPBtc);
     setStock(initialStk);
@@ -362,6 +366,7 @@ export const SupplierProducts: React.FC = () => {
         name: initialName.trim(),
         description: initialDesc.trim(),
         category: initialCat,
+        subcategory: initialSubcat,
         priceUsd: initialPUsd.trim(),
         priceBtc: initialPBtc.trim(),
         stock: initialStk.trim(),
@@ -457,7 +462,8 @@ export const SupplierProducts: React.FC = () => {
         rating: realRating,
         reviews_count: realReviewsCount,
         warranty: warranty.trim(),
-        condition: condition.trim()
+        condition: condition.trim(),
+        subcategory: subcategory.trim()
       });
 
       // Direct full payload (for migrated DB schema)
@@ -466,6 +472,7 @@ export const SupplierProducts: React.FC = () => {
         name: name.trim(),
         description: fullDescription,
         category: category.trim(),
+        subcategory: subcategory.trim(),
         price_usd: parsedPriceUsd,
         price_btc: parsedPriceBtc,
         stock: parsedStock,
@@ -1084,9 +1091,14 @@ export const SupplierProducts: React.FC = () => {
                           <span className="font-mono text-[11px] text-amber-400 font-bold block">
                             {p.sku || 'SIN-SKU'}
                           </span>
-                          <span className="text-[10px] text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06] inline-block mt-1">
+                          <span className="text-[10px] text-slate-300 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06] inline-block mt-1 font-medium">
                             {p.category || 'General'}
                           </span>
+                          {p.subcategory && (
+                            <span className="text-[9px] text-amber-400 block mt-0.5 font-mono">
+                              › {p.subcategory}
+                            </span>
+                          )}
                         </td>
 
                         {/* Precio USD */}
@@ -1340,21 +1352,48 @@ export const SupplierProducts: React.FC = () => {
                         />
                       </div>
 
-                      <div>
-                        <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                          Categoría en la Tienda *
-                        </label>
-                        <select
-                          value={category}
-                          onChange={(e) => setCategory(e.target.value)}
-                          className="w-full bg-[#060911] border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                        >
-                          {categories.map((c) => (
-                            <option key={c} value={c}>
-                              {c}
-                            </option>
-                          ))}
-                        </select>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                          <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Catálogo / Categoría Principal *
+                          </label>
+                          <select
+                            value={category}
+                            onChange={(e) => {
+                              const newCat = e.target.value;
+                              setCategory(newCat);
+                              const subcats = getSubcategoriesForCategory(newCat);
+                              setSubcategory(subcats[0] || '');
+                            }}
+                            className="w-full bg-[#060911] border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          >
+                            {categories.map((c) => (
+                              <option key={c} value={c}>
+                                {c}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
+                            Sub-Catálogo / Subcategoría *
+                          </label>
+                          <select
+                            value={subcategory}
+                            onChange={(e) => setSubcategory(e.target.value)}
+                            className="w-full bg-[#060911] border border-white/[0.1] rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                          >
+                            {availableSubcategories.map((sub) => (
+                              <option key={sub} value={sub}>
+                                {sub}
+                              </option>
+                            ))}
+                            {subcategory && !availableSubcategories.includes(subcategory) && (
+                              <option value={subcategory}>{subcategory} (Personalizado)</option>
+                            )}
+                          </select>
+                        </div>
                       </div>
 
                       <div>

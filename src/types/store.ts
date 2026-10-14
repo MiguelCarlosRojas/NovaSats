@@ -20,6 +20,7 @@ export interface Product {
   name: string;
   description: string;
   category: string;
+  subcategory?: string;
   price_usd: number;
   price_btc: number;
   stock: number;

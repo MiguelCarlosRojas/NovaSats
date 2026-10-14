@@ -8,6 +8,7 @@ import {
   Bitcoin,
   Search,
   ChevronRight,
+  ChevronDown,
   Package,
   Truck,
   Star,
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 import { fetchAllStoreProducts, isFreeShippingProduct } from '../../data/productsData';
+import { CATEGORY_CATALOG } from '../../data/categories';
 
 // Helper para texto completo de búsqueda
 const getProductSearchableText = (p: Product): string => {
@@ -169,6 +171,7 @@ export const CatalogPage: React.FC = () => {
 
   const urlQ = searchParams.get('q') || searchParams.get('search') || '';
   const urlCategoria = searchParams.get('categoria') || searchParams.get('category') || 'Todas';
+  const urlSubcat = searchParams.get('subcategoria') || searchParams.get('subcategory') || 'Todas';
 
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -177,6 +180,7 @@ export const CatalogPage: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState(urlQ);
   const [deliveryTypeFilter, setDeliveryTypeFilter] = useState<'all' | 'domicilio' | 'retiro'>('all');
   const [selectedCategory, setSelectedCategory] = useState(urlCategoria);
+  const [selectedSubcategory, setSelectedSubcategory] = useState(urlSubcat);
   const [selectedBrand, setSelectedBrand] = useState('Todas');
   const [priceRange, setPriceRange] = useState<'all' | 'under-50' | '50-150' | '150-500' | 'over-500'>('all');
   const [minRating, setMinRating] = useState<number>(0);
@@ -214,21 +218,48 @@ export const CatalogPage: React.FC = () => {
   useEffect(() => {
     const qParam = searchParams.get('q') || searchParams.get('search') || '';
     const catParam = searchParams.get('categoria') || searchParams.get('category') || 'Todas';
+    const subcatParam = searchParams.get('subcategoria') || searchParams.get('subcategory') || 'Todas';
 
     if (qParam !== searchQuery) setSearchQuery(qParam);
     if (catParam !== selectedCategory) setSelectedCategory(catParam);
+    if (subcatParam !== selectedSubcategory) setSelectedSubcategory(subcatParam);
   }, [searchParams]);
 
-  // Categorías disponibles en el catálogo
-  const categories = useMemo(() => {
-    return ['Todas', ...Array.from(new Set(products.map((p) => p.category || 'General')))];
+  // Conteo de productos por categoría y subcategoría
+  const productCountByCategory = useMemo(() => {
+    const counts: Record<string, number> = {};
+    products.forEach((p) => {
+      const cat = p.category || 'General';
+      counts[cat] = (counts[cat] || 0) + 1;
+    });
+    return counts;
   }, [products]);
 
-  // Conjunto de productos en el ámbito actual (filtrado por categoría y búsqueda básica)
+  const productCountBySubcategory = useMemo(() => {
+    const counts: Record<string, number> = {};
+    products.forEach((p) => {
+      if (p.subcategory) {
+        counts[p.subcategory] = (counts[p.subcategory] || 0) + 1;
+      }
+    });
+    return counts;
+  }, [products]);
+
+  const matchesSubcategory = (p: Product, subcat: string): boolean => {
+    if (!subcat || subcat === 'Todas') return true;
+    if (p.subcategory && p.subcategory.toLowerCase() === subcat.toLowerCase()) return true;
+    const searchable = `${p.name} ${p.description}`.toLowerCase();
+    return searchable.includes(subcat.toLowerCase());
+  };
+
+  // Conjunto de productos en el ámbito actual (filtrado por categoría, subcategoría y búsqueda básica)
   // para determinar qué filtros realmente aplican y deben visualizarse
   const productsInScope = useMemo(() => {
     return products.filter((p) => {
       if (selectedCategory !== 'Todas' && (p.category || 'General') !== selectedCategory) {
+        return false;
+      }
+      if (selectedSubcategory !== 'Todas' && !matchesSubcategory(p, selectedSubcategory)) {
         return false;
       }
       if (searchQuery.trim()) {
@@ -238,7 +269,7 @@ export const CatalogPage: React.FC = () => {
       }
       return true;
     });
-  }, [products, selectedCategory, searchQuery]);
+  }, [products, selectedCategory, selectedSubcategory, searchQuery]);
 
   // =========================================================================
   // DETECCIÓN DINÁMICA: Si un filtro no existe en los productos, NO SE MUESTRA
@@ -360,6 +391,7 @@ export const CatalogPage: React.FC = () => {
     if (searchQuery.trim()) count++;
     if (deliveryTypeFilter !== 'all') count++;
     if (selectedCategory !== 'Todas') count++;
+    if (selectedSubcategory !== 'Todas') count++;
     if (selectedBrand !== 'Todas') count++;
     if (priceRange !== 'all') count++;
     if (minRating > 0) count++;
@@ -372,7 +404,7 @@ export const CatalogPage: React.FC = () => {
     if (selectedScreenSize !== 'all') count++;
     return count;
   }, [
-    searchQuery, deliveryTypeFilter, selectedCategory, selectedBrand, priceRange,
+    searchQuery, deliveryTypeFilter, selectedCategory, selectedSubcategory, selectedBrand, priceRange,
     minRating, soldByFilter, selectedColor, conditionFilter, selectedCapacity,
     selectedConnectivity, selectedEsrb, selectedScreenSize
   ]);
@@ -381,6 +413,7 @@ export const CatalogPage: React.FC = () => {
     setSearchQuery('');
     setDeliveryTypeFilter('all');
     setSelectedCategory('Todas');
+    setSelectedSubcategory('Todas');
     setSelectedBrand('Todas');
     setPriceRange('all');
     setMinRating(0);
@@ -417,6 +450,11 @@ export const CatalogPage: React.FC = () => {
 
         // 3. Categoría
         if (selectedCategory !== 'Todas' && (p.category || 'General') !== selectedCategory) {
+          return false;
+        }
+
+        // 3.1 Subcategoría
+        if (selectedSubcategory !== 'Todas' && !matchesSubcategory(p, selectedSubcategory)) {
           return false;
         }
 
@@ -484,7 +522,7 @@ export const CatalogPage: React.FC = () => {
         return 0;
       });
   }, [
-    products, searchQuery, deliveryTypeFilter, selectedCategory, selectedBrand,
+    products, searchQuery, deliveryTypeFilter, selectedCategory, selectedSubcategory, selectedBrand,
     priceRange, minRating, soldByFilter, selectedColor, conditionFilter,
     selectedCapacity, selectedConnectivity, selectedEsrb, selectedScreenSize, sortBy
   ]);
@@ -496,7 +534,7 @@ export const CatalogPage: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [
-    searchQuery, deliveryTypeFilter, selectedCategory, selectedBrand, priceRange,
+    searchQuery, deliveryTypeFilter, selectedCategory, selectedSubcategory, selectedBrand, priceRange,
     minRating, soldByFilter, selectedColor, conditionFilter, selectedCapacity,
     selectedConnectivity, selectedEsrb, selectedScreenSize, sortBy
   ]);
@@ -589,31 +627,127 @@ export const CatalogPage: React.FC = () => {
         </div>
       )}
 
-      {/* 2. CATEGORÍA (Solo si hay más de 1 categoría además de 'Todas') */}
-      {categories.length > 2 && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+      {/* 2. CATÁLOGOS Y CATEGORÍAS */}
+      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+        <div className="flex items-center justify-between">
           <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Categoría
+            Catálogos y Categorías
           </label>
-          <div className="space-y-1 max-h-44 overflow-y-auto pr-1">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setSelectedCategory(cat)}
-                className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
-                  selectedCategory === cat
-                    ? 'bg-amber-500 text-black font-bold shadow-sm'
-                    : 'text-slate-300 hover:bg-white/[0.05]'
-                }`}
-              >
-                <span>{cat}</span>
-                {selectedCategory === cat && <Check className="w-3.5 h-3.5 text-black" />}
-              </button>
-            ))}
-          </div>
+          {(selectedCategory !== 'Todas' || selectedSubcategory !== 'Todas') && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedCategory('Todas');
+                setSelectedSubcategory('Todas');
+              }}
+              className="text-[10px] text-amber-400 hover:underline"
+            >
+              Limpiar
+            </button>
+          )}
         </div>
-      )}
+
+        <div className="space-y-1 max-h-72 overflow-y-auto pr-1 lateral-scrollbar">
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedCategory('Todas');
+              setSelectedSubcategory('Todas');
+            }}
+            className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+              selectedCategory === 'Todas'
+                ? 'bg-amber-500 text-black font-bold shadow-sm'
+                : 'text-slate-300 hover:bg-white/[0.05]'
+            }`}
+          >
+            <span>Todos los catálogos</span>
+            <span className="text-[10px] font-mono opacity-70">({products.length})</span>
+          </button>
+
+          {CATEGORY_CATALOG.map((catDef) => {
+            const isSelected = selectedCategory === catDef.name;
+            const count = productCountByCategory[catDef.name] || 0;
+
+            return (
+              <div key={catDef.id} className="space-y-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isSelected) {
+                      setSelectedCategory('Todas');
+                      setSelectedSubcategory('Todas');
+                    } else {
+                      setSelectedCategory(catDef.name);
+                      setSelectedSubcategory('Todas');
+                    }
+                  }}
+                  className={`w-full text-left px-2.5 py-1.5 rounded-lg text-xs transition flex items-center justify-between ${
+                    isSelected
+                      ? 'bg-amber-500 text-black font-bold shadow-sm'
+                      : 'text-slate-300 hover:bg-white/[0.05]'
+                  }`}
+                >
+                  <span className="truncate pr-1">{catDef.name}</span>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {count > 0 && (
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded font-bold ${
+                        isSelected ? 'bg-black/20 text-black' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                      }`}>
+                        {count}
+                      </span>
+                    )}
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                      isSelected ? 'rotate-180 text-black' : 'text-slate-500'
+                    }`} />
+                  </div>
+                </button>
+
+                {/* Sub-catálogos de la categoría seleccionada */}
+                {isSelected && catDef.subcategories.length > 0 && (
+                  <div className="pl-3 pr-1 py-1 space-y-0.5 border-l-2 border-amber-500/40 ml-2">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSubcategory('Todas')}
+                      className={`w-full text-left px-2 py-1 rounded text-[11px] transition flex items-center justify-between ${
+                        selectedSubcategory === 'Todas'
+                          ? 'text-amber-400 font-bold bg-amber-500/10'
+                          : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                      }`}
+                    >
+                      <span>Todas las subcategorías</span>
+                      {selectedSubcategory === 'Todas' && <Check className="w-3 h-3 text-amber-400" />}
+                    </button>
+                    {catDef.subcategories.map((sub) => {
+                      const isSubSelected = selectedSubcategory === sub;
+                      const subCount = productCountBySubcategory[sub] || 0;
+                      return (
+                        <button
+                          key={sub}
+                          type="button"
+                          onClick={() => setSelectedSubcategory(isSubSelected ? 'Todas' : sub)}
+                          className={`w-full text-left px-2 py-1 rounded text-[11px] transition flex items-center justify-between ${
+                            isSubSelected
+                              ? 'text-amber-400 font-bold bg-amber-500/10'
+                              : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
+                          }`}
+                        >
+                          <span className="truncate pr-1">› {sub}</span>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {subCount > 0 && (
+                              <span className="text-[9px] font-mono text-slate-400">({subCount})</span>
+                            )}
+                            {isSubSelected && <Check className="w-3 h-3 text-amber-400" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
 
       {/* 3. MARCA (Solo si hay al menos una marca detectada en los productos) */}
       {availableBrands.length > 0 && (
@@ -1169,8 +1303,15 @@ export const CatalogPage: React.FC = () => {
 
             {selectedCategory !== 'Todas' && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px]">
-                Categoría: {selectedCategory}
-                <button onClick={() => setSelectedCategory('Todas')}>✕</button>
+                Catálogo: {selectedCategory}
+                <button onClick={() => { setSelectedCategory('Todas'); setSelectedSubcategory('Todas'); }}>✕</button>
+              </span>
+            )}
+
+            {selectedSubcategory !== 'Todas' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[11px]">
+                Subcategoría: {selectedSubcategory}
+                <button onClick={() => setSelectedSubcategory('Todas')}>✕</button>
               </span>
             )}
 
@@ -1327,8 +1468,8 @@ export const CatalogPage: React.FC = () => {
                               -{product.discount_percent}%
                             </span>
                           ) : null}
-                          <span className="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/20">
-                            {product.category || 'General'}
+                          <span className="absolute top-2.5 right-2.5 bg-black/75 backdrop-blur-md text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/20 max-w-[80%] truncate">
+                            {product.category || 'General'}{product.subcategory ? ` • ${product.subcategory}` : ''}
                           </span>
                         </Link>
 

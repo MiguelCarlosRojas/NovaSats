@@ -58,7 +58,8 @@ export async function fetchAllStoreProducts(): Promise<Product[]> {
           rating: meta.rating !== undefined && meta.rating !== null ? Number(meta.rating) : (item.rating !== undefined && item.rating !== null ? Number(item.rating) : 0.0),
           reviews_count: meta.reviews_count ?? (item.reviews_count || 0),
           warranty: meta.warranty ?? (item.warranty || 'Garantía del Proveedor'),
-          condition: meta.condition ?? (item.condition || 'Nuevo')
+          condition: meta.condition ?? (item.condition || 'Nuevo'),
+          subcategory: meta.subcategory || (item as any).subcategory || undefined
         };
       });
     }
@@ -106,7 +107,8 @@ export async function getProductById(id: string): Promise<Product | null> {
         rating: meta.rating !== undefined && meta.rating !== null ? Number(meta.rating) : (data.rating !== undefined && data.rating !== null ? Number(data.rating) : 0.0),
         reviews_count: meta.reviews_count ?? (data.reviews_count || 0),
         warranty: meta.warranty ?? (data.warranty || 'Garantía del Proveedor'),
-        condition: meta.condition ?? (data.condition || 'Nuevo')
+        condition: meta.condition ?? (data.condition || 'Nuevo'),
+        subcategory: meta.subcategory || (data as any).subcategory || undefined
       };
     }
 
@@ -139,7 +141,8 @@ export async function getProductById(id: string): Promise<Product | null> {
         rating: meta.rating !== undefined && meta.rating !== null ? Number(meta.rating) : (skuData.rating !== undefined && skuData.rating !== null ? Number(skuData.rating) : 0.0),
         reviews_count: meta.reviews_count ?? (skuData.reviews_count || 0),
         warranty: meta.warranty ?? (skuData.warranty || 'Garantía del Proveedor'),
-        condition: meta.condition ?? (skuData.condition || 'Nuevo')
+        condition: meta.condition ?? (skuData.condition || 'Nuevo'),
+        subcategory: meta.subcategory || (skuData as any).subcategory || undefined
       };
     }
   } catch (e) {

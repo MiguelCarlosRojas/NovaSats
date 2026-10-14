@@ -8,6 +8,7 @@ export interface ProductExtraMeta {
   reviews_count?: number;
   warranty?: string;
   condition?: string;
+  subcategory?: string;
 }
 
 const META_REGEX = /<!--NOVASATS_META:([\s\S]*?)-->/;

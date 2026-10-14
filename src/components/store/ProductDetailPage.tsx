@@ -322,7 +322,17 @@ export const ProductDetailPage: React.FC = () => {
             <span>Catálogo</span>
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-          <span className="text-slate-400 shrink-0">{product.category || 'General'}</span>
+          <Link to={`/catalogo?categoria=${encodeURIComponent(product.category || 'General')}`} className="text-slate-400 hover:text-amber-400 transition shrink-0">
+            {product.category || 'General'}
+          </Link>
+          {product.subcategory && (
+            <>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+              <Link to={`/catalogo?categoria=${encodeURIComponent(product.category || 'General')}&subcategoria=${encodeURIComponent(product.subcategory)}`} className="text-slate-400 hover:text-amber-400 transition shrink-0">
+                {product.subcategory}
+              </Link>
+            </>
+          )}
           <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
           <span className="text-amber-400 font-bold truncate">{product.name}</span>
         </div>
