@@ -228,9 +228,9 @@ export const StoreLanding: React.FC = () => {
         </div>
       </section>
 
-      {/* SECCIÓN CATEGORÍAS DESTACADAS (Centrado con max-w-7xl) */}
-      <section className="py-12 sm:py-20 px-3.5 sm:px-6 lg:px-8 xl:px-12 w-full max-w-7xl mx-auto">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 sm:mb-10">
+      {/* SECCIÓN CATEGORÍAS DESTACADAS (Ancho completo) */}
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 xl:px-12 w-full">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
             <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
               Explora por Intereses
@@ -292,10 +292,9 @@ export const StoreLanding: React.FC = () => {
       </section>
 
       {/* SECCIÓN PREVIEW DE PRODUCTOS DESTACADOS (Ancho completo) */}
-      {/* SECCIÓN PREVIEW DE PRODUCTOS DESTACADOS (Centrado con max-w-7xl) */}
-      <section className="py-12 sm:py-20 px-3.5 sm:px-6 lg:px-8 xl:px-12 bg-[#04060c] border-y border-white/[0.06] w-full">
-        <div className="w-full max-w-7xl mx-auto">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8 sm:mb-10">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 xl:px-12 bg-[#04060c] border-y border-white/[0.06] w-full">
+        <div className="w-full">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
                 Vitrina Destacada
@@ -314,7 +313,7 @@ export const StoreLanding: React.FC = () => {
           </div>
 
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="h-64 rounded-2xl bg-white/[0.02] border border-white/[0.06] animate-pulse" />
               ))}
@@ -324,7 +323,7 @@ export const StoreLanding: React.FC = () => {
               {featuredProducts.map((product) => (
                 <div
                   key={product.id}
-                  className="group rounded-2xl bg-[#0b101f] border border-white/[0.06] hover:border-amber-500/40 transition flex flex-col justify-between overflow-hidden shadow-lg"
+                  className="group rounded-2xl bg-[#0b101f] border border-white/[0.06] hover:border-amber-500/40 transition flex flex-col overflow-hidden"
                 >
                   <Link to={`/producto/${product.id}`} className="relative block aspect-square overflow-hidden bg-slate-900">
                     <img
@@ -337,7 +336,7 @@ export const StoreLanding: React.FC = () => {
                         -{product.discount_percent}%
                       </span>
                     ) : null}
-                    <span className="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/20 max-w-[70%] truncate">
+                    <span className="absolute top-2.5 right-2.5 bg-black/70 backdrop-blur-md text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/20">
                       {product.category || 'General'}
                     </span>
                   </Link>
@@ -345,7 +344,7 @@ export const StoreLanding: React.FC = () => {
                   <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
                     <div>
                       <Link to={`/producto/${product.id}`} className="block">
-                        <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition line-clamp-2 leading-snug">
+                        <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition line-clamp-1">
                           {product.name}
                         </h4>
                       </Link>
@@ -354,15 +353,12 @@ export const StoreLanding: React.FC = () => {
                       </p>
                     </div>
 
-                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="text-xs font-bold text-amber-500 font-mono">
-                          S/ {(Number(product.price_usd) * 3.75).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                        </div>
-                        <div className="text-sm font-black text-white truncate">
+                    <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between">
+                      <div>
+                        <div className="text-base font-black text-white">
                           ${Number(product.price_usd).toFixed(2)} USD
                         </div>
-                        <div className="text-[10px] font-mono text-slate-400 font-medium truncate">
+                        <div className="text-[11px] font-mono text-amber-400 font-bold">
                           {Number(product.price_btc).toFixed(8)} ₿
                         </div>
                       </div>
@@ -370,9 +366,8 @@ export const StoreLanding: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => addToCart(product, 1)}
-                        className="p-2.5 sm:p-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20 transition active:scale-95 shrink-0"
+                        className="p-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20 transition active:scale-95"
                         title="Agregar al Carrito"
-                        aria-label={`Agregar ${product.name} al carrito`}
                       >
                         <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
                       </button>

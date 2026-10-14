@@ -1209,8 +1209,8 @@ export const CatalogPage: React.FC = () => {
         </div>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL: FILTROS LATERALES DINÁMICOS + PRODUCTOS (Centrado max-w-7xl) */}
-      <main className="py-6 sm:py-8 px-3.5 sm:px-6 lg:px-8 xl:px-10 w-full max-w-7xl mx-auto flex-1">
+      {/* CONTENEDOR PRINCIPAL: FILTROS LATERALES DINÁMICOS + PRODUCTOS (Ancho completo) */}
+      <main className="py-6 sm:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 w-full flex-1">
         
         {/* Buscador móvil */}
         <div className="md:hidden mb-4">
@@ -1495,15 +1495,12 @@ export const CatalogPage: React.FC = () => {
                       </div>
 
                       {/* Footer de la tarjeta con precio y botón de compra */}
-                      <div className="p-3.5 sm:p-4 pt-2 border-t border-white/[0.06] flex items-center justify-between gap-2 mt-2">
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-amber-500 font-mono">
-                            S/ {(Number(product.price_usd) * 3.75).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                          </div>
-                          <div className="text-sm font-black text-white truncate">
+                      <div className="p-4 pt-2 border-t border-white/[0.06] flex items-center justify-between mt-2">
+                        <div>
+                          <div className="text-base font-black text-white">
                             ${Number(product.price_usd).toFixed(2)} USD
                           </div>
-                          <div className="text-[10px] font-mono text-slate-400 font-medium truncate">
+                          <div className="text-[11px] font-mono text-amber-400 font-bold">
                             {Number(product.price_btc).toFixed(8)} ₿
                           </div>
                         </div>
@@ -1511,9 +1508,8 @@ export const CatalogPage: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => addToCart(product, 1)}
-                          className="p-2.5 sm:p-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20 transition active:scale-95 shrink-0"
+                          className="p-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20 transition active:scale-95"
                           title="Agregar al Carrito"
-                          aria-label={`Agregar ${product.name} al carrito`}
                         >
                           <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
                         </button>

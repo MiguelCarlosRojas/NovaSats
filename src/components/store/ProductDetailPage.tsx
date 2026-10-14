@@ -340,18 +340,18 @@ export const ProductDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* MAIN CONTAINER (Centrado con límites max-w-7xl) */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-3.5 sm:px-6 lg:px-8 xl:px-12 py-8 sm:py-12 space-y-10 sm:space-y-12">
+      {/* MAIN CONTAINER (Full screen width) */}
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-10 space-y-12">
         
         {/* TOP HERO PRODUCT SECTION (Images Carousel + Primary Purchase Details) */}
-        <div className="bg-[#090d19] border border-white/[0.08] rounded-3xl p-4 sm:p-8 lg:p-10 shadow-2xl">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10">
+        <div className="bg-[#090d19] border border-white/[0.08] rounded-3xl p-6 sm:p-10 shadow-2xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             
             {/* LEFT: Photo Carousel (7 cols on lg) */}
             <div className="lg:col-span-7 space-y-4">
               
               {/* Main Photo View */}
-              <div className="relative w-full h-64 sm:h-80 md:h-[420px] lg:h-[460px] rounded-2xl overflow-hidden bg-black/50 border border-white/[0.08] group flex items-center justify-center">
+              <div className="relative w-full h-80 sm:h-[480px] rounded-2xl overflow-hidden bg-black/50 border border-white/[0.08] group">
                 <img
                   src={galleryImages[activeImageIndex]}
                   alt={`${product.name} - toma ${activeImageIndex + 1}`}
@@ -499,29 +499,25 @@ export const ProductDetailPage: React.FC = () => {
               </div>
 
               {/* Price Box */}
-              <div className="p-4 sm:p-5 rounded-2xl bg-[#0e1424] border border-white/[0.08] space-y-1.5">
+              <div className="p-5 rounded-2xl bg-[#0e1424] border border-white/[0.08] space-y-1.5">
                 <p className="text-[11px] font-mono uppercase tracking-wider text-slate-400">
-                  Precio Oficial en Bitcoin & Soles
+                  Precio en Bitcoin
                 </p>
                 
-                <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
-                  <span className="text-2xl sm:text-4xl font-black text-amber-400 font-mono">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-3xl sm:text-4xl font-black text-amber-400 font-mono">
                     {product.price_btc.toFixed(6)} BTC
                   </span>
                   {product.original_price_usd && product.original_price_usd > product.price_usd && (
-                    <span className="text-xs sm:text-sm text-slate-500 line-through font-mono">
+                    <span className="text-sm text-slate-500 line-through font-mono">
                       ${product.original_price_usd.toFixed(2)} USD
                     </span>
                   )}
                 </div>
 
-                <div className="flex flex-wrap items-baseline gap-2 text-xs sm:text-sm text-slate-300 font-mono">
-                  <span className="text-amber-500 font-bold">
-                    S/ {(product.price_usd * 3.75).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                  <span className="text-slate-500">•</span>
-                  <span>≈ ${product.price_usd.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD</span>
-                </div>
+                <p className="text-xs sm:text-sm text-slate-300 font-mono">
+                  ≈ ${product.price_usd.toLocaleString('en-US', { minimumFractionDigits: 2 })} USD
+                </p>
               </div>
 
               {/* Shipping Status Box ("Envío gratis a todo el país, o no") */}
@@ -600,16 +596,11 @@ export const ProductDetailPage: React.FC = () => {
 
               {/* Total Calculation */}
               {inStock && (
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-400 font-mono px-1">
+                <div className="flex items-center justify-between text-xs text-slate-400 font-mono px-1">
                   <span>Subtotal ({quantity} {quantity === 1 ? 'unidad' : 'unidades'}):</span>
-                  <div className="text-right">
-                    <span className="text-amber-400 font-bold text-sm block">
-                      S/ {(product.price_usd * 3.75 * quantity).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      (${(product.price_usd * quantity).toFixed(2)} USD • {(product.price_btc * quantity).toFixed(6)} BTC)
-                    </span>
-                  </div>
+                  <span className="text-amber-400 font-bold text-sm">
+                    {(product.price_btc * quantity).toFixed(6)} BTC (~${(product.price_usd * quantity).toFixed(2)} USD)
+                  </span>
                 </div>
               )}
 

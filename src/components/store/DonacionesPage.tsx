@@ -92,8 +92,8 @@ export const DonacionesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* CONTENIDO PRINCIPAL DE LA PÁGINA DE DONACIONES (Centrado max-w-7xl) */}
-      <main className="flex-1 py-10 sm:py-16 px-3.5 sm:px-6 lg:px-8 xl:px-12 w-full max-w-7xl mx-auto space-y-10 sm:space-y-12">
+      {/* CONTENIDO PRINCIPAL DE LA PÁGINA DE DONACIONES (Ancho completo) */}
+      <main className="flex-1 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 xl:px-12 w-full space-y-12">
         
         {/* Encabezado Principal */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">
@@ -219,10 +219,10 @@ export const DonacionesPage: React.FC = () => {
               </div>
 
               {/* Contenedor del QR de Yape */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 p-3.5 bg-black/40 border border-white/[0.06] rounded-2xl text-center sm:text-left">
+              <div className="flex items-center gap-4 p-3.5 bg-black/40 border border-white/[0.06] rounded-2xl">
                 <div
                   onClick={() => setShowYapeModal(true)}
-                  className="w-24 h-24 bg-white p-1 rounded-xl cursor-pointer hover:scale-105 transition shrink-0 shadow-md mx-auto sm:mx-0"
+                  className="w-24 h-24 bg-white p-1 rounded-xl cursor-pointer hover:scale-105 transition shrink-0 shadow-md"
                   title="Click para ver QR en grande"
                 >
                   <img
