@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Product } from '../../types/store';
 import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../shared/CartDrawer';
+import { FloatingCartButton } from '../shared/FloatingCartButton';
 import { StoreFooter } from './StoreFooter';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
@@ -196,7 +197,7 @@ export const CatalogPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'featured' | 'discount' | 'price-asc' | 'price-desc' | 'rating' | 'newest'>('featured');
   const [showMobileFilters, setShowMobileFilters] = useState<boolean>(false);
 
-  const { addToCart, itemCount, setIsCartOpen } = useCart();
+  const { addToCart } = useCart();
 
   // Carga de productos
   useEffect(() => {
@@ -1566,20 +1567,8 @@ export const CatalogPage: React.FC = () => {
       {/* PIE DE PÁGINA REUTILIZABLE */}
       <StoreFooter />
 
-      {/* BOTÓN FLOTANTE DEL CARRITO */}
-      <button
-        onClick={() => setIsCartOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-black flex items-center justify-center shadow-2xl shadow-amber-500/35 border border-amber-300/40 hover:scale-110 active:scale-95 transition-all duration-300 group"
-        title="Ver bolsa de compras"
-        aria-label="Ver bolsa de compras"
-      >
-        <ShoppingBag className="w-6 h-6 text-black stroke-[2.2] group-hover:rotate-6 transition-transform" />
-        {itemCount > 0 && (
-          <span className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1.5 bg-black text-amber-400 font-black text-xs font-mono rounded-full border-2 border-amber-400 flex items-center justify-center shadow-lg animate-bounce">
-            {itemCount}
-          </span>
-        )}
-      </button>
+      {/* BOTÓN REUTILIZABLE DEL CARRITO */}
+      <FloatingCartButton />
 
       {/* Cart Drawer */}
       <CartDrawer />

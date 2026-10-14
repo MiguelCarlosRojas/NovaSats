@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../shared/CartDrawer';
+import { FloatingCartButton } from '../shared/FloatingCartButton';
 import { StoreFooter } from './StoreFooter';
 
 export const DonacionesPage: React.FC = () => {
@@ -80,8 +81,8 @@ export const DonacionesPage: React.FC = () => {
       </header>
 
       {/* BREADCRUMB */}
-      <div className="bg-[#04060c] border-b border-white/[0.06] py-3.5 px-4 sm:px-8 lg:px-12">
-        <div className="max-w-6xl mx-auto flex items-center gap-2 text-xs text-slate-400">
+      <div className="bg-[#04060c] border-b border-white/[0.06] py-3.5 px-4 sm:px-6 lg:px-8 xl:px-12">
+        <div className="w-full flex items-center gap-2 text-xs text-slate-400">
           <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1">
             <Home className="w-3.5 h-3.5 text-slate-500" />
             <span>Inicio</span>
@@ -91,8 +92,8 @@ export const DonacionesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* CONTENIDO PRINCIPAL DE LA PÁGINA DE DONACIONES */}
-      <main className="flex-1 py-12 sm:py-16 px-4 sm:px-8 lg:px-12 max-w-5xl mx-auto w-full space-y-12">
+      {/* CONTENIDO PRINCIPAL DE LA PÁGINA DE DONACIONES (Ancho completo) */}
+      <main className="flex-1 py-12 sm:py-16 px-4 sm:px-6 lg:px-8 xl:px-12 w-full space-y-12">
         
         {/* Encabezado Principal */}
         <div className="text-center space-y-4 max-w-2xl mx-auto">
@@ -326,6 +327,9 @@ export const DonacionesPage: React.FC = () => {
 
       {/* FOOTER */}
       <StoreFooter />
+
+      {/* BOTÓN REUTILIZABLE DEL CARRITO */}
+      <FloatingCartButton />
 
       {/* Carrito Drawer */}
       <CartDrawer />

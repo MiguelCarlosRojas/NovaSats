@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { Product, Order } from '../../types/store';
 import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../shared/CartDrawer';
+import { FloatingCartButton } from '../shared/FloatingCartButton';
 import { VoucherModal } from '../shared/VoucherModal';
 import { StoreFooter } from './StoreFooter';
 import { Link } from 'react-router-dom';
@@ -33,7 +34,7 @@ export const StoreLanding: React.FC = () => {
   const [isLookingUp, setIsLookingUp] = useState(false);
   const [showLookupModal, setShowLookupModal] = useState(false);
 
-  const { addToCart, itemCount, setIsCartOpen } = useCart();
+  const { addToCart } = useCart();
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -227,8 +228,8 @@ export const StoreLanding: React.FC = () => {
         </div>
       </section>
 
-      {/* SECCIÓN CATEGORÍAS DESTACADAS */}
-      <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-12 max-w-7xl mx-auto w-full">
+      {/* SECCIÓN CATEGORÍAS DESTACADAS (Ancho completo) */}
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 xl:px-12 w-full">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
           <div>
             <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
@@ -290,9 +291,9 @@ export const StoreLanding: React.FC = () => {
         </div>
       </section>
 
-      {/* SECCIÓN PREVIEW DE PRODUCTOS DESTACADOS */}
-      <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-12 bg-[#04060c] border-y border-white/[0.06]">
-        <div className="max-w-7xl mx-auto">
+      {/* SECCIÓN PREVIEW DE PRODUCTOS DESTACADOS (Ancho completo) */}
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 xl:px-12 bg-[#04060c] border-y border-white/[0.06] w-full">
+        <div className="w-full">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
             <div>
               <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
@@ -401,7 +402,7 @@ export const StoreLanding: React.FC = () => {
       {/* =================================================================== */}
       {/* SESIÓN DE DONACIONES (Lleva a la página dedicada completa /donaciones) */}
       {/* =================================================================== */}
-      <section className="py-14 sm:py-20 px-4 sm:px-8 lg:px-12 max-w-6xl mx-auto w-full">
+      <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 xl:px-12 w-full">
         <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-rose-500/10 via-purple-500/10 to-amber-500/10 border border-white/[0.08] relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8 shadow-2xl">
           <div className="space-y-3 text-center md:text-left">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-mono font-bold">
@@ -478,20 +479,8 @@ export const StoreLanding: React.FC = () => {
       {/* FOOTER */}
       <StoreFooter />
 
-      {/* BOTÓN FLOTANTE DEL CARRITO */}
-      <button
-        onClick={() => setIsCartOpen(true)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-black flex items-center justify-center shadow-2xl shadow-amber-500/35 border border-amber-300/40 hover:scale-110 active:scale-95 transition-all duration-300 group"
-        title="Ver bolsa de compras"
-        aria-label="Ver bolsa de compras"
-      >
-        <ShoppingBag className="w-6 h-6 text-black stroke-[2.2] group-hover:rotate-6 transition-transform" />
-        {itemCount > 0 && (
-          <span className="absolute -top-2 -right-2 min-w-[24px] h-6 px-1.5 bg-black text-amber-400 font-black text-xs font-mono rounded-full border-2 border-amber-400 flex items-center justify-center shadow-lg animate-bounce">
-            {itemCount}
-          </span>
-        )}
-      </button>
+      {/* BOTÓN REUTILIZABLE DEL CARRITO */}
+      <FloatingCartButton />
 
       {/* Cart Drawer */}
       <CartDrawer />

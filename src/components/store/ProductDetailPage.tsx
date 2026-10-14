@@ -6,6 +6,7 @@ import { useCart } from '../../context/CartContext';
 import { Blobatar } from '../ui/blobatar';
 import { parseBlobatar } from '../../lib/blobatarHelper';
 import { CartDrawer } from '../shared/CartDrawer';
+import { FloatingCartButton } from '../shared/FloatingCartButton';
 import { StoreFooter } from './StoreFooter';
 import {
   Bitcoin,
@@ -52,7 +53,7 @@ import {
 
 export const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { addToCart, itemCount, setIsCartOpen } = useCart();
+  const { addToCart, setIsCartOpen } = useCart();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -311,9 +312,9 @@ export const ProductDetailPage: React.FC = () => {
         </div>
       </header>
 
-      {/* Breadcrumb Bar */}
-      <div className="bg-[#04060c] border-b border-white/[0.06] py-3.5 px-4 sm:px-8 lg:px-12">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 text-xs text-slate-400 font-medium overflow-x-auto">
+      {/* Breadcrumb Bar (Full width) */}
+      <div className="bg-[#04060c] border-b border-white/[0.06] py-3.5 px-4 sm:px-6 lg:px-8 xl:px-12">
+        <div className="w-full flex items-center gap-2 text-xs text-slate-400 font-medium overflow-x-auto">
           <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1 shrink-0">
             <span>Inicio</span>
           </Link>
@@ -339,8 +340,8 @@ export const ProductDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* MAIN CONTAINER */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-8 lg:px-12 py-10 space-y-12">
+      {/* MAIN CONTAINER (Full screen width) */}
+      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-10 space-y-12">
         
         {/* TOP HERO PRODUCT SECTION (Images Carousel + Primary Purchase Details) */}
         <div className="bg-[#090d19] border border-white/[0.08] rounded-3xl p-6 sm:p-10 shadow-2xl">
@@ -536,32 +537,56 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Quantity Selector */}
+              {/* Quantity Selector: Soporte para teclas Arriba/Abajo, sin flechas nativas y botón menos solo si > 1 */}
               {inStock && (
                 <div className="flex items-center justify-between gap-4 pt-2">
                   <span className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono">
                     Cantidad a comprar:
                   </span>
                   
-                  <div className="flex items-center border border-white/[0.1] bg-[#070b14] rounded-xl overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      disabled={quantity <= 1}
-                      className="p-2.5 text-slate-400 hover:text-white hover:bg-white/[0.05] disabled:opacity-30 transition"
-                      aria-label="Restar cantidad"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
-                    <span className="px-4 text-sm font-mono font-bold text-white">
-                      {quantity}
-                    </span>
+                  <div className="flex items-center border border-white/[0.1] bg-[#070b14] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-amber-500">
+                    {quantity > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                        className="p-2.5 text-slate-400 hover:text-white hover:bg-white/[0.05] transition"
+                        aria-label="Restar cantidad"
+                        title="Disminuir cantidad"
+                      >
+                        <Minus className="w-4 h-4" />
+                      </button>
+                    )}
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={quantity}
+                      onChange={(e) => {
+                        const raw = e.target.value.replace(/\D/g, '');
+                        const val = parseInt(raw, 10);
+                        if (!isNaN(val)) {
+                          setQuantity(Math.min(product.stock, Math.max(1, val)));
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'ArrowUp') {
+                          e.preventDefault();
+                          setQuantity((q) => Math.min(product.stock, q + 1));
+                        } else if (e.key === 'ArrowDown') {
+                          e.preventDefault();
+                          setQuantity((q) => Math.max(1, q - 1));
+                        }
+                      }}
+                      className="w-12 text-center text-sm font-mono font-bold text-white bg-transparent focus:outline-none"
+                      title="Usa las teclas Arriba/Abajo para ajustar la cantidad"
+                    />
                     <button
                       type="button"
                       onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
                       disabled={quantity >= product.stock}
                       className="p-2.5 text-slate-400 hover:text-white hover:bg-white/[0.05] disabled:opacity-30 transition"
                       aria-label="Sumar cantidad"
+                      title="Aumentar cantidad"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -1305,20 +1330,8 @@ export const ProductDetailPage: React.FC = () => {
 
       </main>
 
-      {/* FLOATING CART BUTTON */}
-      <button
-        onClick={() => setIsCartOpen(true)}
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 text-black flex items-center justify-center shadow-2xl shadow-amber-500/35 border border-amber-300/40 hover:scale-110 active:scale-95 transition-all duration-300 group"
-        title="Ver bolsa de compras"
-        aria-label="Ver bolsa de compras"
-      >
-        <ShoppingBag className="w-5 h-5 sm:w-6 sm:h-6 text-black stroke-[2.2] group-hover:rotate-6 transition-transform" />
-        {itemCount > 0 && (
-          <span className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 min-w-[22px] sm:min-w-[24px] h-5 sm:h-6 px-1 sm:px-1.5 bg-black text-amber-400 font-black text-[10px] sm:text-xs font-mono rounded-full border-2 border-amber-400 flex items-center justify-center shadow-lg animate-bounce">
-            {itemCount}
-          </span>
-        )}
-      </button>
+      {/* BOTÓN REUTILIZABLE DEL CARRITO */}
+      <FloatingCartButton />
 
       {/* Cart Drawer */}
       <CartDrawer />

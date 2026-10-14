@@ -501,12 +501,6 @@ export const CartDrawer: React.FC = () => {
                       </p>
                     </div>
                   ) : (
-                    <>
-                      <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-900 dark:text-amber-300 flex items-center gap-2">
-                        <span className="text-base">💡</span>
-                        <span>Usa las teclas <strong>↑ Arriba</strong> y <strong>↓ Abajo</strong> en el selector de cantidad para ajustar productos rápidamente.</span>
-                      </div>
-
                       <div className="space-y-3">
                         {cart.map((item) => (
                           <div
@@ -532,35 +526,40 @@ export const CartDrawer: React.FC = () => {
                               </div>
                               
                               <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200/60 dark:border-gray-700/60">
-                                {/* Selector de cantidad con soporte para flechas arriba/abajo */}
+                                {/* Selector de cantidad: Teclas Arriba/Abajo, sin botones nativos y botón de menos solo si cantidad > 1 */}
                                 <div className="flex items-center border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-900 shadow-sm focus-within:ring-2 focus-within:ring-amber-500">
-                                  <button
-                                    type="button"
-                                    onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition"
-                                    title="Disminuir (↓ flecha abajo)"
-                                  >
-                                    <Minus className="w-3.5 h-3.5" />
-                                  </button>
+                                  {item.quantity > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => updateQuantity(item.product.id, Math.max(1, item.quantity - 1))}
+                                      className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition"
+                                      title="Disminuir cantidad"
+                                    >
+                                      <Minus className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
                                   <input
-                                    type="number"
-                                    min="1"
-                                    max={item.product.stock}
+                                    type="text"
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                     value={item.quantity}
                                     onChange={(e) => {
-                                      const val = parseInt(e.target.value) || 1;
-                                      updateQuantity(item.product.id, Math.min(item.product.stock, Math.max(1, val)));
+                                      const raw = e.target.value.replace(/\D/g, '');
+                                      const val = parseInt(raw, 10);
+                                      if (!isNaN(val)) {
+                                        updateQuantity(item.product.id, Math.min(item.product.stock, Math.max(1, val)));
+                                      }
                                     }}
                                     onKeyDown={(e) => handleKeyDownQuantity(e, item.product.id, item.quantity, item.product.stock)}
-                                    className="w-12 text-center text-xs font-bold text-gray-900 dark:text-white bg-transparent focus:outline-none appearance-none [-moz-appearance:_textfield] [&::-webkit-inner-spin-button]:m-0 [&::-webkit-outer-spin-button]:m-0"
-                                    title="Presiona flecha Arriba/Abajo para cambiar cantidad"
+                                    className="w-12 text-center text-xs font-bold text-gray-900 dark:text-white bg-transparent focus:outline-none"
+                                    title="Usa flechas Arriba/Abajo para cambiar cantidad"
                                   />
                                   <button
                                     type="button"
                                     onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                                     disabled={item.quantity >= item.product.stock}
                                     className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 disabled:opacity-30 transition"
-                                    title="Aumentar (↑ flecha arriba)"
+                                    title="Aumentar cantidad"
                                   >
                                     <Plus className="w-3.5 h-3.5" />
                                   </button>
@@ -579,7 +578,6 @@ export const CartDrawer: React.FC = () => {
                           </div>
                         ))}
                       </div>
-                    </>
                   )}
                 </>
               )}

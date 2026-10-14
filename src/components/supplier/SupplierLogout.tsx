@@ -50,12 +50,12 @@ export const SupplierLogout: React.FC = () => {
         </Link>
       </header>
 
-      {/* Main Content Card (Full height centered) */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-hidden">
+      {/* Main Content Card (Full height centered, wide layout) */}
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-hidden w-full">
         {/* Glow ambient background */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[650px] h-[650px] bg-amber-500/10 rounded-full blur-[140px] pointer-events-none" />
         
-        <div className="max-w-2xl w-full text-center space-y-8 relative z-10">
+        <div className="max-w-4xl w-full text-center space-y-8 relative z-10">
           
           {/* Animated Status Icon */}
           <div className="relative inline-flex items-center justify-center">

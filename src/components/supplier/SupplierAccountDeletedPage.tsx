@@ -44,8 +44,8 @@ export const SupplierAccountDeletedPage: React.FC = () => {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-3xl bg-[#0a0f1d] border border-white/[0.1] rounded-3xl p-6 sm:p-12 shadow-2xl relative overflow-hidden text-center space-y-8">
+      <main className="flex-1 flex items-center justify-center p-4 sm:p-8 w-full">
+        <div className="w-full max-w-4xl bg-[#0a0f1d] border border-white/[0.1] rounded-3xl p-6 sm:p-12 shadow-2xl relative overflow-hidden text-center space-y-8">
           
           {/* Subtle background glow */}
           <div className="absolute -top-32 -left-32 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />

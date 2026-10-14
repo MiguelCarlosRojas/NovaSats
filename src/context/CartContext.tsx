@@ -52,14 +52,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity <= 0) {
-      removeFromCart(productId);
-      return;
-    }
+    // La eliminación solo se realiza explícitamente mediante los botones de basura (removeFromCart)
+    const validQuantity = Math.max(1, quantity);
     setCart((prev) =>
       prev.map((item) => {
         if (item.product.id === productId) {
-          const validQty = Math.min(quantity, item.product.stock);
+          const validQty = Math.min(validQuantity, item.product.stock);
           return { ...item, quantity: validQty };
         }
         return item;
