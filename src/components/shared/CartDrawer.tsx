@@ -29,7 +29,9 @@ import {
   Store,
   Navigation,
   ExternalLink,
-  Mail
+  Mail,
+  Search,
+  LocateFixed
 } from 'lucide-react';
 
 // Departamentos y provincias de Perú
@@ -173,6 +175,9 @@ export const CartDrawer: React.FC = () => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [gpsError, setGpsError] = useState('');
   const [gpsSuccess, setGpsSuccess] = useState(false);
+  const [mapSearchInput, setMapSearchInput] = useState('');
+  const [mapSearching, setMapSearching] = useState(false);
+  const [mapSearchMessage, setMapSearchMessage] = useState('');
 
   // Tasa de cambio Soles / USD
   const PEN_RATE = 3.75;
@@ -247,8 +252,9 @@ export const CartDrawer: React.FC = () => {
               const road = data.address.road || data.address.pedestrian || data.address.suburb || '';
               const houseNum = data.address.house_number || '';
               const foundAddr = `${road} ${houseNum}`.trim();
-              if (foundAddr && !direccion) {
+              if (foundAddr) {
                 setDireccion(foundAddr);
+                setMapSearchInput(foundAddr);
               }
               if (data.address.state && !departamento) {
                 const matched = Object.keys(PERU_LOCATIONS).find(d =>
@@ -275,6 +281,40 @@ export const CartDrawer: React.FC = () => {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
+  };
+
+  // Buscar dirección ingresada en el mapa y sincronizar coordenadas
+  const handleMapSearch = async (queryText?: string) => {
+    const q = (queryText !== undefined ? queryText : mapSearchInput || direccion).trim();
+    if (!q) return;
+
+    setMapSearching(true);
+    setMapSearchMessage('');
+    try {
+      const searchParam = `${q}, ${distrito ? distrito + ', ' : ''}${departamento ? departamento + ', ' : ''}Peru`;
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchParam)}&limit=1`
+      );
+      if (res.ok) {
+        const results = await res.json();
+        if (results && results.length > 0) {
+          const first = results[0];
+          const newLat = parseFloat(first.lat);
+          const newLng = parseFloat(first.lon);
+          setCoords({ lat: newLat, lng: newLng });
+          setMapSearchMessage('Ubicación localizada en el mapa.');
+          if (!direccion) {
+            setDireccion(q);
+          }
+        } else {
+          setMapSearchMessage('Mostrando referencia en el mapa.');
+        }
+      }
+    } catch {
+      setMapSearchMessage('Buscando referencia en Google Maps...');
+    } finally {
+      setMapSearching(false);
+    }
   };
 
   // Estado de checkout y pago
@@ -810,69 +850,83 @@ export const CartDrawer: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Permiso de Ubicación del Sistema (GPS) */}
-                        <div className="p-3 bg-white dark:bg-gray-900 border border-amber-500/30 rounded-xl space-y-2">
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <p className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
-                                <Navigation className="w-3.5 h-3.5 text-amber-500" />
-                                Ubicación del Sistema (GPS)
-                              </p>
-                              <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
-                                Detecta tu ubicación exacta con el permiso de tu dispositivo o navegador.
-                              </p>
+                        {/* Mapa de Google Interactivo con Barra de Búsqueda y Permiso GPS */}
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-amber-500" />
+                              Mapa Interactivo de Destino
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={requestSystemLocation}
+                                disabled={gpsLoading}
+                                className="text-[10px] text-amber-600 dark:text-amber-400 font-bold hover:underline flex items-center gap-0.5 transition disabled:opacity-50"
+                              >
+                                {gpsLoading ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Navigation className="w-3 h-3" />
+                                )}
+                                <span>Permiso GPS</span>
+                              </button>
+                              <span className="text-gray-300 dark:text-gray-700">|</span>
+                              <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                  coords ? `${coords.lat},${coords.lng}` : `${mapSearchInput || direccion || 'Lima'}, ${distrito || ''}, ${provincia || ''}, Peru`
+                                )}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 font-medium"
+                              >
+                                <span>Ver en Google Maps</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </div>
+
+                          {/* Barra para escribir o buscar en el mapa */}
+                          <div className="flex gap-1.5">
+                            <div className="relative flex-1">
+                              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                              <input
+                                type="text"
+                                value={mapSearchInput}
+                                onChange={(e) => setMapSearchInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleMapSearch();
+                                  }
+                                }}
+                                placeholder="Escribe dirección o referencia en el mapa..."
+                                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-1 focus:ring-amber-500 focus:outline-none dark:text-white"
+                              />
                             </div>
                             <button
                               type="button"
-                              onClick={requestSystemLocation}
-                              disabled={gpsLoading}
-                              className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-lg transition shrink-0 flex items-center gap-1 shadow-sm disabled:opacity-50"
+                              onClick={() => handleMapSearch()}
+                              disabled={mapSearching}
+                              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-lg transition flex items-center gap-1 shrink-0 disabled:opacity-50"
                             >
-                              {gpsLoading ? (
-                                <>
-                                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                                  <span>Detectando...</span>
-                                </>
+                              {mapSearching ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
                               ) : (
-                                <>
-                                  <Navigation className="w-3.5 h-3.5" />
-                                  <span>Detectar GPS</span>
-                                </>
+                                <Search className="w-3.5 h-3.5 text-amber-500" />
                               )}
+                              <span>Buscar</span>
                             </button>
                           </div>
 
-                          {gpsSuccess && (
-                            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                              <CheckCircle2 className="w-3.5 h-3.5" /> Permiso concedido y ubicación GPS detectada.
+                          {mapSearchMessage && (
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 italic">
+                              {mapSearchMessage}
                             </p>
                           )}
-                          {gpsError && (
-                            <p className="text-[11px] text-amber-600 dark:text-amber-400">
-                              {gpsError}
-                            </p>
-                          )}
-                        </div>
 
-                        {/* Mapa de Google Interactivo */}
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300">
-                              Mapa de Google - Destino de Entrega
-                            </span>
-                            <a
-                              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                coords ? `${coords.lat},${coords.lng}` : `${direccion || 'Lima'}, ${distrito || ''}, ${provincia || ''}, Peru`
-                              )}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 font-medium"
-                            >
-                              <span>Ver en Google Maps</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
-                          </div>
-                          <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 relative">
+                          {/* Contenedor del Mapa de Google */}
+                          <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 relative shadow-inner">
                             <iframe
                               title="Google Maps Destino"
                               width="100%"
@@ -884,7 +938,7 @@ export const CartDrawer: React.FC = () => {
                               src={`https://maps.google.com/maps?q=${encodeURIComponent(
                                 coords
                                   ? `${coords.lat},${coords.lng}`
-                                  : `${direccion || 'Lima Perú'}, ${distrito || ''}, ${provincia || ''}, Peru`
+                                  : `${mapSearchInput || direccion || 'Lima Perú'}, ${distrito || ''}, ${provincia || ''}, Peru`
                               )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
                               className="w-full h-full"
                             />
@@ -947,19 +1001,74 @@ export const CartDrawer: React.FC = () => {
                           </select>
                         </div>
 
-                        {/* Dirección */}
+                        {/* Dirección con Permiso GPS integrado en el mismo campo */}
                         <div>
-                          <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
-                            Dirección *
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={direccion}
-                            onChange={(e) => setDireccion(e.target.value)}
-                            placeholder="Ingresa calle y número / Mz / Lote / Urb"
-                            className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
-                          />
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                              Dirección *
+                            </label>
+                            <button
+                              type="button"
+                              onClick={requestSystemLocation}
+                              disabled={gpsLoading}
+                              className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:text-amber-500 flex items-center gap-1 transition disabled:opacity-50"
+                              title="Solicitar permiso de ubicación y autocompletar con GPS"
+                            >
+                              {gpsLoading ? (
+                                <>
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                  <span>Detectando...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <LocateFixed className="w-3 h-3" />
+                                  <span>Dar permiso de ubicación (GPS)</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              required
+                              value={direccion}
+                              onChange={(e) => {
+                                setDireccion(e.target.value);
+                                setMapSearchInput(e.target.value);
+                              }}
+                              onBlur={() => {
+                                if (direccion.trim()) {
+                                  handleMapSearch(direccion);
+                                }
+                              }}
+                              placeholder="Ingresa calle y número / Mz / Lote / Urb"
+                              className="w-full pl-3 pr-24 py-2 text-sm bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-amber-500 focus:outline-none dark:text-white"
+                            />
+                            <button
+                              type="button"
+                              onClick={requestSystemLocation}
+                              disabled={gpsLoading}
+                              className="absolute right-1.5 top-1/2 -translate-y-1/2 px-2.5 py-1 bg-amber-500 hover:bg-amber-600 text-black font-bold text-xs rounded-lg transition flex items-center gap-1 shadow-sm disabled:opacity-50"
+                            >
+                              {gpsLoading ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Navigation className="w-3.5 h-3.5" />
+                              )}
+                              <span>GPS</span>
+                            </button>
+                          </div>
+
+                          {gpsSuccess && (
+                            <p className="text-[11px] text-emerald-600 dark:text-emerald-400 mt-1 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Permiso concedido y dirección GPS detectada.
+                            </p>
+                          )}
+                          {gpsError && (
+                            <p className="text-[11px] text-amber-600 dark:text-amber-400 mt-1">
+                              {gpsError}
+                            </p>
+                          )}
                         </div>
 
                         {/* Depto, casa, piso, interior (opcional) */}
