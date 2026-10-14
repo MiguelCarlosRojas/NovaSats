@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../shared/CartDrawer';
+import { StoreFooter } from './StoreFooter';
 
 export const DonacionesPage: React.FC = () => {
   const { itemCount, setIsCartOpen } = useCart();
@@ -324,48 +325,7 @@ export const DonacionesPage: React.FC = () => {
       )}
 
       {/* FOOTER */}
-      <footer className="mt-auto bg-[#030508] border-t border-white/[0.08] text-slate-400 pt-12 pb-8 px-4 sm:px-8 lg:px-12 text-xs">
-        <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 mb-10">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-                <Bitcoin className="w-4 h-4 text-black stroke-[2.5]" />
-              </div>
-              <span className="text-base font-black text-white">Nova<span className="text-amber-500">Sats</span></span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Comercio electrónico descentralizado directo en Bitcoin.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-              Enlaces Directos
-            </h4>
-            <ul className="space-y-1.5 text-[11px]">
-              <li><Link to="/" className="hover:text-amber-400 transition">Inicio</Link></li>
-              <li><Link to="/catalogo" className="hover:text-amber-400 transition">Catálogo de Productos</Link></li>
-              <li><Link to="/promociones" className="hover:text-amber-400 transition">Promociones</Link></li>
-            </ul>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-              Soporte & Ayuda
-            </h4>
-            <ul className="space-y-1.5 text-[11px]">
-              <li><Link to="/ayuda" className="hover:text-amber-400 transition">Centro de Ayuda</Link></li>
-              <li><Link to="/servicio-al-cliente" className="hover:text-amber-400 transition">Servicio al Cliente</Link></li>
-              <li><Link to="/terminos-y-condiciones" className="hover:text-amber-400 transition">Términos y Condiciones</Link></li>
-            </ul>
-          </div>
-        </div>
-
-        <div className="max-w-6xl mx-auto pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
-          <p>© Todos los derechos reservados • NovaSats Technologies S.A.C.</p>
-          <span className="font-mono text-[10px]">100% Non-Custodial P2P</span>
-        </div>
-      </footer>
+      <StoreFooter />
 
       {/* Carrito Drawer */}
       <CartDrawer />

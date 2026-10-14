@@ -4,6 +4,7 @@ import { Product, Order } from '../../types/store';
 import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../shared/CartDrawer';
 import { VoucherModal } from '../shared/VoucherModal';
+import { StoreFooter } from './StoreFooter';
 import { Link } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -475,121 +476,7 @@ export const StoreLanding: React.FC = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="mt-auto bg-[#030508] border-t border-white/[0.08] text-slate-400 pt-12 sm:pt-16 pb-8 px-4 sm:px-8 lg:px-12 text-xs">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-                <Bitcoin className="w-4 h-4 text-black stroke-[2.5]" />
-              </div>
-              <span className="text-base font-black text-white">Nova<span className="text-amber-500">Sats</span></span>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Infraestructura de comercio descentralizado directo en Bitcoin. Pagos seguros y vouchers respaldados por smart contracts.
-            </p>
-            <div className="pt-1">
-              <span className="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-mono font-bold">
-                100% Non-Custodial P2P
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-              Explorar
-            </h4>
-            <ul className="space-y-2 text-[11px]">
-              <li>
-                <Link to="/catalogo" className="hover:text-amber-400 transition block">
-                  Catálogo de Productos
-                </Link>
-              </li>
-              <li>
-                <Link to="/donaciones" className="hover:text-amber-400 transition block">
-                  Donaciones (PayPal & Yape)
-                </Link>
-              </li>
-              <li>
-                <a href="#consultar-voucher" className="hover:text-amber-400 transition block">
-                  Consultar Voucher
-                </a>
-              </li>
-              <li>
-                <Link to="/promociones" className="hover:text-amber-400 transition block">
-                  Promociones
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-              Servicio al Cliente & Ayuda
-            </h4>
-            <ul className="space-y-2 text-[11px]">
-              <li>
-                <Link to="/ayuda" className="hover:text-amber-400 transition block">
-                  Centro de Ayuda
-                </Link>
-              </li>
-              <li>
-                <Link to="/servicio-al-cliente" className="hover:text-amber-400 transition block">
-                  Servicio al Cliente
-                </Link>
-              </li>
-              <li>
-                <Link to="/reclamos" className="hover:text-amber-400 transition block">
-                  Reclamos
-                </Link>
-              </li>
-              <li>
-                <Link to="/libro-de-reclamaciones" className="hover:text-amber-400 transition font-bold text-amber-400 block">
-                  Libro de Reclamaciones
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-              Legales y Políticas
-            </h4>
-            <ul className="space-y-2 text-[11px]">
-              <li>
-                <Link to="/terminos-y-condiciones" className="hover:text-amber-400 transition block">
-                  Términos y Condiciones
-                </Link>
-              </li>
-              <li>
-                <Link to="/como-cuidamos-tu-privacidad" className="hover:text-amber-400 transition block">
-                  Privacidad
-                </Link>
-              </li>
-              <li>
-                <Link to="/accesibilidad" className="hover:text-amber-400 transition block">
-                  Accesibilidad
-                </Link>
-              </li>
-              <li>
-                <Link to="/politica-cookies" className="hover:text-amber-400 transition block">
-                  Política de Cookies
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-        </div>
-
-        <div className="max-w-7xl mx-auto pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
-          <p>© Todos los derechos reservados • NovaSats Technologies S.A.C.</p>
-          <div className="flex items-center gap-4 text-slate-400 font-mono text-[10px]">
-            <span>Bitcoin Network Verified</span>
-            <span>•</span>
-            <span>NovaSats.sol • On-Chain</span>
-          </div>
-        </div>
-      </footer>
+      <StoreFooter />
 
       {/* BOTÓN FLOTANTE DEL CARRITO */}
       <button

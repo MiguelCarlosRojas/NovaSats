@@ -271,8 +271,9 @@ export const SupplierLogin: React.FC = () => {
             <div className="grid grid-cols-2 p-1 bg-black/40 border border-white/[0.06] rounded-xl mb-6">
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => handleTabChange('login')}
-                className={`py-2 text-xs font-black uppercase tracking-wider rounded-lg transition ${
+                className={`py-2 text-xs font-black uppercase tracking-wider rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${
                   !isRegister
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                     : 'text-slate-400 hover:text-white'
@@ -282,8 +283,9 @@ export const SupplierLogin: React.FC = () => {
               </button>
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={() => handleTabChange('registro')}
-                className={`py-2 text-xs font-black uppercase tracking-wider rounded-lg transition ${
+                className={`py-2 text-xs font-black uppercase tracking-wider rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${
                   isRegister
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                     : 'text-slate-400 hover:text-white'
@@ -312,10 +314,11 @@ export const SupplierLogin: React.FC = () => {
                       <input
                         type="text"
                         required
+                        disabled={isSubmitting}
                         placeholder="Ej: Cryptowear Labs Inc"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
-                        className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
+                        className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                       />
                     </div>
                   </div>
@@ -329,10 +332,11 @@ export const SupplierLogin: React.FC = () => {
                       <input
                         type="tel"
                         inputMode="numeric"
+                        disabled={isSubmitting}
                         placeholder="+51 987 654 321"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\s-]/g, ''))}
-                        className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono transition"
+                        className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono disabled:opacity-50 disabled:cursor-not-allowed transition"
                       />
                     </div>
                   </div>
@@ -355,8 +359,9 @@ export const SupplierLogin: React.FC = () => {
                       </div>
                       <button
                         type="button"
+                        disabled={isSubmitting}
                         onClick={() => open()}
-                        className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-xl shadow transition active:scale-95 flex items-center gap-1.5"
+                        className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-xl shadow transition active:scale-95 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Wallet className="w-3.5 h-3.5" />
                         <span>{isAppKitConnected && appKitAddress ? 'Cambiar Wallet' : 'Conectar Wallet'}</span>
@@ -375,10 +380,11 @@ export const SupplierLogin: React.FC = () => {
                   <input
                     type="email"
                     required
+                    disabled={isSubmitting}
                     placeholder="proveedor@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
+                    className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   />
                 </div>
               </div>
@@ -392,10 +398,11 @@ export const SupplierLogin: React.FC = () => {
                   <input
                     type="password"
                     required
+                    disabled={isSubmitting}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition"
+                    className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   />
                 </div>
               </div>
@@ -403,10 +410,19 @@ export const SupplierLogin: React.FC = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full mt-3 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 disabled:opacity-50 active:scale-[0.99]"
+                className="w-full mt-3 py-3.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.99]"
               >
-                <span>{isRegister ? 'Registrar e Ingresar al Portal' : 'Iniciar Sesión en el Portal'}</span>
-                <ArrowRight className="w-4 h-4" />
+                {isSubmitting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <span>Procesando...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>{isRegister ? 'Registrar e Ingresar al Portal' : 'Iniciar Sesión en el Portal'}</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </form>
 

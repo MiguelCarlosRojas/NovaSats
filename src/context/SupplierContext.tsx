@@ -101,6 +101,39 @@ export const SupplierProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         return { success: false, error: error.message };
       }
 
+      // Sincronizar automáticamente con Datos Comerciales de la Empresa / Marca
+      try {
+        await supabase.from('supplier_commercial_profiles').upsert({
+          supplier_id: inserted.id,
+          brand_name: inserted.company_name,
+          commercial_activity: 'Comercio Electrónico y Productos Tecnológicos',
+          support_email: inserted.email,
+          customer_phone: inserted.phone || '',
+          whatsapp_number: inserted.phone || '',
+          commercial_address: '',
+          website_url: '',
+          commercial_description: `Tienda oficial de ${inserted.company_name} en NovaSats.`,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'supplier_id' });
+      } catch (commErr) {
+        console.warn('Could not auto-create commercial profile:', commErr);
+      }
+
+      // Si se vinculó billetera durante el registro, crearla como billetera principal de cobro
+      if (data.wallet_address) {
+        try {
+          await supabase.from('supplier_wallets').upsert({
+            supplier_id: inserted.id,
+            address: data.wallet_address,
+            label: 'Billetera Principal de Recaudación',
+            network: data.wallet_address.startsWith('0x') ? 'Ethereum / EVM' : 'Bitcoin Native',
+            is_primary: true
+          });
+        } catch (wallErr) {
+          console.warn('Could not auto-create wallet entry:', wallErr);
+        }
+      }
+
       setSupplier(inserted as Supplier);
       setLoading(false);
       return { success: true };

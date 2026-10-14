@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Product } from '../../types/store';
 import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../shared/CartDrawer';
+import { StoreFooter } from './StoreFooter';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   ShoppingBag,
@@ -1188,30 +1189,11 @@ export const CatalogPage: React.FC = () => {
             )}
           </div>
         </div>
-
-        {/* Acciones de la cabecera (Sin botón de donar) */}
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.05] rounded-xl transition"
-          >
-            <Home className="w-3.5 h-3.5 text-slate-400" />
-            <span>Inicio</span>
-          </Link>
-
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:from-amber-400 hover:to-orange-400 transition"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Carrito ({itemCount})</span>
-          </button>
-        </div>
       </header>
 
       {/* BREADCRUMB */}
-      <div className="bg-[#04060c] border-b border-white/[0.06] py-3 px-4 sm:px-8 lg:px-12">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-xs text-slate-400">
+      <div className="bg-[#04060c] border-b border-white/[0.06] py-3 px-4 sm:px-6 lg:px-8 xl:px-10">
+        <div className="w-full flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1">
               <Home className="w-3.5 h-3.5 text-slate-500" />
@@ -1226,8 +1208,8 @@ export const CatalogPage: React.FC = () => {
         </div>
       </div>
 
-      {/* CONTENEDOR PRINCIPAL: FILTROS LATERALES DINÁMICOS + PRODUCTOS */}
-      <main className="py-6 sm:py-8 px-4 sm:px-8 lg:px-12 max-w-7xl mx-auto w-full flex-1">
+      {/* CONTENEDOR PRINCIPAL: FILTROS LATERALES DINÁMICOS + PRODUCTOS (Ancho completo) */}
+      <main className="py-6 sm:py-8 px-4 sm:px-6 lg:px-8 xl:px-10 w-full flex-1">
         
         {/* Buscador móvil */}
         <div className="md:hidden mb-4">
@@ -1424,8 +1406,8 @@ export const CatalogPage: React.FC = () => {
           <div className="flex-1 min-w-0 w-full space-y-6">
             
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-                {[...Array(6)].map((_, i) => (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                {[...Array(10)].map((_, i) => (
                   <div key={i} className="h-80 rounded-2xl bg-white/[0.02] border border-white/[0.06] animate-pulse" />
                 ))}
               </div>
@@ -1449,7 +1431,7 @@ export const CatalogPage: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                   {paginatedProducts.map((product) => (
                     <div
                       key={product.id}
@@ -1581,117 +1563,8 @@ export const CatalogPage: React.FC = () => {
 
       </main>
 
-      {/* PIE DE PÁGINA (Footer) */}
-      <footer className="mt-auto bg-[#030508] border-t border-white/[0.08] text-slate-400 pt-12 pb-8 px-4 sm:px-8 lg:px-12 text-xs">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-                <Bitcoin className="w-4 h-4 text-black stroke-[2.5]" />
-              </div>
-              <span className="text-base font-black text-white">Nova<span className="text-amber-500">Sats</span></span>
-            </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Catálogo de productos con liquidación directa en Bitcoin on-chain y comprobantes digitales inmutables.
-            </p>
-            <div className="pt-1">
-              <span className="px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-mono font-bold">
-                100% Non-Custodial P2P
-              </span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-              Navegación
-            </h4>
-            <ul className="space-y-2 text-[11px]">
-              <li>
-                <Link to="/" className="hover:text-amber-400 transition block">
-                  Página de Inicio
-                </Link>
-              </li>
-              <li>
-                <Link to="/donaciones" className="hover:text-amber-400 transition block">
-                  Donaciones (PayPal & Yape)
-                </Link>
-              </li>
-              <li>
-                <Link to="/promociones" className="hover:text-amber-400 transition block">
-                  Promociones
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-              Servicio al Cliente
-            </h4>
-            <ul className="space-y-2 text-[11px]">
-              <li>
-                <Link to="/ayuda" className="hover:text-amber-400 transition block">
-                  Centro de Ayuda
-                </Link>
-              </li>
-              <li>
-                <Link to="/servicio-al-cliente" className="hover:text-amber-400 transition block">
-                  Servicio al Cliente
-                </Link>
-              </li>
-              <li>
-                <Link to="/reclamos" className="hover:text-amber-400 transition block">
-                  Reclamos
-                </Link>
-              </li>
-              <li>
-                <Link to="/libro-de-reclamaciones" className="hover:text-amber-400 transition font-bold text-amber-400 block">
-                  Libro de Reclamaciones
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-3">
-            <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-white">
-              Legales y Políticas
-            </h4>
-            <ul className="space-y-2 text-[11px]">
-              <li>
-                <Link to="/terminos-y-condiciones" className="hover:text-amber-400 transition block">
-                  Términos y Condiciones
-                </Link>
-              </li>
-              <li>
-                <Link to="/como-cuidamos-tu-privacidad" className="hover:text-amber-400 transition block">
-                  Privacidad
-                </Link>
-              </li>
-              <li>
-                <Link to="/accesibilidad" className="hover:text-amber-400 transition block">
-                  Accesibilidad
-                </Link>
-              </li>
-              <li>
-                <Link to="/politica-cookies" className="hover:text-amber-400 transition block">
-                  Política de Cookies
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-        </div>
-
-        <div className="max-w-7xl mx-auto pt-6 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-slate-400">
-          <p>© Todos los derechos reservados • NovaSats Technologies S.A.C.</p>
-          <div className="flex items-center gap-4 text-slate-400 font-mono text-[10px]">
-            <span>Bitcoin Network Verified</span>
-            <span>•</span>
-            <span>NovaSats.sol • On-Chain</span>
-          </div>
-        </div>
-      </footer>
+      {/* PIE DE PÁGINA REUTILIZABLE */}
+      <StoreFooter />
 
       {/* BOTÓN FLOTANTE DEL CARRITO */}
       <button

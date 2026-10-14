@@ -141,6 +141,13 @@ export const DEFAULT_COMMERCIAL_PROFILE: Omit<SupplierCommercialProfile, 'suppli
 
 export async function fetchSupplierCommercialProfile(supplierId: string): Promise<SupplierCommercialProfile> {
   try {
+    // 1. Obtener datos base registrados en la tabla suppliers para garantizar sincronización
+    const { data: suppData } = await supabase
+      .from('suppliers')
+      .select('company_name, email, phone')
+      .eq('id', supplierId)
+      .maybeSingle();
+
     const { data, error } = await supabase
       .from('supplier_commercial_profiles')
       .select('*')
@@ -149,11 +156,35 @@ export async function fetchSupplierCommercialProfile(supplierId: string): Promis
 
     if (error) {
       console.warn('supplier_commercial_profiles not found or awaiting migration:', error.message);
-      return { ...DEFAULT_COMMERCIAL_PROFILE, supplier_id: supplierId };
+      return {
+        ...DEFAULT_COMMERCIAL_PROFILE,
+        supplier_id: supplierId,
+        brand_name: suppData?.company_name || '',
+        support_email: suppData?.email || '',
+        customer_phone: suppData?.phone || '',
+        whatsapp_number: suppData?.phone || '',
+      };
     }
 
-    if (data) return data as SupplierCommercialProfile;
-    return { ...DEFAULT_COMMERCIAL_PROFILE, supplier_id: supplierId };
+    if (data) {
+      return {
+        ...data,
+        brand_name: data.brand_name?.trim() || suppData?.company_name || '',
+        support_email: data.support_email?.trim() || suppData?.email || '',
+        customer_phone: data.customer_phone?.trim() || suppData?.phone || '',
+        whatsapp_number: data.whatsapp_number?.trim() || suppData?.phone || '',
+      } as SupplierCommercialProfile;
+    }
+
+    return {
+      ...DEFAULT_COMMERCIAL_PROFILE,
+      supplier_id: supplierId,
+      brand_name: suppData?.company_name || '',
+      support_email: suppData?.email || '',
+      customer_phone: suppData?.phone || '',
+      whatsapp_number: suppData?.phone || '',
+      commercial_description: suppData?.company_name ? `Tienda oficial de ${suppData.company_name} en NovaSats.` : '',
+    };
   } catch (err) {
     console.error('Error fetching commercial profile from Supabase:', err);
     return { ...DEFAULT_COMMERCIAL_PROFILE, supplier_id: supplierId };
