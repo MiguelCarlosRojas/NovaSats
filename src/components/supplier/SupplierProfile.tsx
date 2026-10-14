@@ -1869,22 +1869,7 @@ export const SupplierProfile: React.FC = () => {
                     </div>
                   </div>
 
-                <div>
-                  <label className="block text-xs font-semibold text-slate-300 mb-1">
-                    Giro Comercial / Actividad Económica *
-                  </label>
-                  <div className="relative">
-                    <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                    <input
-                      type="text"
-                      required
-                      value={commercialProfile.commercial_activity}
-                      onChange={(e) => setCommercialProfile({ ...commercialProfile, commercial_activity: e.target.value })}
-                      placeholder="Ej: Venta de productos, tecnología y servicios"
-                      className="w-full bg-[#060911] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                    />
-                  </div>
-                </div>
+
 
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
