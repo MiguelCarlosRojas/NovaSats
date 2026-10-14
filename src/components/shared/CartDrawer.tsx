@@ -614,48 +614,53 @@ export const CartDrawer: React.FC = () => {
                 </button>
               </div>
 
-              {/* Indicador de 3 Pasos (Solo visible a partir del Paso 2 por solicitud) */}
-              {step > 1 && (
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                  <button
-                    type="button"
-                    onClick={() => setStep(1)}
-                    className="flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-                  >
-                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">1</span>
-                    <span>Carro</span>
-                  </button>
+              {/* Indicador de 3 Pasos */}
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                    step === 1
+                      ? 'bg-amber-500 text-black shadow-sm font-bold'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">1</span>
+                  <span>Carro</span>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setStep(2)}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
-                      step === 2
-                        ? 'bg-amber-500 text-black shadow-sm font-bold'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">2</span>
-                    <span>Entrega</span>
-                  </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (cart.length > 0) setStep(2);
+                  }}
+                  disabled={cart.length === 0}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                    step === 2
+                      ? 'bg-amber-500 text-black shadow-sm font-bold'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">2</span>
+                  <span>Entrega</span>
+                </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (customerEmail && direccion) setStep(3);
-                    }}
-                    disabled={!customerEmail || !direccion}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
-                      step === 3
-                        ? 'bg-amber-500 text-black shadow-sm font-bold'
-                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">3</span>
-                    <span>Pago</span>
-                  </button>
-                </div>
-              )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (customerEmail && direccion) setStep(3);
+                  }}
+                  disabled={!customerEmail || !direccion}
+                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                    step === 3
+                      ? 'bg-amber-500 text-black shadow-sm font-bold'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">3</span>
+                  <span>Pago</span>
+                </button>
+              </div>
             </div>
 
             {/* Error banner */}
@@ -694,16 +699,21 @@ export const CartDrawer: React.FC = () => {
                             <img
                               src={item.product.image_url}
                               alt={item.product.name}
-                              className="w-18 h-18 sm:w-20 sm:h-20 object-cover rounded-xl bg-gray-200 dark:bg-gray-700 shrink-0"
+                              className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded-xl bg-gray-200 dark:bg-gray-700 shrink-0"
                             />
                             <div className="flex-1 min-w-0 flex flex-col justify-between">
                               <div>
-                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                                <h4 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2 leading-snug">
                                   {item.product.name}
                                 </h4>
-                                <p className="text-xs text-amber-600 dark:text-amber-400 font-mono font-bold mt-0.5">
-                                  ${Number(item.product.price_usd).toFixed(2)} USD
-                                </p>
+                                <div className="flex flex-wrap items-baseline gap-1.5 mt-0.5">
+                                  <span className="text-xs text-amber-600 dark:text-amber-400 font-mono font-bold">
+                                    ${Number(item.product.price_usd).toFixed(2)} USD
+                                  </span>
+                                  <span className="text-[11px] text-gray-500 font-semibold">
+                                    (S/ {(Number(item.product.price_usd) * PEN_RATE).toFixed(2)})
+                                  </span>
+                                </div>
                                 <p className="text-[10px] text-gray-500 font-mono">
                                   {Number(item.product.price_btc).toFixed(8)} ₿ c/u
                                 </p>
@@ -850,101 +860,6 @@ export const CartDrawer: React.FC = () => {
                           )}
                         </div>
 
-                        {/* Mapa de Google Interactivo con Barra de Búsqueda y Permiso GPS */}
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                              <MapPin className="w-3.5 h-3.5 text-amber-500" />
-                              Mapa Interactivo de Destino
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <button
-                                type="button"
-                                onClick={requestSystemLocation}
-                                disabled={gpsLoading}
-                                className="text-[10px] text-amber-600 dark:text-amber-400 font-bold hover:underline flex items-center gap-0.5 transition disabled:opacity-50"
-                              >
-                                {gpsLoading ? (
-                                  <Loader2 className="w-3 h-3 animate-spin" />
-                                ) : (
-                                  <Navigation className="w-3 h-3" />
-                                )}
-                                <span>Permiso GPS</span>
-                              </button>
-                              <span className="text-gray-300 dark:text-gray-700">|</span>
-                              <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                                  coords ? `${coords.lat},${coords.lng}` : `${mapSearchInput || direccion || 'Lima'}, ${distrito || ''}, ${provincia || ''}, Peru`
-                                )}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 font-medium"
-                              >
-                                <span>Ver en Google Maps</span>
-                                <ExternalLink className="w-3 h-3" />
-                              </a>
-                            </div>
-                          </div>
-
-                          {/* Barra para escribir o buscar en el mapa */}
-                          <div className="flex gap-1.5">
-                            <div className="relative flex-1">
-                              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
-                              <input
-                                type="text"
-                                value={mapSearchInput}
-                                onChange={(e) => setMapSearchInput(e.target.value)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    e.preventDefault();
-                                    handleMapSearch();
-                                  }
-                                }}
-                                placeholder="Escribe dirección o referencia en el mapa..."
-                                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-1 focus:ring-amber-500 focus:outline-none dark:text-white"
-                              />
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleMapSearch()}
-                              disabled={mapSearching}
-                              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-lg transition flex items-center gap-1 shrink-0 disabled:opacity-50"
-                            >
-                              {mapSearching ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                              ) : (
-                                <Search className="w-3.5 h-3.5 text-amber-500" />
-                              )}
-                              <span>Buscar</span>
-                            </button>
-                          </div>
-
-                          {mapSearchMessage && (
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400 italic">
-                              {mapSearchMessage}
-                            </p>
-                          )}
-
-                          {/* Contenedor del Mapa de Google */}
-                          <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 relative shadow-inner">
-                            <iframe
-                              title="Google Maps Destino"
-                              width="100%"
-                              height="100%"
-                              frameBorder="0"
-                              scrolling="no"
-                              marginHeight={0}
-                              marginWidth={0}
-                              src={`https://maps.google.com/maps?q=${encodeURIComponent(
-                                coords
-                                  ? `${coords.lat},${coords.lng}`
-                                  : `${mapSearchInput || direccion || 'Lima Perú'}, ${distrito || ''}, ${provincia || ''}, Peru`
-                              )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
-                              className="w-full h-full"
-                            />
-                          </div>
-                        </div>
-
                         {/* Departamento */}
                         <div>
                           <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
@@ -1069,6 +984,101 @@ export const CartDrawer: React.FC = () => {
                               {gpsError}
                             </p>
                           )}
+                        </div>
+
+                        {/* Mapa de Google Interactivo con Barra de Búsqueda y Permiso GPS (antes de Depto/Interior) */}
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[11px] font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                              <MapPin className="w-3.5 h-3.5 text-amber-500" />
+                              Mapa Interactivo de Destino
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={requestSystemLocation}
+                                disabled={gpsLoading}
+                                className="text-[10px] text-amber-600 dark:text-amber-400 font-bold hover:underline flex items-center gap-0.5 transition disabled:opacity-50"
+                              >
+                                {gpsLoading ? (
+                                  <Loader2 className="w-3 h-3 animate-spin" />
+                                ) : (
+                                  <Navigation className="w-3 h-3" />
+                                )}
+                                <span>Permiso GPS</span>
+                              </button>
+                              <span className="text-gray-300 dark:text-gray-700">|</span>
+                              <a
+                                href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+                                  coords ? `${coords.lat},${coords.lng}` : `${mapSearchInput || direccion || 'Lima'}, ${distrito || ''}, ${provincia || ''}, Peru`
+                                )}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[10px] text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-0.5 font-medium"
+                              >
+                                <span>Ver en Google Maps</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </div>
+                          </div>
+
+                          {/* Barra para escribir o buscar en el mapa */}
+                          <div className="flex gap-1.5">
+                            <div className="relative flex-1">
+                              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" />
+                              <input
+                                type="text"
+                                value={mapSearchInput}
+                                onChange={(e) => setMapSearchInput(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleMapSearch();
+                                  }
+                                }}
+                                placeholder="Escribe dirección o referencia en el mapa..."
+                                className="w-full pl-8 pr-3 py-1.5 text-xs bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg focus:ring-1 focus:ring-amber-500 focus:outline-none dark:text-white"
+                              />
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleMapSearch()}
+                              disabled={mapSearching}
+                              className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-bold rounded-lg transition flex items-center gap-1 shrink-0 disabled:opacity-50"
+                            >
+                              {mapSearching ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Search className="w-3.5 h-3.5 text-amber-500" />
+                              )}
+                              <span>Buscar</span>
+                            </button>
+                          </div>
+
+                          {mapSearchMessage && (
+                            <p className="text-[10px] text-slate-500 dark:text-slate-400 italic">
+                              {mapSearchMessage}
+                            </p>
+                          )}
+
+                          {/* Contenedor del Mapa de Google */}
+                          <div className="w-full h-44 rounded-xl overflow-hidden border border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-900 relative shadow-inner">
+                            <iframe
+                              title="Google Maps Destino"
+                              width="100%"
+                              height="100%"
+                              frameBorder="0"
+                              scrolling="no"
+                              marginHeight={0}
+                              marginWidth={0}
+                              src={`https://maps.google.com/maps?q=${encodeURIComponent(
+                                coords
+                                  ? `${coords.lat},${coords.lng}`
+                                  : `${mapSearchInput || direccion || 'Lima Perú'}, ${distrito || ''}, ${provincia || ''}, Peru`
+                              )}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                              className="w-full h-full"
+                            />
+                          </div>
                         </div>
 
                         {/* Depto, casa, piso, interior (opcional) */}
