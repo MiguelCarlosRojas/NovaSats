@@ -12,7 +12,7 @@ function apiBackendPlugin(): Plugin {
       server.middlewares.use(async (req, res, next) => {
         if (req.url && (req.url.startsWith('/api/') || req.url === '/api')) {
           try {
-            const { handleApi } = await server.ssrLoadModule('./api/router.ts')
+            const { handleApi } = await server.ssrLoadModule('./src/api/router.ts')
             await handleApi(req, res)
           } catch (err: any) {
             console.error('API Error in dev server:', err)

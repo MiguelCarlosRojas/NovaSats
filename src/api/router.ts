@@ -16,7 +16,7 @@ export async function handleApi(req: any, res: any) {
       pathSegments = req.query.path.split('/').filter(Boolean);
     }
   } else if (req.url) {
-    const urlObj = new URL(req.url, 'http://localhost');
+    const urlObj = new URL(req.url, 'https://novasats.vercel.app');
     const pathname = urlObj.pathname.replace(/^\/api\/?/, '');
     pathSegments = pathname.split('/').filter(Boolean);
   }
@@ -411,7 +411,7 @@ export async function handleApi(req: any, res: any) {
 
       // GET /api/orders/lookup?code=...
       if (subSegment === 'lookup' && method === 'GET') {
-        const urlObj = new URL(req.url, 'http://localhost');
+        const urlObj = new URL(req.url, 'https://novasats.vercel.app');
         const code = urlObj.searchParams.get('code') || (req.query?.code as string);
 
         if (!code || !code.trim()) {
@@ -454,7 +454,7 @@ export async function handleApi(req: any, res: any) {
 
       // GET /api/qa?productId=...
       if (method === 'GET') {
-        const urlObj = new URL(req.url, 'http://localhost');
+        const urlObj = new URL(req.url, 'https://novasats.vercel.app');
         const productId = urlObj.searchParams.get('productId') || (req.query?.productId as string);
 
         if (!productId) {
@@ -514,7 +514,7 @@ export async function handleApi(req: any, res: any) {
 
       // GET /api/reviews?productId=...
       if (method === 'GET') {
-        const urlObj = new URL(req.url, 'http://localhost');
+        const urlObj = new URL(req.url, 'https://novasats.vercel.app');
         const productId = urlObj.searchParams.get('productId') || (req.query?.productId as string);
 
         if (!productId) {

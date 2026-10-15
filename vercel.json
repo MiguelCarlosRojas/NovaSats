@@ -1,8 +1,17 @@
 {
+  "functions": {
+    "src/api/**/*.ts": {
+      "maxDuration": 15
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/src/api/$1"
+    },
+    {
+      "source": "/api",
+      "destination": "/src/api/index"
     },
     {
       "source": "/(.*)",
