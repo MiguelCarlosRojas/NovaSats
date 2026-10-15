@@ -1,29 +1,24 @@
 import React from 'react';
 import { Check, Star } from 'lucide-react';
 import { COMMON_SELLERS, COMMON_COLORS, COMMON_CONDITIONS } from '../../../data/categoryFiltersData';
+import { CollapsibleFilterSection } from './CollapsibleFilterSection';
 
 export interface BaseFilterProps {
-  // Entrega
   deliveryTypeFilter: 'all' | 'domicilio' | 'retiro';
   setDeliveryTypeFilter: (val: 'all' | 'domicilio' | 'retiro') => void;
 
-  // Calificación
   minRating: number;
   setMinRating: (val: number) => void;
 
-  // Vendido por
   soldByFilter: string;
   setSoldByFilter: (val: string) => void;
 
-  // Color
   selectedColor: string;
   setSelectedColor: (val: string) => void;
 
-  // Condición
   conditionFilter: string;
   setConditionFilter: (val: string) => void;
 
-  // Bluetooth
   selectedBluetooth: 'all' | 'si' | 'no';
   setSelectedBluetooth: (val: 'all' | 'si' | 'no') => void;
 }
@@ -32,10 +27,12 @@ export const DeliveryFilterSection: React.FC<{
   deliveryTypeFilter: 'all' | 'domicilio' | 'retiro';
   setDeliveryTypeFilter: (val: 'all' | 'domicilio' | 'retiro') => void;
 }> = ({ deliveryTypeFilter, setDeliveryTypeFilter }) => (
-  <div className="space-y-2">
-    <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-      Tipo de Entrega
-    </label>
+  <CollapsibleFilterSection
+    title="Tipo de Entrega"
+    defaultOpen={true}
+    activeCount={deliveryTypeFilter !== 'all' ? 1 : 0}
+    onClear={() => setDeliveryTypeFilter('all')}
+  >
     <div className="space-y-1.5">
       <button
         type="button"
@@ -69,28 +66,19 @@ export const DeliveryFilterSection: React.FC<{
         {deliveryTypeFilter === 'retiro' && <Check className="w-4 h-4 text-amber-400 shrink-0" />}
       </button>
     </div>
-  </div>
+  </CollapsibleFilterSection>
 );
 
 export const RatingFilterSection: React.FC<{
   minRating: number;
   setMinRating: (val: number) => void;
 }> = ({ minRating, setMinRating }) => (
-  <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-    <div className="flex items-center justify-between">
-      <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-        Calificación del producto
-      </label>
-      {minRating > 0 && (
-        <button
-          type="button"
-          onClick={() => setMinRating(0)}
-          className="text-[10px] text-amber-400 hover:underline"
-        >
-          Limpiar
-        </button>
-      )}
-    </div>
+  <CollapsibleFilterSection
+    title="Calificación del producto"
+    defaultOpen={false}
+    activeCount={minRating > 0 ? 1 : 0}
+    onClear={() => setMinRating(0)}
+  >
     <div className="space-y-1">
       {[
         { val: 0, label: 'Todas las calificaciones' },
@@ -115,28 +103,19 @@ export const RatingFilterSection: React.FC<{
         </button>
       ))}
     </div>
-  </div>
+  </CollapsibleFilterSection>
 );
 
 export const SellerFilterSection: React.FC<{
   soldByFilter: string;
   setSoldByFilter: (val: string) => void;
 }> = ({ soldByFilter, setSoldByFilter }) => (
-  <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-    <div className="flex items-center justify-between">
-      <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-        Vendido por
-      </label>
-      {soldByFilter !== 'all' && (
-        <button
-          type="button"
-          onClick={() => setSoldByFilter('all')}
-          className="text-[10px] text-amber-400 hover:underline"
-        >
-          Limpiar
-        </button>
-      )}
-    </div>
+  <CollapsibleFilterSection
+    title="Vendido por"
+    defaultOpen={false}
+    activeCount={soldByFilter !== 'all' ? 1 : 0}
+    onClear={() => setSoldByFilter('all')}
+  >
     <div className="space-y-1">
       <button
         type="button"
@@ -168,28 +147,19 @@ export const SellerFilterSection: React.FC<{
         );
       })}
     </div>
-  </div>
+  </CollapsibleFilterSection>
 );
 
 export const ColorFilterSection: React.FC<{
   selectedColor: string;
   setSelectedColor: (val: string) => void;
 }> = ({ selectedColor, setSelectedColor }) => (
-  <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-    <div className="flex items-center justify-between">
-      <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-        Color
-      </label>
-      {selectedColor !== 'all' && (
-        <button
-          type="button"
-          onClick={() => setSelectedColor('all')}
-          className="text-[10px] text-amber-400 hover:underline"
-        >
-          Limpiar
-        </button>
-      )}
-    </div>
+  <CollapsibleFilterSection
+    title="Color"
+    defaultOpen={false}
+    activeCount={selectedColor !== 'all' ? 1 : 0}
+    onClear={() => setSelectedColor('all')}
+  >
     <div className="grid grid-cols-2 gap-1.5">
       <button
         type="button"
@@ -224,28 +194,19 @@ export const ColorFilterSection: React.FC<{
         );
       })}
     </div>
-  </div>
+  </CollapsibleFilterSection>
 );
 
 export const ConditionFilterSection: React.FC<{
   conditionFilter: string;
   setConditionFilter: (val: string) => void;
 }> = ({ conditionFilter, setConditionFilter }) => (
-  <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-    <div className="flex items-center justify-between">
-      <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-        Condición del producto
-      </label>
-      {conditionFilter !== 'all' && (
-        <button
-          type="button"
-          onClick={() => setConditionFilter('all')}
-          className="text-[10px] text-amber-400 hover:underline"
-        >
-          Limpiar
-        </button>
-      )}
-    </div>
+  <CollapsibleFilterSection
+    title="Condición del producto"
+    defaultOpen={false}
+    activeCount={conditionFilter !== 'all' ? 1 : 0}
+    onClear={() => setConditionFilter('all')}
+  >
     <div className="space-y-1">
       <button
         type="button"
@@ -277,28 +238,19 @@ export const ConditionFilterSection: React.FC<{
         );
       })}
     </div>
-  </div>
+  </CollapsibleFilterSection>
 );
 
 export const BluetoothFilterSection: React.FC<{
   selectedBluetooth: 'all' | 'si' | 'no';
   setSelectedBluetooth: (val: 'all' | 'si' | 'no') => void;
 }> = ({ selectedBluetooth, setSelectedBluetooth }) => (
-  <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-    <div className="flex items-center justify-between">
-      <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-        Cuenta con bluetooth
-      </label>
-      {selectedBluetooth !== 'all' && (
-        <button
-          type="button"
-          onClick={() => setSelectedBluetooth('all')}
-          className="text-[10px] text-amber-400 hover:underline"
-        >
-          Limpiar
-        </button>
-      )}
-    </div>
+  <CollapsibleFilterSection
+    title="Cuenta con bluetooth"
+    defaultOpen={false}
+    activeCount={selectedBluetooth !== 'all' ? 1 : 0}
+    onClear={() => setSelectedBluetooth('all')}
+  >
     <div className="grid grid-cols-3 gap-1.5">
       <button
         type="button"
@@ -334,5 +286,5 @@ export const BluetoothFilterSection: React.FC<{
         Si
       </button>
     </div>
-  </div>
+  </CollapsibleFilterSection>
 );

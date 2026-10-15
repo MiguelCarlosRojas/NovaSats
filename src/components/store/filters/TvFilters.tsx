@@ -19,6 +19,7 @@ import {
   SellerFilterSection,
   ConditionFilterSection
 } from './CommonFilterSections';
+import { CollapsibleFilterSection } from './CollapsibleFilterSection';
 
 export interface TvFiltersProps {
   deliveryTypeFilter: 'all' | 'domicilio' | 'retiro';
@@ -108,7 +109,7 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
   const [showMoreVolt, setShowMoreVolt] = useState(false);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 1. Tipo de Entrega */}
       <DeliveryFilterSection
         deliveryTypeFilter={deliveryTypeFilter}
@@ -116,21 +117,12 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
       />
 
       {/* 2. Marca */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Marca • Mejores marcas
-          </label>
-          {selectedBrand !== 'Todas' && (
-            <button
-              type="button"
-              onClick={() => setSelectedBrand('Todas')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Marca • Mejores marcas"
+        defaultOpen={true}
+        activeCount={selectedBrand !== 'Todas' ? 1 : 0}
+        onClear={() => setSelectedBrand('Todas')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -169,27 +161,18 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             {showMoreBrands ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 3. Calificación del producto */}
       <RatingFilterSection minRating={minRating} setMinRating={setMinRating} />
 
       {/* 4. Precio */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Precio
-          </label>
-          {priceRange !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setPriceRange('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Precio"
+        defaultOpen={false}
+        activeCount={priceRange !== 'all' ? 1 : 0}
+        onClear={() => setPriceRange('all')}
+      >
         <div className="space-y-1">
           {TV_PRICE_RANGES.map((r) => {
             const isActive = priceRange === r.id;
@@ -210,27 +193,18 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 5. Vendido por */}
       <SellerFilterSection soldByFilter={soldByFilter} setSoldByFilter={setSoldByFilter} />
 
       {/* 6. Tamaño de la pantalla (42" o menos, etc.) */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Tamaño de la pantalla
-          </label>
-          {tvScreenSize !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setTvScreenSize('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Tamaño de la pantalla"
+        defaultOpen={false}
+        activeCount={tvScreenSize !== 'all' ? 1 : 0}
+        onClear={() => setTvScreenSize('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -260,24 +234,15 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 7. Características de la pantalla */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Características de la pantalla
-          </label>
-          {tvFeature !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setTvFeature('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Características de la pantalla"
+        defaultOpen={false}
+        activeCount={tvFeature !== 'all' ? 1 : 0}
+        onClear={() => setTvFeature('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -314,24 +279,15 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             {showMoreFeatures ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 8. Puertos USB */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Puertos USB
-          </label>
-          {tvUsbPorts !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setTvUsbPorts('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Puertos USB"
+        defaultOpen={false}
+        activeCount={tvUsbPorts !== 'all' ? 1 : 0}
+        onClear={() => setTvUsbPorts('all')}
+      >
         <div className="grid grid-cols-4 gap-1.5">
           <button
             type="button"
@@ -360,24 +316,15 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 9. Resolución de la pantalla */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Resolución de la pantalla
-          </label>
-          {tvResolution !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setTvResolution('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Resolución de la pantalla"
+        defaultOpen={false}
+        activeCount={tvResolution !== 'all' ? 1 : 0}
+        onClear={() => setTvResolution('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -414,24 +361,15 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             {showMoreResolutions ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 10. Velocidad de imagen */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Velocidad de imagen
-          </label>
-          {selectedRefreshRate !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedRefreshRate('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Velocidad de imagen"
+        defaultOpen={false}
+        activeCount={selectedRefreshRate !== 'all' ? 1 : 0}
+        onClear={() => setSelectedRefreshRate('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -461,24 +399,15 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 11. Sistema operativo */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Sistema operativo
-          </label>
-          {operatingSystem !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setOperatingSystem('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Sistema operativo"
+        defaultOpen={false}
+        activeCount={operatingSystem !== 'all' ? 1 : 0}
+        onClear={() => setOperatingSystem('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -515,24 +444,15 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             {showMoreOs ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 12. Conectividad */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Conectividad
-          </label>
-          {selectedConnectivity !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedConnectivity('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Conectividad"
+        defaultOpen={false}
+        activeCount={selectedConnectivity !== 'all' ? 1 : 0}
+        onClear={() => setSelectedConnectivity('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -569,27 +489,18 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             {showMoreConn ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 13. Condición del producto */}
       <ConditionFilterSection conditionFilter={conditionFilter} setConditionFilter={setConditionFilter} />
 
       {/* 14. Puertos HDMI */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Puertos HDMI
-          </label>
-          {tvHdmiPorts !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setTvHdmiPorts('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Puertos HDMI"
+        defaultOpen={false}
+        activeCount={tvHdmiPorts !== 'all' ? 1 : 0}
+        onClear={() => setTvHdmiPorts('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -626,24 +537,15 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             {showMoreHdmi ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 15. Voltaje */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Voltaje
-          </label>
-          {tvVoltage !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setTvVoltage('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Voltaje"
+        defaultOpen={false}
+        activeCount={tvVoltage !== 'all' ? 1 : 0}
+        onClear={() => setTvVoltage('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -680,7 +582,7 @@ export const TvFilters: React.FC<TvFiltersProps> = ({
             {showMoreVolt ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
     </div>
   );
 };

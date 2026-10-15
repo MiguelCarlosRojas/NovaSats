@@ -16,6 +16,7 @@ import {
   RatingFilterSection,
   SellerFilterSection
 } from './CommonFilterSections';
+import { CollapsibleFilterSection } from './CollapsibleFilterSection';
 
 export interface LaptopFiltersProps {
   deliveryTypeFilter: 'all' | 'domicilio' | 'retiro';
@@ -91,7 +92,7 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
   const [showMoreFeatures, setShowMoreFeatures] = useState(false);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 1. Tipo de Entrega */}
       <DeliveryFilterSection
         deliveryTypeFilter={deliveryTypeFilter}
@@ -99,21 +100,12 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
       />
 
       {/* 2. Marca • Mejores marcas */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Marca • Mejores marcas
-          </label>
-          {selectedBrand !== 'Todas' && (
-            <button
-              type="button"
-              onClick={() => setSelectedBrand('Todas')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Marca • Mejores marcas"
+        defaultOpen={true}
+        activeCount={selectedBrand !== 'Todas' ? 1 : 0}
+        onClear={() => setSelectedBrand('Todas')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -152,27 +144,18 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             {showMoreBrands ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 3. Calificación del producto */}
       <RatingFilterSection minRating={minRating} setMinRating={setMinRating} />
 
       {/* 4. Precio */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Precio
-          </label>
-          {priceRange !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setPriceRange('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Precio"
+        defaultOpen={false}
+        activeCount={priceRange !== 'all' ? 1 : 0}
+        onClear={() => setPriceRange('all')}
+      >
         <div className="space-y-1">
           {CELULAR_PRICE_RANGES.map((r) => {
             const isActive = priceRange === r.id;
@@ -193,27 +176,18 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 5. Vendido por */}
       <SellerFilterSection soldByFilter={soldByFilter} setSoldByFilter={setSoldByFilter} />
 
       {/* 6. Tamaño de la pantalla */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Tamaño de la pantalla
-          </label>
-          {laptopScreenSize !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setLaptopScreenSize('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Tamaño de la pantalla"
+        defaultOpen={false}
+        activeCount={laptopScreenSize !== 'all' ? 1 : 0}
+        onClear={() => setLaptopScreenSize('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -250,24 +224,15 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             {showMoreScreenSizes ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 7. Procesador */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Procesador
-          </label>
-          {processor !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setProcessor('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Procesador"
+        defaultOpen={false}
+        activeCount={processor !== 'all' ? 1 : 0}
+        onClear={() => setProcessor('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -304,24 +269,15 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             {showMoreProcessors ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 8. Núcleos del procesador */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Núcleos del procesador
-          </label>
-          {selectedCores !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedCores('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Núcleos del procesador"
+        defaultOpen={false}
+        activeCount={selectedCores !== 'all' ? 1 : 0}
+        onClear={() => setSelectedCores('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -358,24 +314,15 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             {showMoreCores ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 9. Capacidad */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Capacidad
-          </label>
-          {selectedCapacity !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedCapacity('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Capacidad"
+        defaultOpen={false}
+        activeCount={selectedCapacity !== 'all' ? 1 : 0}
+        onClear={() => setSelectedCapacity('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -412,24 +359,15 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             {showMoreCapacities ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 10. Memoria RAM */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Memoria RAM
-          </label>
-          {ram !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setRam('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Memoria RAM"
+        defaultOpen={false}
+        activeCount={ram !== 'all' ? 1 : 0}
+        onClear={() => setRam('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -466,24 +404,15 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             {showMoreRams ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 11. Sistema operativo */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Sistema operativo
-          </label>
-          {operatingSystem !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setOperatingSystem('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Sistema operativo"
+        defaultOpen={false}
+        activeCount={operatingSystem !== 'all' ? 1 : 0}
+        onClear={() => setOperatingSystem('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -520,24 +449,15 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             {showMoreOs ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 12. Características de la pantalla */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Características de la pantalla
-          </label>
-          {screenFeature !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setScreenFeature('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Características de la pantalla"
+        defaultOpen={false}
+        activeCount={screenFeature !== 'all' ? 1 : 0}
+        onClear={() => setScreenFeature('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -574,7 +494,7 @@ export const LaptopFilters: React.FC<LaptopFiltersProps> = ({
             {showMoreFeatures ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
     </div>
   );
 };

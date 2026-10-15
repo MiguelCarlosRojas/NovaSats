@@ -64,6 +64,7 @@ import {
   ConditionFilterSection,
   BluetoothFilterSection
 } from './CommonFilterSections';
+import { CollapsibleFilterSection } from './CollapsibleFilterSection';
 
 export interface SpecializedCategoryFiltersProps {
   family: CategoryFamily;
@@ -267,7 +268,7 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 1. Tipo de Entrega */}
       <DeliveryFilterSection
         deliveryTypeFilter={deliveryTypeFilter}
@@ -276,21 +277,12 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
 
       {/* 2. Subcategorías especializadas */}
       {categoryList.length > 0 && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <div className="flex items-center justify-between">
-            <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-              Categoría
-            </label>
-            {selectedSubcategory !== 'Todas' && (
-              <button
-                type="button"
-                onClick={() => setSelectedSubcategory('Todas')}
-                className="text-[10px] text-amber-400 hover:underline"
-              >
-                Limpiar
-              </button>
-            )}
-          </div>
+        <CollapsibleFilterSection
+          title="Categoría"
+          defaultOpen={true}
+          activeCount={selectedSubcategory !== 'Todas' ? 1 : 0}
+          onClear={() => setSelectedSubcategory('Todas')}
+        >
           <div className="space-y-1">
             <button
               type="button"
@@ -320,26 +312,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               );
             })}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* 3. Marcas de la categoría */}
       {brandList.length > 0 && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <div className="flex items-center justify-between">
-            <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-              Marca • Mejores marcas
-            </label>
-            {selectedBrand !== 'Todas' && (
-              <button
-                type="button"
-                onClick={() => setSelectedBrand('Todas')}
-                className="text-[10px] text-amber-400 hover:underline"
-              >
-                Limpiar
-              </button>
-            )}
-          </div>
+        <CollapsibleFilterSection
+          title="Marca • Mejores marcas"
+          defaultOpen={true}
+          activeCount={selectedBrand !== 'Todas' ? 1 : 0}
+          onClear={() => setSelectedBrand('Todas')}
+        >
           <div className="space-y-1">
             <button
               type="button"
@@ -378,25 +361,16 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             )}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* 4. Precio */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Precio
-          </label>
-          {priceRange !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setPriceRange('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Precio"
+        defaultOpen={false}
+        activeCount={priceRange !== 'all' ? 1 : 0}
+        onClear={() => setPriceRange('all')}
+      >
         <div className="space-y-1">
           {CELULAR_PRICE_RANGES.map((r) => {
             const isActive = priceRange === r.id;
@@ -417,7 +391,7 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 5. Calificación */}
       <RatingFilterSection minRating={minRating} setMinRating={setMinRating} />
@@ -435,10 +409,12 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
       {/* CONSOLAS: Clasificación ESRB & Capacidad */}
       {family === 'consolas' && (
         <>
-          <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-            <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-              Clasificación ESRB
-            </label>
+          <CollapsibleFilterSection
+            title="Clasificación ESRB"
+            defaultOpen={false}
+            activeCount={selectedEsrb !== 'all' ? 1 : 0}
+            onClear={() => setSelectedEsrb('all')}
+          >
             <div className="space-y-1">
               <button
                 type="button"
@@ -465,12 +441,14 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
                 </button>
               ))}
             </div>
-          </div>
+          </CollapsibleFilterSection>
 
-          <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-            <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-              Capacidad de almacenamiento
-            </label>
+          <CollapsibleFilterSection
+            title="Capacidad de almacenamiento"
+            defaultOpen={false}
+            activeCount={selectedCapacity !== 'all' ? 1 : 0}
+            onClear={() => setSelectedCapacity('all')}
+          >
             <div className="space-y-1">
               <button
                 type="button"
@@ -497,7 +475,7 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
                 </button>
               ))}
             </div>
-          </div>
+          </CollapsibleFilterSection>
         </>
       )}
 
@@ -508,12 +486,14 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
             selectedBluetooth={selectedBluetooth}
             setSelectedBluetooth={setSelectedBluetooth}
           />
-          <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-            <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-              Tipo de Dispositivo
-            </label>
+          <CollapsibleFilterSection
+            title="Tipo de Dispositivo"
+            defaultOpen={false}
+            activeCount={selectedSubcategory !== 'Todas' ? 1 : 0}
+            onClear={() => setSelectedSubcategory('Todas')}
+          >
             <div className="space-y-1">
-              {AUDIO_TYPES.map((t) => (
+              {AUDIO_TYPES.map((t: string) => (
                 <button
                   key={t}
                   type="button"
@@ -529,16 +509,18 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
                 </button>
               ))}
             </div>
-          </div>
+          </CollapsibleFilterSection>
         </>
       )}
 
       {/* ELECTROHOGAR: Eficiencia energética */}
       {family === 'electrohogar' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Eficiencia Energética
-          </label>
+        <CollapsibleFilterSection
+          title="Eficiencia Energética"
+          defaultOpen={false}
+          activeCount={selectedEnergyEfficiency !== 'all' ? 1 : 0}
+          onClear={() => setSelectedEnergyEfficiency('all')}
+        >
           <div className="grid grid-cols-3 gap-1.5">
             <button
               type="button"
@@ -549,7 +531,7 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
             >
               Todas
             </button>
-            {ELECTRO_EFFICIENCY.map((eff) => (
+            {ELECTRO_EFFICIENCY.map((eff: string) => (
               <button
                 key={eff}
                 type="button"
@@ -564,16 +546,18 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* CALZADO: Tallas y Género */}
       {family === 'calzado' && (
         <>
-          <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-            <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-              Género
-            </label>
+          <CollapsibleFilterSection
+            title="Género"
+            defaultOpen={false}
+            activeCount={selectedGender !== 'all' ? 1 : 0}
+            onClear={() => setSelectedGender('all')}
+          >
             <div className="grid grid-cols-2 gap-1.5">
               <button
                 type="button"
@@ -599,12 +583,14 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
                 </button>
               ))}
             </div>
-          </div>
+          </CollapsibleFilterSection>
 
-          <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-            <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-              Talla de Calzado (US)
-            </label>
+          <CollapsibleFilterSection
+            title="Talla de Calzado (US)"
+            defaultOpen={false}
+            activeCount={selectedTalla !== 'all' ? 1 : 0}
+            onClear={() => setSelectedTalla('all')}
+          >
             <div className="grid grid-cols-4 gap-1.5">
               {CALZADO_SIZES.map((sz) => (
                 <button
@@ -621,16 +607,18 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
                 </button>
               ))}
             </div>
-          </div>
+          </CollapsibleFilterSection>
         </>
       )}
 
       {/* MODA (Mujer / Hombre): Tallas */}
       {(family === 'mujer' || family === 'hombre') && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Talla
-          </label>
+        <CollapsibleFilterSection
+          title="Talla"
+          defaultOpen={false}
+          activeCount={selectedTalla !== 'all' ? 1 : 0}
+          onClear={() => setSelectedTalla('all')}
+        >
           <div className="grid grid-cols-4 gap-1.5">
             <button
               type="button"
@@ -641,7 +629,7 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
             >
               Todas
             </button>
-            {MODA_SIZES.map((t) => (
+            {MODA_SIZES.map((t: string) => (
               <button
                 key={t}
                 type="button"
@@ -656,15 +644,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* DORMITORIO: Tamaño de cama */}
       {family === 'dormitorio' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Tamaño de Cama / Colchón
-          </label>
+        <CollapsibleFilterSection
+          title="Tamaño de Cama / Colchón"
+          defaultOpen={false}
+          activeCount={selectedBedSize !== 'all' ? 1 : 0}
+          onClear={() => setSelectedBedSize('all')}
+        >
           <div className="space-y-1">
             <button
               type="button"
@@ -691,15 +681,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* BELLEZA: Tipo de piel */}
       {family === 'belleza' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Tipo de Piel
-          </label>
+        <CollapsibleFilterSection
+          title="Tipo de Piel"
+          defaultOpen={false}
+          activeCount={selectedSkinType !== 'all' ? 1 : 0}
+          onClear={() => setSelectedSkinType('all')}
+        >
           <div className="space-y-1">
             <button
               type="button"
@@ -726,15 +718,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* ACCESORIOS: Género */}
       {family === 'accesorios' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Género
-          </label>
+        <CollapsibleFilterSection
+          title="Género"
+          defaultOpen={false}
+          activeCount={selectedGender !== 'all' ? 1 : 0}
+          onClear={() => setSelectedGender('all')}
+        >
           <div className="grid grid-cols-3 gap-1.5">
             {ACCESORIOS_GENDERS.map((g) => (
               <button
@@ -751,15 +745,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* JUGUETES: Rango de edad */}
       {family === 'juguetes' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Rango de Edad
-          </label>
+        <CollapsibleFilterSection
+          title="Rango de Edad"
+          defaultOpen={false}
+          activeCount={selectedAgeRange !== 'all' ? 1 : 0}
+          onClear={() => setSelectedAgeRange('all')}
+        >
           <div className="space-y-1">
             {JUGUETES_AGE_RANGES.map((age) => (
               <button
@@ -777,15 +773,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* BEBES: Etapa */}
       {family === 'bebes' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Etapa de Crecimiento
-          </label>
+        <CollapsibleFilterSection
+          title="Etapa de Crecimiento"
+          defaultOpen={false}
+          activeCount={selectedAgeRange !== 'all' ? 1 : 0}
+          onClear={() => setSelectedAgeRange('all')}
+        >
           <div className="space-y-1">
             {BEBES_STAGES.map((st) => (
               <button
@@ -803,15 +801,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* DEPORTES: Disciplina */}
       {family === 'deportes' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Disciplina Deportiva
-          </label>
+        <CollapsibleFilterSection
+          title="Disciplina Deportiva"
+          defaultOpen={false}
+          activeCount={selectedDiscipline !== 'all' ? 1 : 0}
+          onClear={() => setSelectedDiscipline('all')}
+        >
           <div className="space-y-1">
             {DEPORTES_DISCIPLINES.map((d) => (
               <button
@@ -829,15 +829,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* MASCOTAS: Tipo de mascota */}
       {family === 'mascotas' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Tipo de Mascota
-          </label>
+        <CollapsibleFilterSection
+          title="Tipo de Mascota"
+          defaultOpen={false}
+          activeCount={selectedPetType !== 'all' ? 1 : 0}
+          onClear={() => setSelectedPetType('all')}
+        >
           <div className="grid grid-cols-2 gap-1.5">
             {MASCOTAS_PET_TYPES.map((pt) => (
               <button
@@ -854,15 +856,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* CONSTRUCCIÓN: Tipo de alimentación */}
       {family === 'construccion' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Tipo de Alimentación
-          </label>
+        <CollapsibleFilterSection
+          title="Tipo de Alimentación"
+          defaultOpen={false}
+          activeCount={selectedPowerType !== 'all' ? 1 : 0}
+          onClear={() => setSelectedPowerType('all')}
+        >
           <div className="space-y-1">
             {CONSTRUCCION_POWER_TYPES.map((pwr) => (
               <button
@@ -880,15 +884,17 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
 
       {/* AUTOMOTRIZ: Tipo de vehículo */}
       {family === 'automotriz' && (
-        <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Tipo de Vehículo
-          </label>
+        <CollapsibleFilterSection
+          title="Tipo de Vehículo"
+          defaultOpen={false}
+          activeCount={selectedVehicleType !== 'all' ? 1 : 0}
+          onClear={() => setSelectedVehicleType('all')}
+        >
           <div className="space-y-1">
             {AUTOMOTRIZ_VEHICLE_TYPES.map((veh) => (
               <button
@@ -906,7 +912,7 @@ export const SpecializedCategoryFilters: React.FC<SpecializedCategoryFiltersProp
               </button>
             ))}
           </div>
-        </div>
+        </CollapsibleFilterSection>
       )}
     </div>
   );

@@ -19,6 +19,7 @@ import {
   ConditionFilterSection,
   BluetoothFilterSection
 } from './CommonFilterSections';
+import { CollapsibleFilterSection } from './CollapsibleFilterSection';
 
 export interface CelularFiltersProps {
   // Entrega
@@ -120,7 +121,7 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
   const [showMoreCameras, setShowMoreCameras] = useState(false);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* 1. Tipo de Entrega */}
       <DeliveryFilterSection
         deliveryTypeFilter={deliveryTypeFilter}
@@ -128,21 +129,12 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
       />
 
       {/* 2. Categoría específica de Telefonía */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Categoría
-          </label>
-          {selectedSubcategory !== 'Todas' && (
-            <button
-              type="button"
-              onClick={() => setSelectedSubcategory('Todas')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Categoría"
+        defaultOpen={true}
+        activeCount={selectedSubcategory !== 'Todas' ? 1 : 0}
+        onClear={() => setSelectedSubcategory('Todas')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -174,24 +166,15 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 3. Marca / Mejores marcas */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Marca • Mejores marcas
-          </label>
-          {selectedBrand !== 'Todas' && (
-            <button
-              type="button"
-              onClick={() => setSelectedBrand('Todas')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Marca • Mejores marcas"
+        defaultOpen={true}
+        activeCount={selectedBrand !== 'Todas' ? 1 : 0}
+        onClear={() => setSelectedBrand('Todas')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -230,24 +213,15 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             {showMoreBrands ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 4. Precio */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Precio
-          </label>
-          {priceRange !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setPriceRange('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Precio"
+        defaultOpen={false}
+        activeCount={priceRange !== 'all' ? 1 : 0}
+        onClear={() => setPriceRange('all')}
+      >
         <div className="space-y-1">
           {CELULAR_PRICE_RANGES.map((r) => {
             const isActive = priceRange === r.id;
@@ -268,7 +242,7 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 5. Calificación */}
       <RatingFilterSection minRating={minRating} setMinRating={setMinRating} />
@@ -283,21 +257,12 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
       <ConditionFilterSection conditionFilter={conditionFilter} setConditionFilter={setConditionFilter} />
 
       {/* 9. Capacidad */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Capacidad
-          </label>
-          {selectedCapacity !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedCapacity('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Capacidad"
+        defaultOpen={false}
+        activeCount={selectedCapacity !== 'all' ? 1 : 0}
+        onClear={() => setSelectedCapacity('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -334,24 +299,15 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             {showMoreCapacities ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 10. Generación */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Generación
-          </label>
-          {selectedGeneracion !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedGeneracion('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Generación"
+        defaultOpen={false}
+        activeCount={selectedGeneracion !== 'all' ? 1 : 0}
+        onClear={() => setSelectedGeneracion('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -381,24 +337,15 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 11. Talla */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Talla
-          </label>
-          {selectedTalla !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedTalla('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Talla"
+        defaultOpen={false}
+        activeCount={selectedTalla !== 'all' ? 1 : 0}
+        onClear={() => setSelectedTalla('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -428,24 +375,15 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 12. Núcleos del procesador */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Núcleos del procesador
-          </label>
-          {selectedCores !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedCores('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Núcleos del procesador"
+        defaultOpen={false}
+        activeCount={selectedCores !== 'all' ? 1 : 0}
+        onClear={() => setSelectedCores('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -482,24 +420,15 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             {showMoreCores ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 13. Velocidad de imagen */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Velocidad de imagen
-          </label>
-          {selectedRefreshRate !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedRefreshRate('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Velocidad de imagen"
+        defaultOpen={false}
+        activeCount={selectedRefreshRate !== 'all' ? 1 : 0}
+        onClear={() => setSelectedRefreshRate('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -529,24 +458,15 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             );
           })}
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 14. Cámara principal */}
-      <div className="space-y-2 pt-3 border-t border-white/[0.06]">
-        <div className="flex items-center justify-between">
-          <label className="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-bold block">
-            Cámara principal
-          </label>
-          {selectedCamera !== 'all' && (
-            <button
-              type="button"
-              onClick={() => setSelectedCamera('all')}
-              className="text-[10px] text-amber-400 hover:underline"
-            >
-              Limpiar
-            </button>
-          )}
-        </div>
+      <CollapsibleFilterSection
+        title="Cámara principal"
+        defaultOpen={false}
+        activeCount={selectedCamera !== 'all' ? 1 : 0}
+        onClear={() => setSelectedCamera('all')}
+      >
         <div className="space-y-1">
           <button
             type="button"
@@ -583,7 +503,7 @@ export const CelularFilters: React.FC<CelularFiltersProps> = ({
             {showMoreCameras ? '- Ver menos' : '+ Ver más'}
           </button>
         </div>
-      </div>
+      </CollapsibleFilterSection>
 
       {/* 15. Cuenta con bluetooth */}
       <BluetoothFilterSection
