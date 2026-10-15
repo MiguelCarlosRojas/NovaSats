@@ -1701,31 +1701,31 @@ export const ProductsPage: React.FC = () => {
         </div>
 
         {/* Barra superior de herramientas: Botón de filtro móvil, contador y ordenamiento */}
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-6 pb-4 border-b border-white/[0.06]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-white/[0.06]">
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between sm:justify-start gap-2">
             {/* Botón Filtros móvil */}
             <button
               type="button"
               onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0d1222] border border-white/[0.1] rounded-xl text-xs font-bold text-amber-400"
+              className="lg:hidden inline-flex items-center gap-1.5 px-3 py-2 bg-[#0d1222] border border-white/[0.1] rounded-xl text-xs font-bold text-amber-400 active:scale-95 transition"
             >
               <Filter className="w-3.5 h-3.5" />
               <span>Filtros ({activeFiltersCount})</span>
             </button>
 
-            <span className="text-xs text-slate-400 hidden sm:inline">
-              Mostrando {filteredProducts.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} de {filteredProducts.length} productos
+            <span className="text-xs text-slate-400">
+              Mostrando {filteredProducts.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} de {filteredProducts.length}
             </span>
           </div>
 
           {/* Ordenar por */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-slate-400">Ordenar por:</span>
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-xs text-slate-400 shrink-0">Ordenar por:</span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as any)}
-              className="bg-[#0d1222] border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium"
+              className="w-full sm:w-auto bg-[#0d1222] border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium cursor-pointer"
             >
               <option value="featured">Destacados</option>
               <option value="price-asc">Menor precio</option>
@@ -1838,8 +1838,8 @@ export const ProductsPage: React.FC = () => {
 
           {/* DRAWER DE FILTROS EN MÓVIL */}
           {showMobileFilters && (
-            <div className="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm lg:hidden">
-              <div className="relative w-full max-w-xs bg-[#090d19] h-full overflow-y-auto p-5 border-r border-white/[0.1] shadow-2xl flex flex-col justify-between">
+            <div className="fixed inset-0 z-50 flex bg-black/80 backdrop-blur-sm lg:hidden" onClick={() => setShowMobileFilters(false)}>
+              <div className="relative w-full max-w-[320px] sm:max-w-xs bg-[#090d19] h-full overflow-y-auto p-4 sm:p-5 border-r border-white/[0.1] shadow-2xl flex flex-col justify-between" onClick={(e) => e.stopPropagation()}>
                 <div>
                   <div className="flex items-center justify-between pb-3 border-b border-white/[0.08] mb-4">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
@@ -1848,18 +1848,18 @@ export const ProductsPage: React.FC = () => {
                     </h3>
                     <button
                       onClick={() => setShowMobileFilters(false)}
-                      className="p-1.5 text-slate-400 hover:text-white rounded-lg"
+                      className="p-1.5 text-slate-400 hover:text-white rounded-lg active:scale-95 transition"
                     >
                       <X className="w-5 h-5" />
                     </button>
                   </div>
                   {renderSidebarContent()}
                 </div>
-                <div className="pt-4 mt-4 border-t border-white/[0.08]">
+                <div className="pt-4 mt-4 border-t border-white/[0.08] sticky bottom-0 bg-[#090d19] py-2">
                   <button
                     type="button"
                     onClick={() => setShowMobileFilters(false)}
-                    className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md"
+                    className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black font-bold text-xs uppercase tracking-wider rounded-xl shadow-md active:scale-95 transition"
                   >
                     Ver {filteredProducts.length} Resultados
                   </button>
@@ -1872,9 +1872,9 @@ export const ProductsPage: React.FC = () => {
           <div className="flex-1 min-w-0 w-full space-y-6">
             
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-4">
                 {[...Array(10)].map((_, i) => (
-                  <div key={i} className="h-80 rounded-2xl bg-white/[0.02] border border-white/[0.06] animate-pulse" />
+                  <div key={i} className="h-64 sm:h-80 rounded-2xl bg-white/[0.02] border border-white/[0.06] animate-pulse" />
                 ))}
               </div>
             ) : filteredProducts.length === 0 ? (
@@ -1897,11 +1897,11 @@ export const ProductsPage: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 sm:gap-4">
                   {paginatedProducts.map((product) => (
                     <div
                       key={product.id}
-                      className="group rounded-2xl bg-[#0b101f] border border-white/[0.06] hover:border-amber-500/40 transition flex flex-col justify-between overflow-hidden shadow-lg"
+                      className="group rounded-xl sm:rounded-2xl bg-[#0b101f] border border-white/[0.06] hover:border-amber-500/40 transition flex flex-col justify-between overflow-hidden shadow-lg"
                     >
                       <div>
                         {/* Imagen del producto */}
@@ -1912,71 +1912,71 @@ export const ProductsPage: React.FC = () => {
                             className="w-full h-full object-cover group-hover:scale-105 transition duration-500"
                           />
                           {product.discount_percent && product.discount_percent > 0 ? (
-                            <span className="absolute top-2.5 left-2.5 bg-rose-500 text-white text-[10px] font-bold font-mono px-2 py-0.5 rounded-full shadow-md">
+                            <span className="absolute top-1.5 left-1.5 sm:top-2.5 sm:left-2.5 bg-rose-500 text-white text-[9px] sm:text-[10px] font-bold font-mono px-1.5 sm:px-2 py-0.5 rounded-full shadow-md">
                               -{product.discount_percent}%
                             </span>
                           ) : null}
-                          <span className="absolute top-2.5 right-2.5 bg-black/75 backdrop-blur-md text-amber-400 text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-500/20 max-w-[80%] truncate">
+                          <span className="absolute top-1.5 right-1.5 sm:top-2.5 sm:right-2.5 bg-black/75 backdrop-blur-md text-amber-400 text-[9px] sm:text-[10px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded-full border border-amber-500/20 max-w-[80%] truncate">
                             {product.category || 'General'}{product.subcategory ? ` • ${product.subcategory}` : ''}
                           </span>
                         </Link>
 
                         {/* Detalles */}
-                        <div className="p-4 space-y-2">
-                          <div className="flex items-center justify-between text-[11px] text-slate-400">
-                            <span className="text-slate-500 font-mono truncate">
+                        <div className="p-2.5 sm:p-4 space-y-1 sm:space-y-2">
+                          <div className="flex items-center justify-between text-[10px] sm:text-[11px] text-slate-400">
+                            <span className="text-slate-500 font-mono truncate max-w-[70%]">
                               {product.suppliers?.company_name || 'NovaSats Store'}
                             </span>
                             {product.rating ? (
-                              <div className="flex items-center gap-1 text-amber-400">
-                                <Star className="w-3 h-3 fill-amber-400" />
-                                <span className="font-bold text-[10px]">{product.rating}</span>
+                              <div className="flex items-center gap-0.5 text-amber-400">
+                                <Star className="w-2.5 h-2.5 sm:w-3 sm:h-3 fill-amber-400" />
+                                <span className="font-bold text-[9px] sm:text-[10px]">{product.rating}</span>
                               </div>
                             ) : null}
                           </div>
 
                           <Link to={`/producto/${product.id}`} className="block">
-                            <h4 className="text-sm font-bold text-white group-hover:text-amber-400 transition line-clamp-2">
+                            <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-amber-400 transition line-clamp-2 leading-snug">
                               {product.name}
                             </h4>
                           </Link>
 
-                          <p className="text-xs text-slate-400 line-clamp-2">
+                          <p className="text-[11px] sm:text-xs text-slate-400 line-clamp-2 hidden sm:block">
                             {product.description}
                           </p>
 
                           {/* Badges de entrega */}
-                          <div className="flex flex-wrap gap-1.5 pt-1">
+                          <div className="flex flex-wrap gap-1 sm:gap-1.5 pt-0.5 sm:pt-1">
                             {isFreeShippingProduct(product) && (
-                              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                                Envío gratis
+                              <span className="text-[9px] sm:text-[10px] font-mono font-semibold px-1.5 sm:px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                Gratis
                               </span>
                             )}
-                            <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-                              Llega mañana
+                            <span className="text-[9px] sm:text-[10px] font-mono px-1.5 sm:px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                              Rápido
                             </span>
                           </div>
                         </div>
                       </div>
 
                       {/* Footer de la tarjeta con precio y botón de compra */}
-                      <div className="p-4 pt-2 border-t border-white/[0.06] flex items-center justify-between mt-2">
-                        <div>
-                          <div className="text-base font-black text-white">
-                            ${Number(product.price_usd).toFixed(2)} USD
+                      <div className="p-2.5 sm:p-4 pt-1.5 sm:pt-2 border-t border-white/[0.06] flex items-center justify-between mt-1 sm:mt-2">
+                        <div className="min-w-0 pr-1">
+                          <div className="text-xs sm:text-base font-black text-white truncate">
+                            ${Number(product.price_usd).toFixed(2)}
                           </div>
-                          <div className="text-[11px] font-mono text-amber-400 font-bold">
-                            {Number(product.price_btc).toFixed(8)} ₿
+                          <div className="text-[9px] sm:text-[11px] font-mono text-amber-400 font-bold truncate">
+                            {Number(product.price_btc).toFixed(6)} ₿
                           </div>
                         </div>
 
                         <button
                           type="button"
                           onClick={() => addToCart(product, 1)}
-                          className="p-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20 transition active:scale-95"
+                          className="p-2 sm:p-2.5 rounded-lg sm:rounded-xl bg-amber-500 hover:bg-amber-400 text-black shadow-md shadow-amber-500/20 transition active:scale-95 shrink-0"
                           title="Agregar al Carrito"
                         >
-                          <ShoppingBag className="w-4 h-4 stroke-[2.2]" />
+                          <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[2.2]" />
                         </button>
                       </div>
 

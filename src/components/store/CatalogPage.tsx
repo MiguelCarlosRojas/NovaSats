@@ -224,27 +224,27 @@ export const CatalogPage: React.FC = () => {
       </header>
 
       {/* 3. BARRA DE BREADCRUMB */}
-      <div className="bg-[#04060c] border-b border-white/[0.06] py-3 px-4 sm:px-8 lg:px-12">
-        <div className="w-full flex items-center justify-between flex-wrap gap-2 text-xs">
-          <div className="flex items-center gap-2 text-slate-400 font-medium">
-            <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1">
+      <div className="bg-[#04060c] border-b border-white/[0.06] py-2.5 sm:py-3 px-3 sm:px-8 lg:px-12">
+        <div className="w-full flex items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 sm:gap-2 text-slate-400 font-medium truncate">
+            <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1 shrink-0">
               <Store className="w-3.5 h-3.5 text-slate-500" />
               <span>Inicio</span>
             </Link>
             <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-            <span className="text-white font-bold">Catálogo y Categorías</span>
+            <span className="text-white font-bold shrink-0">Catálogo</span>
             <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-            <span className="text-amber-400 font-semibold">{activeCategory.name}</span>
+            <span className="text-amber-400 font-semibold truncate">{activeCategory.name}</span>
           </div>
 
-          <div className="text-[11px] text-slate-500 font-mono">
-            {MEGA_CATALOG_TREE.length} Categorías Principales • {MEGA_CATALOG_TREE.reduce((acc, c) => acc + c.groups.length, 0)} Secciones Especializadas
+          <div className="hidden sm:block text-[11px] text-slate-500 font-mono shrink-0">
+            {MEGA_CATALOG_TREE.length} Categorías • {MEGA_CATALOG_TREE.reduce((acc, c) => acc + c.groups.length, 0)} Secciones
           </div>
         </div>
       </div>
 
       {/* Buscador visible solo en móviles */}
-      <div className="p-4 md:hidden bg-[#060911] border-b border-white/[0.06]">
+      <div className="p-3 sm:p-4 md:hidden bg-[#060911] border-b border-white/[0.06]">
         <div className="relative">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <input
@@ -267,39 +267,39 @@ export const CatalogPage: React.FC = () => {
       </div>
 
       {/* 4. CONTENIDO PRINCIPAL: ÁRBOL COMPLETO DE CATÁLOGO & CATEGORÍAS */}
-      <main className="flex-1 w-full max-w-[1700px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-8">
+      <main className="flex-1 w-full max-w-[1700px] mx-auto px-3 sm:px-6 lg:px-8 xl:px-12 py-5 sm:py-8">
         
         {/* TÍTULO Y PRESENTACIÓN */}
-        <div className="mb-6 sm:mb-8">
-          <div className="w-full pb-4 border-b border-white/[0.08]">
+        <div className="mb-5 sm:mb-8">
+          <div className="w-full pb-3 sm:pb-4 border-b border-white/[0.08]">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-medium mb-2">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Explorador Estructurado por Familias y Marcas</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight font-heading">
+            <h1 className="text-xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight font-heading">
               Catálogo & Categorías en{' '}
               <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 bg-clip-text text-transparent">
                 NovaSats
               </span>
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 w-full mt-2 leading-relaxed">
-              Selecciona cualquier categoría principal en el panel izquierdo para explorar sus subcategorías, líneas de productos y marcas líderes. Al hacer clic en cualquier opción, irás directamente a la vista de productos filtrada.
+            <p className="text-xs sm:text-sm text-slate-400 w-full mt-1.5 sm:mt-2 leading-relaxed">
+              Selecciona cualquier categoría principal para explorar sus subcategorías, líneas de productos y marcas líderes con navegación directa a la tienda.
             </p>
           </div>
         </div>
 
         {/* TABS HORIZONTALES PARA PANTALLAS MÓVILES */}
-        <div className="md:hidden mb-6 overflow-x-auto pb-2 scrollbar-none flex gap-2">
+        <div className="md:hidden mb-5 -mx-3 px-3 sm:mx-0 sm:px-0 overflow-x-auto pb-2 scrollbar-none flex gap-2 touch-pan-x">
           {filteredCategories.map((category) => {
             const isSelected = category.id === activeCategory.id;
             return (
               <button
                 key={category.id}
                 onClick={() => setActiveCategoryId(category.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition shrink-0 ${
+                className={`flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition shrink-0 min-h-[38px] ${
                   isSelected
                     ? 'bg-amber-500 text-black shadow-md shadow-amber-500/20'
-                    : 'bg-[#0e1424] text-slate-300 border border-white/[0.08]'
+                    : 'bg-[#0e1424] text-slate-300 border border-white/[0.08] active:bg-white/[0.05]'
                 }`}
               >
                 {getCategoryIcon(category.iconName, 'w-4 h-4')}
@@ -310,7 +310,7 @@ export const CatalogPage: React.FC = () => {
         </div>
 
         {/* LAYOUT DE 2 COLUMNAS: LATERAL CATEGORÍAS + PANEL DE SUBCATEGORÍAS & MARCAS */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-5 lg:gap-8 items-start">
           
           {/* COLUMNA IZQUIERDA: LISTA DE CATEGORÍAS PRINCIPALES */}
           <aside className="hidden md:block md:col-span-4 lg:col-span-3 bg-[#090d18] rounded-2xl border border-white/[0.08] p-3 space-y-1.5 sticky top-24 max-h-[calc(100vh-120px)] overflow-y-auto">
@@ -375,24 +375,24 @@ export const CatalogPage: React.FC = () => {
           </aside>
 
           {/* COLUMNA DERECHA: SUBCATEGORÍAS, MARCAS Y CATÁLOGO DETALLADO */}
-          <section className="md:col-span-8 lg:col-span-9 space-y-6">
+          <section className="md:col-span-8 lg:col-span-9 space-y-5 sm:space-y-6">
             
             {/* BANNER DE LA CATEGORÍA ACTIVA */}
-            <div className="p-6 sm:p-8 rounded-2xl bg-gradient-to-r from-[#0c1324] via-[#0f172e] to-[#0a0f1d] border border-amber-500/20 shadow-xl relative overflow-hidden">
+            <div className="p-4 sm:p-6 lg:p-8 rounded-2xl bg-gradient-to-r from-[#0c1324] via-[#0f172e] to-[#0a0f1d] border border-amber-500/20 shadow-xl relative overflow-hidden">
               <div className="absolute right-0 top-0 translate-x-10 -translate-y-10 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
 
               <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-black shadow-lg shadow-amber-500/20 shrink-0">
-                    {getCategoryIcon(activeCategory.iconName, 'w-7 h-7 stroke-[2.5]')}
+                <div className="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-black shadow-lg shadow-amber-500/20 shrink-0 mt-0.5 sm:mt-0">
+                    {getCategoryIcon(activeCategory.iconName, 'w-6 h-6 sm:w-7 sm:h-7 stroke-[2.5]')}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-xl sm:text-2xl font-black text-white font-heading">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h2 className="text-lg sm:text-2xl font-black text-white font-heading">
                         {activeCategory.name}
                       </h2>
                       {activeCategory.featuredBadge && (
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                        <span className="px-2 py-0.5 rounded-full text-[9px] sm:text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                           {activeCategory.featuredBadge}
                         </span>
                       )}
@@ -406,7 +406,7 @@ export const CatalogPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleCategoryViewAll(activeCategory)}
-                  className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 self-start sm:self-auto shrink-0"
+                  className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs uppercase tracking-wider transition shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 shrink-0 min-h-[40px]"
                 >
                   <span>Ver todo en {activeCategory.name}</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -415,7 +415,7 @@ export const CatalogPage: React.FC = () => {
             </div>
 
             {/* GRILLA DE SUBCATEGORÍAS Y MARCAS (3 O 4 COLUMNAS) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3.5 sm:gap-5">
               {activeCategory.groups.map((group) => {
                 return (
                   <div

@@ -132,104 +132,109 @@ export const SupplierLogin: React.FC = () => {
     <div className="min-h-screen w-full bg-[#060911] text-slate-100 flex flex-col lg:flex-row font-sans selection:bg-amber-500 selection:text-black overflow-x-hidden">
       
       {/* LEFT COLUMN: Hero & Visual Showcase (Occupies full left side on desktop) */}
-      <div className="lg:w-1/2 xl:w-7/12 relative bg-[#090d18] border-b lg:border-b-0 lg:border-r border-white/[0.08] p-5 sm:p-10 lg:p-16 flex flex-col justify-between overflow-hidden">
+      <div className="w-full lg:w-1/2 xl:w-7/12 relative bg-[#090d18] border-b lg:border-b-0 lg:border-r border-white/[0.08] p-4 sm:p-8 lg:p-14 xl:p-16 flex flex-col justify-between overflow-hidden">
         {/* Ambient glow effects */}
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -top-32 -left-32 w-72 sm:w-96 h-72 sm:h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-72 sm:w-96 h-72 sm:h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
         
         {/* Subtle grid pattern background */}
         <div className="absolute inset-0 bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
 
         {/* Top Header / Branding */}
-        <div className="relative z-10">
-          <Link to="/" className="inline-flex items-center gap-3 group">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25 group-hover:scale-105 transition">
-              <Bitcoin className="w-7 h-7 text-black stroke-[2.5]" />
+        <div className="relative z-10 flex items-center justify-between">
+          <Link to="/" className="inline-flex items-center gap-2.5 sm:gap-3 group">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/25 group-hover:scale-105 transition">
+              <Bitcoin className="w-6 h-6 sm:w-7 sm:h-7 text-black stroke-[2.5]" />
             </div>
             <div>
-              <span className="text-2xl font-black tracking-tight text-white flex items-center gap-1 font-heading">
+              <span className="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-1 font-heading">
                 Nova<span className="text-amber-500">Sats</span>
               </span>
-              <span className="text-[10px] text-amber-400 font-bold uppercase tracking-widest block -mt-1">
+              <span className="text-[9px] sm:text-[10px] text-amber-400 font-bold uppercase tracking-widest block -mt-0.5 sm:-mt-1">
                 Ecosistema de Comercio Descentralizado
               </span>
             </div>
           </Link>
+
+          <Link to="/" className="lg:hidden inline-flex items-center gap-1.5 text-xs text-slate-400 hover:text-amber-400 font-semibold px-2.5 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
+            <Store className="w-3.5 h-3.5 text-amber-400" />
+            <span className="hidden xs:inline">Tienda</span>
+          </Link>
         </div>
 
         {/* Middle Feature Highlights */}
-        <div className="relative z-10 mt-5 lg:mt-6 mb-5 max-w-xl space-y-4">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold tracking-wide uppercase">
+        <div className="relative z-10 mt-5 sm:mt-6 mb-5 max-w-xl space-y-3.5 sm:space-y-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[11px] sm:text-xs font-bold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5" />
-            Portal Exclusivo para Proveedores & Marcas
+            <span>Portal para Proveedores & Marcas</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight font-heading leading-tight">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight font-heading leading-tight">
             Vende tus productos a nivel global con liquidación <span className="bg-gradient-to-r from-amber-400 via-orange-400 to-amber-500 bg-clip-text text-transparent">Bitcoin</span>
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed font-normal">
+          <p className="text-xs sm:text-sm lg:text-base text-slate-300 leading-relaxed font-normal">
             Gestiona tu catálogo con modales de alta velocidad, controla inventario en tiempo real, emite comprobantes firmados criptográficamente con el Smart Contract NovaSats.sol y analiza tus métricas comerciales.
           </p>
 
           {/* Grid of Perks */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
-            <div className="p-4 rounded-2xl bg-[#0f1628]/80 border border-white/[0.08] backdrop-blur-sm">
-              <div className="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3.5 pt-1">
+            <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0f1628]/80 border border-white/[0.08] backdrop-blur-sm">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mb-2.5 sm:mb-3">
                 <Zap className="w-4 h-4 text-amber-400" />
               </div>
               <h3 className="text-xs font-black uppercase tracking-wide text-white">Stock & Modales Ágiles</h3>
-              <p className="text-[11px] text-slate-400 mt-1">Crea, edita o reactiva productos con un solo clic sin recargar la página.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5 sm:mt-1">Crea, edita o reactiva productos con un solo clic sin recargar la página.</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#0f1628]/80 border border-white/[0.08] backdrop-blur-sm">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mb-3">
+            <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0f1628]/80 border border-white/[0.08] backdrop-blur-sm">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center mb-2.5 sm:mb-3">
                 <FileCheck2 className="w-4 h-4 text-emerald-400" />
               </div>
               <h3 className="text-xs font-black uppercase tracking-wide text-white">Firma Criptográfica</h3>
-              <p className="text-[11px] text-slate-400 mt-1">Vouchers respaldados por hash ECDSA y Smart Contract NovaSats.sol v2.0.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5 sm:mt-1">Vouchers respaldados por hash ECDSA y Smart Contract NovaSats.sol v2.0.</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#0f1628]/80 border border-white/[0.08] backdrop-blur-sm">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center mb-3">
+            <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0f1628]/80 border border-white/[0.08] backdrop-blur-sm">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/15 border border-blue-500/30 flex items-center justify-center mb-2.5 sm:mb-3">
                 <TrendingUp className="w-4 h-4 text-blue-400" />
               </div>
               <h3 className="text-xs font-black uppercase tracking-wide text-white">Reportes en Múltiples Páginas</h3>
-              <p className="text-[11px] text-slate-400 mt-1">Ventas detalladas, rotación de inventarios y cartera de clientes auditables.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5 sm:mt-1">Ventas detalladas, rotación de inventarios y cartera de clientes auditables.</p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-[#0f1628]/80 border border-white/[0.08] backdrop-blur-sm">
-              <div className="w-9 h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center mb-3">
+            <div className="p-3.5 sm:p-4 rounded-xl sm:rounded-2xl bg-[#0f1628]/80 border border-white/[0.08] backdrop-blur-sm">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/15 border border-purple-500/30 flex items-center justify-center mb-2.5 sm:mb-3">
                 <ShieldCheck className="w-4 h-4 text-purple-400" />
               </div>
               <h3 className="text-xs font-black uppercase tracking-wide text-white">Avatares Blobatar</h3>
-              <p className="text-[11px] text-slate-400 mt-1">Personaliza la identidad visual de tu marca con avatares procedurales Web3.</p>
+              <p className="text-[11px] text-slate-400 mt-0.5 sm:mt-1">Personaliza la identidad visual de tu marca con avatares procedurales Web3.</p>
             </div>
           </div>
 
           {/* Supplier Community Preview */}
-          <div className="p-3.5 rounded-2xl bg-black/40 border border-white/[0.06] flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-black/40 border border-white/[0.06] flex items-center justify-between">
+            <div className="flex items-center gap-2.5 sm:gap-3">
               <div className="flex -space-x-2">
-                <Blobatar name="Satoshi" className="w-8 h-8 rounded-full border-2 border-slate-900" />
-                <Blobatar name="BitVendor" className="w-8 h-8 rounded-full border-2 border-slate-900" />
-                <Blobatar name="CryptoGear" className="w-8 h-8 rounded-full border-2 border-slate-900" />
-                <Blobatar name="NexStore" className="w-8 h-8 rounded-full border-2 border-slate-900" />
+                <Blobatar name="Satoshi" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-slate-900" />
+                <Blobatar name="BitVendor" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-slate-900" />
+                <Blobatar name="CryptoGear" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-slate-900" />
+                <Blobatar name="NexStore" className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-slate-900" />
               </div>
               <div>
-                <p className="text-xs font-bold text-white">Comunidad de Proveedores Verificados</p>
-                <p className="text-[11px] text-slate-400">Transacciones descentralizadas on-chain</p>
+                <p className="text-[11px] sm:text-xs font-bold text-white">Comunidad de Proveedores Verificados</p>
+                <p className="text-[10px] sm:text-[11px] text-slate-400">Transacciones descentralizadas on-chain</p>
               </div>
             </div>
             <div className="text-right">
-              <span className="text-xs font-black text-amber-400">100% P2P</span>
-              <p className="text-[10px] text-slate-500">Non-custodial</p>
+              <span className="text-[11px] sm:text-xs font-black text-amber-400">100% P2P</span>
+              <p className="text-[9px] sm:text-[10px] text-slate-500 font-mono">Non-custodial</p>
             </div>
           </div>
         </div>
 
-        {/* Bottom Bar on Hero */}
-        <div className="relative z-10 pt-3.5 mt-2 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-4 text-xs text-slate-400">
+        {/* Bottom Bar on Hero (Hidden on small mobile if duplicated) */}
+        <div className="hidden lg:flex relative z-10 pt-3.5 mt-2 border-t border-white/[0.08] flex-wrap items-center justify-between gap-4 text-xs text-slate-400">
           <Link to="/" className="inline-flex items-center gap-2 text-slate-300 hover:text-amber-400 transition font-semibold">
             <Store className="w-4 h-4" />
             <span>Volver a la Tienda</span>
@@ -243,14 +248,14 @@ export const SupplierLogin: React.FC = () => {
       </div>
 
       {/* RIGHT COLUMN: Full Height Interactive Form (Occupies full right side) */}
-      <div className="lg:w-1/2 xl:w-5/12 bg-[#060911] p-4 sm:p-8 lg:p-12 flex flex-col justify-center min-h-screen">
+      <div className="w-full lg:w-1/2 xl:w-5/12 bg-[#060911] px-4 py-8 sm:p-8 lg:p-12 flex flex-col justify-center min-h-0 lg:min-h-screen">
         
-        <div className="w-full max-w-xl mx-auto space-y-6">
+        <div className="w-full max-w-xl mx-auto space-y-5 sm:space-y-6">
           
           {/* Header */}
           <div>
             <div className="flex items-center justify-between">
-              <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
+              <span className="text-[10px] sm:text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
                 Acceso Corporativo
               </span>
               <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] font-mono font-bold">
@@ -268,15 +273,15 @@ export const SupplierLogin: React.FC = () => {
           </div>
 
           {/* Form Box */}
-          <div className="bg-[#0b1020] border border-white/[0.08] rounded-3xl p-5 sm:p-8 shadow-2xl relative">
+          <div className="bg-[#0b1020] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-4 sm:p-7 lg:p-8 shadow-2xl relative">
             
             {/* Tabs */}
-            <div className="grid grid-cols-2 p-1 bg-black/40 border border-white/[0.06] rounded-xl mb-6">
+            <div className="grid grid-cols-2 p-1 bg-black/40 border border-white/[0.06] rounded-xl mb-5 sm:mb-6">
               <button
                 type="button"
                 disabled={isSubmitting}
                 onClick={() => handleTabChange('login')}
-                className={`py-2 text-xs font-black uppercase tracking-wider rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`py-2.5 sm:py-3 text-[11px] sm:text-xs font-black uppercase tracking-wider rounded-lg transition min-h-[42px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${
                   !isRegister
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                     : 'text-slate-400 hover:text-white'
@@ -288,7 +293,7 @@ export const SupplierLogin: React.FC = () => {
                 type="button"
                 disabled={isSubmitting}
                 onClick={() => handleTabChange('registro')}
-                className={`py-2 text-xs font-black uppercase tracking-wider rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed ${
+                className={`py-2.5 sm:py-3 text-[11px] sm:text-xs font-black uppercase tracking-wider rounded-lg transition min-h-[42px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed ${
                   isRegister
                     ? 'bg-amber-500 text-slate-950 shadow-md shadow-amber-500/20'
                     : 'text-slate-400 hover:text-white'
@@ -321,7 +326,7 @@ export const SupplierLogin: React.FC = () => {
                         placeholder="Ej: Cryptowear Labs Inc"
                         value={companyName}
                         onChange={(e) => setCompanyName(e.target.value)}
-                        className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                       />
                     </div>
                   </div>
@@ -339,7 +344,7 @@ export const SupplierLogin: React.FC = () => {
                         placeholder="+51 987 654 321"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value.replace(/[^0-9+\s-]/g, ''))}
-                        className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono disabled:opacity-50 disabled:cursor-not-allowed transition"
+                        className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 font-mono disabled:opacity-50 disabled:cursor-not-allowed transition"
                       />
                     </div>
                   </div>
@@ -364,7 +369,7 @@ export const SupplierLogin: React.FC = () => {
                         type="button"
                         disabled={isSubmitting}
                         onClick={() => open()}
-                        className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-xl shadow transition active:scale-95 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-3.5 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs rounded-xl shadow transition active:scale-95 flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed min-h-[38px]"
                       >
                         <Wallet className="w-3.5 h-3.5" />
                         <span>{isAppKitConnected && appKitAddress ? 'Cambiar Wallet' : 'Conectar Wallet'}</span>
@@ -387,7 +392,7 @@ export const SupplierLogin: React.FC = () => {
                     placeholder="proveedor@empresa.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-3.5 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   />
                 </div>
               </div>
@@ -405,12 +410,12 @@ export const SupplierLogin: React.FC = () => {
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-10 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                    className="w-full bg-[#070b14] border border-white/[0.1] rounded-xl pl-10 pr-10 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((prev) => !prev)}
-                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-400 transition p-0.5 focus:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-amber-400 transition p-1.5 focus:outline-none"
                     title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
                     aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
                     tabIndex={-1}

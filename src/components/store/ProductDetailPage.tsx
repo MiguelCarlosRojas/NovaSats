@@ -357,17 +357,17 @@ export const ProductDetailPage: React.FC = () => {
       </div>
 
       {/* MAIN CONTAINER (Full screen width) */}
-      <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-12 py-10 space-y-12">
+      <main className="flex-1 w-full px-3 sm:px-6 lg:px-8 xl:px-12 py-6 sm:py-10 space-y-8 sm:space-y-12">
         
         {/* TOP HERO PRODUCT SECTION (Images Carousel + Primary Purchase Details) */}
-        <div className="bg-[#090d19] border border-white/[0.08] rounded-3xl p-6 sm:p-10 shadow-2xl">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <div className="bg-[#090d19] border border-white/[0.08] rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-10 shadow-2xl">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-10">
             
             {/* LEFT: Photo Carousel (7 cols on lg) */}
             <div className="lg:col-span-7 space-y-4">
               
               {/* Main Photo View */}
-              <div className="relative w-full h-80 sm:h-[480px] rounded-2xl overflow-hidden bg-black/50 border border-white/[0.08] group">
+              <div className="relative w-full aspect-square sm:aspect-auto sm:h-[420px] md:h-[480px] rounded-2xl overflow-hidden bg-black/50 border border-white/[0.08] group">
                 <img
                   src={galleryImages[activeImageIndex]}
                   alt={`${product.name} - toma ${activeImageIndex + 1}`}
@@ -420,13 +420,13 @@ export const ProductDetailPage: React.FC = () => {
 
               {/* Thumbnails Row */}
               {galleryImages.length > 1 && (
-                <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+                <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-2 scrollbar-none touch-pan-x">
                   {galleryImages.map((img, idx) => (
                     <button
                       key={idx}
                       type="button"
                       onClick={() => setActiveImageIndex(idx)}
-                      className={`relative w-20 h-20 rounded-xl overflow-hidden border-2 transition shrink-0 ${
+                      className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition shrink-0 ${
                         activeImageIndex === idx
                           ? 'border-amber-400 scale-95 shadow-lg shadow-amber-500/30'
                           : 'border-white/[0.08] opacity-60 hover:opacity-100'
@@ -439,7 +439,7 @@ export const ProductDetailPage: React.FC = () => {
               )}
 
               {/* "Lo que tienes que saber de este producto" Box */}
-              <div className="p-6 rounded-2xl bg-[#0c1224] border border-white/[0.08] space-y-3 mt-6">
+              <div className="p-4 sm:p-6 rounded-2xl bg-[#0c1224] border border-white/[0.08] space-y-3 mt-4 sm:mt-6">
                 <h3 className="text-sm font-black text-white font-heading uppercase tracking-wide flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-amber-400" />
                   <span>Lo que tienes que saber de este producto</span>
@@ -1090,8 +1090,8 @@ export const ProductDetailPage: React.FC = () => {
               className="fixed inset-0 bg-transparent"
               onClick={() => setShowReviewModal(false)}
             />
-            <div className="bg-[#090d19] border border-white/[0.1] rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-5 shadow-[0_25px_70px_rgba(0,0,0,0.9)] relative z-10">
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+            <div className="bg-[#090d19] border border-white/[0.1] rounded-2xl sm:rounded-3xl p-4 sm:p-8 max-w-lg w-full space-y-4 sm:space-y-5 shadow-[0_25px_70px_rgba(0,0,0,0.9)] relative z-10 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 sm:pb-4">
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-white font-heading">
                     Calificar Producto y Proveedor
@@ -1226,8 +1226,8 @@ export const ProductDetailPage: React.FC = () => {
               className="fixed inset-0 bg-transparent"
               onClick={() => setShowQuestionModal(false)}
             />
-            <div className="bg-[#090d19] border border-white/[0.1] rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-5 shadow-[0_25px_70px_rgba(0,0,0,0.9)] relative z-10">
-              <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+            <div className="bg-[#090d19] border border-white/[0.1] rounded-2xl sm:rounded-3xl p-4 sm:p-8 max-w-lg w-full space-y-4 sm:space-y-5 shadow-[0_25px_70px_rgba(0,0,0,0.9)] relative z-10 max-h-[90vh] overflow-y-auto">
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-3 sm:pb-4">
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-white font-heading flex items-center gap-2">
                     <HelpCircle className="w-5 h-5 text-amber-400" />
@@ -1330,19 +1330,19 @@ export const ProductDetailPage: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-black text-white font-heading">
               Productos relacionados
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {relatedProducts.map((rel) => (
                 <Link
                   key={rel.id}
                   to={`/producto/${rel.id}`}
-                  className="group bg-[#090d19] border border-white/[0.08] hover:border-amber-500/40 rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 block"
+                  className="group bg-[#090d19] border border-white/[0.08] hover:border-amber-500/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 transition-all duration-300 hover:-translate-y-1 block"
                 >
-                  <div className="w-full h-40 rounded-xl overflow-hidden bg-black/40 mb-3">
+                  <div className="w-full h-28 sm:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-black/40 mb-2 sm:mb-3">
                     <img src={rel.image_url} alt={rel.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                   </div>
-                  <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition line-clamp-2">{rel.name}</h4>
-                  <p className="text-sm font-black text-amber-400 font-mono mt-2">{rel.price_btc.toFixed(6)} BTC</p>
-                  <p className="text-[10px] text-slate-400 font-mono">≈ ${rel.price_usd.toFixed(2)} USD</p>
+                  <h4 className="text-[11px] sm:text-xs font-bold text-white group-hover:text-amber-400 transition line-clamp-2 leading-snug">{rel.name}</h4>
+                  <p className="text-xs sm:text-sm font-black text-amber-400 font-mono mt-1.5 sm:mt-2">{rel.price_btc.toFixed(6)} BTC</p>
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-mono">≈ ${rel.price_usd.toFixed(2)} USD</p>
                 </Link>
               ))}
             </div>
@@ -1355,19 +1355,19 @@ export const ProductDetailPage: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-black text-white font-heading">
               Quienes vieron este producto también compraron
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {viewedAlsoBought.map((item) => (
                 <Link
                   key={item.id}
                   to={`/producto/${item.id}`}
-                  className="group bg-[#090d19] border border-white/[0.08] hover:border-amber-500/40 rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 block"
+                  className="group bg-[#090d19] border border-white/[0.08] hover:border-amber-500/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 transition-all duration-300 hover:-translate-y-1 block"
                 >
-                  <div className="w-full h-40 rounded-xl overflow-hidden bg-black/40 mb-3">
+                  <div className="w-full h-28 sm:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-black/40 mb-2 sm:mb-3">
                     <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                   </div>
-                  <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition line-clamp-2">{item.name}</h4>
-                  <p className="text-sm font-black text-amber-400 font-mono mt-2">{item.price_btc.toFixed(6)} BTC</p>
-                  <p className="text-[10px] text-slate-400 font-mono">≈ ${item.price_usd.toFixed(2)} USD</p>
+                  <h4 className="text-[11px] sm:text-xs font-bold text-white group-hover:text-amber-400 transition line-clamp-2 leading-snug">{item.name}</h4>
+                  <p className="text-xs sm:text-sm font-black text-amber-400 font-mono mt-1.5 sm:mt-2">{item.price_btc.toFixed(6)} BTC</p>
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-mono">≈ ${item.price_usd.toFixed(2)} USD</p>
                 </Link>
               ))}
             </div>
@@ -1380,19 +1380,19 @@ export const ProductDetailPage: React.FC = () => {
             <h2 className="text-xl sm:text-2xl font-black text-white font-heading">
               Quienes compraron este producto también compraron
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               {boughtAlsoBought.map((item) => (
                 <Link
                   key={item.id}
                   to={`/producto/${item.id}`}
-                  className="group bg-[#090d19] border border-white/[0.08] hover:border-amber-500/40 rounded-2xl p-4 transition-all duration-300 hover:-translate-y-1 block"
+                  className="group bg-[#090d19] border border-white/[0.08] hover:border-amber-500/40 rounded-xl sm:rounded-2xl p-3 sm:p-4 transition-all duration-300 hover:-translate-y-1 block"
                 >
-                  <div className="w-full h-40 rounded-xl overflow-hidden bg-black/40 mb-3">
+                  <div className="w-full h-28 sm:h-40 rounded-lg sm:rounded-xl overflow-hidden bg-black/40 mb-2 sm:mb-3">
                     <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                   </div>
-                  <h4 className="text-xs font-bold text-white group-hover:text-amber-400 transition line-clamp-2">{item.name}</h4>
-                  <p className="text-sm font-black text-amber-400 font-mono mt-2">{item.price_btc.toFixed(6)} BTC</p>
-                  <p className="text-[10px] text-slate-400 font-mono">≈ ${item.price_usd.toFixed(2)} USD</p>
+                  <h4 className="text-[11px] sm:text-xs font-bold text-white group-hover:text-amber-400 transition line-clamp-2 leading-snug">{item.name}</h4>
+                  <p className="text-xs sm:text-sm font-black text-amber-400 font-mono mt-1.5 sm:mt-2">{item.price_btc.toFixed(6)} BTC</p>
+                  <p className="text-[9px] sm:text-[10px] text-slate-400 font-mono">≈ ${item.price_usd.toFixed(2)} USD</p>
                 </Link>
               ))}
             </div>
