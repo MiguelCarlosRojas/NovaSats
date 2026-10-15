@@ -7,21 +7,17 @@ import {
   ExternalLink,
   ChevronRight,
   Home,
-  Tag,
-  ShoppingBag,
   Heart,
   ShieldCheck,
   Zap,
   Server,
   Code2
 } from 'lucide-react';
-import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../shared/CartDrawer';
 import { FloatingCartButton } from '../shared/FloatingCartButton';
 import { StoreFooter } from './StoreFooter';
 
 export const DonacionesPage: React.FC = () => {
-  const { itemCount, setIsCartOpen } = useCart();
   const [showYapeModal, setShowYapeModal] = useState(false);
   const [copiedPaypal, setCopiedPaypal] = useState(false);
 
@@ -52,32 +48,6 @@ export const DonacionesPage: React.FC = () => {
           </div>
         </Link>
 
-        {/* Acciones principales: Catálogo, Inicio, Carrito (Sin botón de donar) */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.05] rounded-xl transition"
-          >
-            <Home className="w-3.5 h-3.5 text-slate-400" />
-            <span>Inicio</span>
-          </Link>
-
-          <Link
-            to="/catalogo"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/[0.05] rounded-xl transition"
-          >
-            <Tag className="w-3.5 h-3.5 text-slate-400" />
-            <span>Catálogo</span>
-          </Link>
-
-          <button
-            onClick={() => setIsCartOpen(true)}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 text-black text-xs font-black uppercase tracking-wider rounded-xl shadow-md hover:from-amber-400 hover:to-orange-400 transition"
-          >
-            <ShoppingBag className="w-3.5 h-3.5" />
-            <span>Carrito ({itemCount})</span>
-          </button>
-        </div>
       </header>
 
       {/* BREADCRUMB */}

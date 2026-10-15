@@ -19,7 +19,7 @@ import {
   AlertOctagon,
   FileSpreadsheet,
   Lock,
-  Unlock,
+  ArrowLeft,
   Key,
   Shuffle,
   Smile,
@@ -96,6 +96,7 @@ export const SupplierProfile: React.FC = () => {
   const [confirmDeleteInput, setConfirmDeleteInput] = useState('');
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleteAccountModalOpen, setIsDeleteAccountModalOpen] = useState(false);
 
   const handleExportInventoryBackup = async () => {
     if (!supplier) return;
@@ -607,22 +608,9 @@ export const SupplierProfile: React.FC = () => {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const sampleNames = [
-    'CryptoTitan Pro',
-    'SatoshiForge',
-    'CyberLedger Lab',
-    'QuantumHodl',
-    'BlockVanguard',
-    'NexTech Hardware',
-    'BitMatrix Studio',
-    'AeroCold Wallet',
-    'DeFiSentinel',
-    'ZeroKnowledge Miner'
-  ];
-
-  const handleRandomSeed = () => {
-    const random = sampleNames[Math.floor(Math.random() * sampleNames.length)];
-    setAvatarSeed(random);
+  const handleResetSeed = () => {
+    const realSeed = commercialProfile.brand_name.trim() || supplier?.company_name || '';
+    setAvatarSeed(realSeed);
   };
 
   const activeShape = BLOBATAR_SHAPES.find((s) => s.id === selectedShape) || BLOBATAR_SHAPES[1];
@@ -977,12 +965,12 @@ export const SupplierProfile: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={handleRandomSeed}
+                  onClick={handleResetSeed}
                   className="px-4 py-2.5 bg-[#0e1424] hover:bg-[#161f38] text-amber-400 hover:text-amber-300 border border-white/[0.08] hover:border-amber-500/40 rounded-xl text-xs font-bold transition flex items-center gap-2 shrink-0 shadow-sm"
-                  title="Generar nombre aleatorio temático Web3"
+                  title="Sincronizar avatar con el nombre real de tu empresa"
                 >
                   <Shuffle className="w-4 h-4" />
-                  <span>Aleatorio</span>
+                  <span>Sincronizar</span>
                 </button>
               </div>
             </div>
@@ -2269,122 +2257,224 @@ export const SupplierProfile: React.FC = () => {
           </form>
 
           {/* SECCIÓN 2: ZONA DE PELIGRO: ELIMINAR CUENTA */}
-          <div className="p-6 sm:p-8 rounded-3xl bg-[#13070b] border-2 border-rose-500/30 space-y-6 shadow-2xl">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
-                <AlertTriangle className="w-6 h-6" />
+          <div className="p-6 sm:p-8 rounded-3xl bg-[#13070b] border-2 border-rose-500/30 space-y-5 shadow-2xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/15 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                  <AlertTriangle className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-white font-heading">
+                    Zona de Peligro: Eliminar Cuenta de Proveedor
+                  </h3>
+                  <p className="text-xs text-rose-200/80 mt-1 max-w-xl leading-relaxed">
+                    Esta acción es destructiva e irreversible. Si eliminas tu cuenta, todos tus productos activos y archivados se eliminarán inmediatamente del catálogo de NovaSats Marketplace.
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-lg font-bold text-white font-heading">
-                  Zona de Peligro: Eliminar Cuenta de Proveedor
-                </h3>
-                <p className="text-xs text-rose-200/80 mt-1 leading-relaxed">
-                  Esta acción es destructiva e irreversible. Si eliminas tu cuenta, todos tus productos activos y archivados se eliminarán inmediatamente del catálogo de NovaSats Marketplace.
-                </p>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setDeleteError(null);
+                  setHasExportedBackup(false);
+                  setConfirmDeleteInput('');
+                  setIsDeleteAccountModalOpen(true);
+                }}
+                className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-rose-600/30 transition shrink-0 active:scale-95"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Eliminar Cuenta</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Zona de Peligro: Eliminar Cuenta de Proveedor */}
+      {isDeleteAccountModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Fondo transparente (sin oscurecer la pantalla al abrir el modal) */}
+          <div
+            className="fixed inset-0 bg-transparent"
+            onClick={() => {
+              setIsDeleteAccountModalOpen(false);
+              setHasExportedBackup(false);
+              setConfirmDeleteInput('');
+              setDeleteError(null);
+            }}
+          />
+          <div className="relative z-10 bg-[#0a0f1d] border border-rose-500/40 rounded-3xl w-full max-w-lg shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-rose-500/20 flex items-center justify-between bg-[#0e1424]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white font-heading">
+                    {hasExportedBackup ? 'Confirmar Eliminación Definitiva' : 'Eliminar Cuenta de Proveedor'}
+                  </h3>
+                  <p className="text-xs text-rose-300/80">
+                    {hasExportedBackup ? 'Acción destructiva e irreversible' : 'Copia de seguridad obligatoria'}
+                  </p>
+                </div>
               </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteAccountModalOpen(false);
+                  setHasExportedBackup(false);
+                  setConfirmDeleteInput('');
+                  setDeleteError(null);
+                }}
+                className="w-8 h-8 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-slate-400 hover:text-white flex items-center justify-center transition"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/20 text-xs text-rose-300 space-y-2">
-              <div className="flex items-center gap-2 font-bold text-rose-200">
-                <AlertOctagon className="w-4 h-4 shrink-0 text-rose-400" />
-                <span>Requisito Obligatorio de Seguridad</span>
-              </div>
-              <p className="leading-relaxed">
-                Para no perder el inventario de tus productos ni las referencias de tus precios y SKUs, el sistema exige que hagas una copia de seguridad en Excel antes de habilitar el botón de eliminación.
-              </p>
-            </div>
+            {/* Modal Body */}
+            <div className="p-6 space-y-5 max-h-[80vh] overflow-y-auto custom-scrollbar">
+              {deleteError && (
+                <div className="p-4 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                  <span>{deleteError}</span>
+                </div>
+              )}
 
-            {deleteError && (
-              <div className="p-4 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-200 text-xs font-semibold flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                <span>{deleteError}</span>
-              </div>
-            )}
+              {/* Pantalla 1: Copia de Respaldo Obligatoria (Solo visible antes de exportar) */}
+              {!hasExportedBackup && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/20 text-xs text-rose-300 space-y-2">
+                    <div className="flex items-center gap-2 font-bold text-rose-200">
+                      <AlertOctagon className="w-4 h-4 shrink-0 text-rose-400" />
+                      <span>Requisito Obligatorio de Seguridad</span>
+                    </div>
+                    <p className="leading-relaxed">
+                      Para proteger tus datos comerciales y el historial de tu catálogo, debes descargar una copia de seguridad en Excel con todos tus productos, precios y SKUs antes de continuar.
+                    </p>
+                  </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-              {/* Paso 1: Generar Copia de Seguridad */}
-              <div className={`p-5 rounded-2xl border transition ${
-                hasExportedBackup 
-                  ? 'bg-emerald-950/30 border-emerald-500/40' 
-                  : 'bg-white/[0.02] border-white/[0.08]'
-              }`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-400">
-                    Paso 1: Copia de Respaldo
-                  </span>
-                  {hasExportedBackup && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30">
-                      <CheckCircle2 className="w-3 h-3" />
-                      Copia Generada
+                  <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.08] space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shrink-0 mt-0.5">
+                        <FileSpreadsheet className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-white mb-1">
+                          Inventario Completo de Productos
+                        </h4>
+                        <p className="text-xs text-slate-400 leading-relaxed">
+                          La hoja de cálculo incluye todos tus artículos activos y archivados con sus precios en USD y BTC, existencias y códigos de referencia.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleExportInventoryBackup}
+                      disabled={isExportingBackup}
+                      className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/25 transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                    >
+                      <FileSpreadsheet className="w-4 h-4" />
+                      <span>
+                        {isExportingBackup ? 'Generando Archivo Excel...' : 'Descargar Inventario (Excel)'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Pantalla 2: Confirmación Final (Solo visible después de haber descargado la copia) */}
+              {hasExportedBackup && (
+                <div className="space-y-4">
+                  <div className="p-3.5 rounded-2xl bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 text-emerald-300 font-medium">
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span>Copia de seguridad descargada</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleExportInventoryBackup}
+                      disabled={isExportingBackup}
+                      className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 underline underline-offset-2 shrink-0 transition cursor-pointer"
+                    >
+                      {isExportingBackup ? 'Descargando...' : 'Volver a descargar'}
+                    </button>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-rose-950/40 border border-rose-500/30 space-y-2">
+                    <div className="flex items-center gap-2 text-rose-200 font-bold text-xs">
+                      <AlertOctagon className="w-4 h-4 text-rose-400 shrink-0" />
+                      <span>Atención: Esta acción no se puede deshacer</span>
+                    </div>
+                    <p className="text-xs text-rose-300/90 leading-relaxed">
+                      Se eliminarán inmediatamente todos tus productos de NovaSats Marketplace, tu perfil de proveedor y tus registros asociados.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="block text-xs font-bold text-slate-300">
+                      Escribe <span className="font-mono text-rose-400 bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">ELIMINAR CUENTA</span> para confirmar:
+                    </label>
+                    <input
+                      type="text"
+                      disabled={isDeletingAccount}
+                      value={confirmDeleteInput}
+                      onChange={(e) => setConfirmDeleteInput(e.target.value)}
+                      placeholder="ELIMINAR CUENTA"
+                      className="w-full bg-[#060911] border border-rose-500/40 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-rose-500 transition"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleDeleteAccount}
+                    disabled={confirmDeleteInput.trim() !== 'ELIMINAR CUENTA' || isDeletingAccount}
+                    className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-rose-600/30 transition disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>
+                      {isDeletingAccount ? 'Eliminando Cuenta y Catálogo...' : 'Eliminar Cuenta Definitivamente'}
                     </span>
-                  )}
+                  </button>
                 </div>
-                <h4 className="text-sm font-bold text-white mb-1.5">
-                  Generar Inventario de Productos
-                </h4>
-                <p className="text-xs text-slate-400 mb-4 leading-relaxed">
-                  Descarga una hoja de cálculo Excel completa con todos tus productos, precios, stocks y detalles antes de continuar.
-                </p>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 sm:p-5 border-t border-rose-500/20 bg-[#0e1424]/60 flex items-center justify-between">
+              {hasExportedBackup ? (
                 <button
                   type="button"
-                  onClick={handleExportInventoryBackup}
-                  disabled={isExportingBackup}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition active:scale-95 disabled:opacity-50"
+                  onClick={() => {
+                    setHasExportedBackup(false);
+                    setConfirmDeleteInput('');
+                    setDeleteError(null);
+                  }}
+                  disabled={isDeletingAccount}
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-xs font-bold text-slate-300 hover:text-white transition disabled:opacity-50 cursor-pointer"
                 >
-                  <FileSpreadsheet className="w-4 h-4" />
-                  <span>
-                    {isExportingBackup 
-                      ? 'Generando Archivo Excel...' 
-                      : hasExportedBackup 
-                      ? 'Descargar Copia Nuevamente (Excel)' 
-                      : 'Generar Inventario (Excel)'}
-                  </span>
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Volver</span>
                 </button>
-              </div>
-
-              {/* Paso 2: Confirmación y Eliminación */}
-              <div className={`p-5 rounded-2xl border transition ${
-                !hasExportedBackup
-                  ? 'opacity-40 pointer-events-none bg-white/[0.01] border-white/[0.05]'
-                  : 'bg-white/[0.02] border-rose-500/30'
-              }`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-slate-400">
-                    Paso 2: Confirmación Final
-                  </span>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold text-rose-400">
-                    {hasExportedBackup ? <Unlock className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-                    {hasExportedBackup ? 'Desbloqueado' : 'Bloqueado'}
-                  </span>
-                </div>
-                <h4 className="text-sm font-bold text-white mb-1.5">
-                  Escribe "ELIMINAR CUENTA"
-                </h4>
-                <p className="text-xs text-slate-400 mb-3 leading-relaxed">
-                  Para confirmar la eliminación definitiva e irreversible de la cuenta y los productos:
-                </p>
-                
-                <input
-                  type="text"
-                  disabled={!hasExportedBackup || isDeletingAccount}
-                  value={confirmDeleteInput}
-                  onChange={(e) => setConfirmDeleteInput(e.target.value)}
-                  placeholder="Escribe ELIMINAR CUENTA"
-                  className="w-full bg-[#060911] border border-rose-500/40 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-slate-600 font-mono tracking-wider focus:outline-none focus:ring-2 focus:ring-rose-500 mb-3"
-                />
-
-                <button
-                  type="button"
-                  onClick={handleDeleteAccount}
-                  disabled={!hasExportedBackup || confirmDeleteInput.trim() !== 'ELIMINAR CUENTA' || isDeletingAccount}
-                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-black text-xs uppercase tracking-wider shadow-lg shadow-rose-600/30 transition disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  <span>
-                    {isDeletingAccount ? 'Eliminando Cuenta y Catálogo...' : 'Eliminar Cuenta Definitivamente'}
-                  </span>
-                </button>
-              </div>
+              ) : (
+                <div />
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsDeleteAccountModalOpen(false);
+                  setHasExportedBackup(false);
+                  setConfirmDeleteInput('');
+                  setDeleteError(null);
+                }}
+                disabled={isDeletingAccount}
+                className="px-5 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.1] text-xs font-bold text-slate-300 hover:text-white transition disabled:opacity-50 cursor-pointer"
+              >
+                Cancelar
+              </button>
             </div>
           </div>
         </div>
@@ -2392,8 +2482,13 @@ export const SupplierProfile: React.FC = () => {
 
       {/* Modal Agregar Billetera Manualmente */}
       {isAddWalletModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="bg-[#0a0f1d] border border-white/[0.1] rounded-3xl w-full max-w-lg shadow-2xl overflow-hidden animate-scale-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Fondo transparente (sin oscurecer la pantalla al abrir el modal) */}
+          <div
+            className="fixed inset-0 bg-transparent"
+            onClick={() => setIsAddWalletModalOpen(false)}
+          />
+          <div className="relative z-10 bg-[#0a0f1d] border border-white/[0.1] rounded-3xl w-full max-w-lg shadow-[0_25px_70px_rgba(0,0,0,0.9)] overflow-hidden">
             {/* Modal Header */}
             <div className="p-6 border-b border-white/[0.08] flex items-center justify-between">
               <div className="flex items-center gap-3">

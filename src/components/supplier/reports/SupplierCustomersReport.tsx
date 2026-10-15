@@ -25,7 +25,7 @@ interface CustomerSummary {
   totalSpentBtc: number;
   lastOrderDate: string;
   lastVoucherCode: string;
-  sampleOrder?: Order;
+  latestOrder?: Order;
 }
 
 export const SupplierCustomersReport: React.FC = () => {
@@ -94,10 +94,10 @@ export const SupplierCustomersReport: React.FC = () => {
             const ord = item.orders;
             if (!ord) return;
 
-            const emailKey = (ord.customer_email || 'anonimo@novasats.com').toLowerCase();
+            const emailKey = ord.customer_email ? ord.customer_email.trim().toLowerCase() : (ord.customer_wallet || ord.id);
             if (!custMap[emailKey]) {
               custMap[emailKey] = {
-                email: emailKey,
+                email: ord.customer_email || 'Sin correo registrado',
                 name: ord.customer_name || 'Cliente Web3',
                 wallet: ord.customer_wallet || '',
                 totalOrders: 0,
@@ -105,7 +105,7 @@ export const SupplierCustomersReport: React.FC = () => {
                 totalSpentBtc: 0,
                 lastOrderDate: ord.created_at,
                 lastVoucherCode: ord.voucher_code,
-                sampleOrder: ord,
+                latestOrder: ord,
               };
             }
 
@@ -452,10 +452,10 @@ export const SupplierCustomersReport: React.FC = () => {
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
-                        {c.sampleOrder && (
+                        {c.latestOrder && (
                           <button
                             onClick={() => {
-                              setSelectedOrder(c.sampleOrder || null);
+                              setSelectedOrder(c.latestOrder || null);
                               setShowVoucher(true);
                             }}
                             className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-400 hover:text-amber-300 transition"

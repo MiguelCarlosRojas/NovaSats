@@ -87,7 +87,7 @@ export const SupplierProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         password: data.password,
         phone: data.phone || '',
         wallet_address: data.wallet_address || '',
-        avatar_url: data.avatar_url || `https://api.dicebear.com/7.x/identicon/svg?seed=${data.company_name}`,
+        avatar_url: data.avatar_url || '',
       };
 
       const { data: inserted, error } = await supabase

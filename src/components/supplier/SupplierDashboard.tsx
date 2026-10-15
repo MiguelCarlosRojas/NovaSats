@@ -13,7 +13,8 @@ import {
   TrendingUp,
   Receipt,
   ArrowUpRight,
-  Star
+  Star,
+  Package
 } from 'lucide-react';
 import { fetchSupplierReviews } from '../../lib/qaAndReviewsService';
 
@@ -358,11 +359,20 @@ export const SupplierDashboard: React.FC = () => {
                   key={prod.id}
                   className="bg-[#0e1424]/90 border border-red-500/20 hover:border-red-500/40 rounded-2xl p-3.5 flex items-center justify-between gap-3 shadow transition"
                 >
-                  <img
-                    src={prod.image_url || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=200'}
-                    alt={prod.name}
-                    className="w-12 h-12 rounded-xl object-cover bg-slate-900 border border-white/10 shrink-0"
-                  />
+                  {prod.image_url ? (
+                    <img
+                      src={prod.image_url}
+                      alt={prod.name}
+                      className="w-12 h-12 rounded-xl object-cover bg-slate-900 border border-white/10 shrink-0"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/10 flex items-center justify-center shrink-0 text-slate-500">
+                      <Package className="w-5 h-5 text-slate-500" />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-white truncate">{prod.name}</p>
                     <p className="text-[10px] text-slate-400 font-mono">SKU: {prod.sku || 'N/A'}</p>

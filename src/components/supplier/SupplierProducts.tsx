@@ -31,10 +31,13 @@ import {
   FileText,
   FileSpreadsheet,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Loader2,
+  Cloud
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { exportLandscapePdfTable } from '../../lib/pdfReportGenerator';
+import { uploadProductImageToStorage, deleteImageFromStorage } from '../../lib/storageUpload';
 
 const BTC_PRICE_USD = 65000;
 
@@ -116,7 +119,14 @@ export const SupplierProducts: React.FC = () => {
   // Gallery (Images)
   const [imageUrl, setImageUrl] = useState('');
   const [additionalImages, setAdditionalImages] = useState<string[]>([]);
-  const [newImageUrlInput, setNewImageUrlInput] = useState('');
+  const [isDraggingMain, setIsDraggingMain] = useState(false);
+  const [isDraggingSecondary, setIsDraggingSecondary] = useState(false);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isUploadingSecondary, setIsUploadingSecondary] = useState(false);
+  const [isDeletingMain, setIsDeletingMain] = useState(false);
+  const mainFileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const secondaryFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Logistics & Status
   const [shippingType, setShippingType] = useState<'free' | 'express' | 'standard'>('free');
@@ -286,7 +296,6 @@ export const SupplierProducts: React.FC = () => {
     setStock('0');
     setImageUrl('');
     setAdditionalImages([]);
-    setNewImageUrlInput('');
     setSku(defaultSku);
     setCondition('Nuevo');
     setWarranty('Garantía del Proveedor');
@@ -351,7 +360,6 @@ export const SupplierProducts: React.FC = () => {
     setStock(initialStk);
     setImageUrl(initialImg);
     setAdditionalImages(extraImgs);
-    setNewImageUrlInput('');
     setSku(initialSku);
     setCondition(initialCond);
     setWarranty(initialWarr);
@@ -408,17 +416,145 @@ export const SupplierProducts: React.FC = () => {
     }
   };
 
-  const handleAddAdditionalImage = () => {
-    if (!newImageUrlInput.trim()) return;
-    if (!newImageUrlInput.startsWith('http://') && !newImageUrlInput.startsWith('https://')) {
-      showToast('error', 'La URL de la imagen debe comenzar con https://');
-      return;
+  // Manejador de Arrastrar y Soltar para Foto Principal (Subida a la Nube)
+  const handleMainDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingMain(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      if (file.type.startsWith('image/')) {
+        setIsUploadingImage(true);
+        const preview = URL.createObjectURL(file);
+        setLocalPreviewUrl(preview);
+        try {
+          const cloudUrl = await uploadProductImageToStorage(file);
+          setImageUrl(cloudUrl);
+          setLocalPreviewUrl(cloudUrl);
+          showToast('success', '¡Foto principal actualizada con éxito!');
+        } catch (err: any) {
+          console.error('Error subiendo imagen:', err);
+          showToast('error', `Error al subir imagen: ${err.message || 'Error desconocido'}`);
+        } finally {
+          setIsUploadingImage(false);
+        }
+      } else {
+        showToast('error', 'Por favor arrastra un archivo de imagen válido (PNG, JPG, WEBP)');
+      }
     }
-    setAdditionalImages((prev) => [...prev, newImageUrlInput.trim()]);
-    setNewImageUrlInput('');
   };
 
-  const handleRemoveAdditionalImage = (index: number) => {
+  const handleMainFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      if (file.type.startsWith('image/')) {
+        setIsUploadingImage(true);
+        const preview = URL.createObjectURL(file);
+        setLocalPreviewUrl(preview);
+        try {
+          const cloudUrl = await uploadProductImageToStorage(file);
+          setImageUrl(cloudUrl);
+          setLocalPreviewUrl(cloudUrl);
+          showToast('success', '¡Foto principal actualizada con éxito!');
+        } catch (err: any) {
+          console.error('Error subiendo imagen:', err);
+          showToast('error', `Error al subir imagen: ${err.message || 'Error desconocido'}`);
+        } finally {
+          setIsUploadingImage(false);
+        }
+      } else {
+        showToast('error', 'Por favor selecciona un archivo de imagen válido');
+      }
+    }
+  };
+
+  // Manejador para eliminar Foto Principal de Portada (de la nube y del estado)
+  const handleDeleteMainImage = async () => {
+    if (!imageUrl) return;
+    setIsDeletingMain(true);
+    try {
+      await deleteImageFromStorage(imageUrl);
+      setImageUrl('');
+      setLocalPreviewUrl(null);
+      showToast('success', 'Foto de portada eliminada');
+    } catch (err: any) {
+      console.error('Error al eliminar imagen de la nube:', err);
+      setImageUrl('');
+      setLocalPreviewUrl(null);
+      showToast('success', 'Foto de portada eliminada');
+    } finally {
+      setIsDeletingMain(false);
+    }
+  };
+
+  // Manejador de Arrastrar y Soltar para Fotos Secundarias (Máximo 5 imágenes)
+  const handleSecondaryDrop = async (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDraggingSecondary(false);
+
+    if (additionalImages.length >= 5) return;
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const remainingSlots = 5 - additionalImages.length;
+      if (remainingSlots <= 0) return;
+
+      setIsUploadingSecondary(true);
+      try {
+        const imageFiles = Array.from(e.dataTransfer.files)
+          .filter((f) => f.type.startsWith('image/'))
+          .slice(0, remainingSlots);
+
+        const urls = await Promise.all(imageFiles.map((f) => uploadProductImageToStorage(f)));
+        if (urls.length > 0) {
+          setAdditionalImages((prev) => [...prev, ...urls].slice(0, 5));
+          showToast('success', `¡${urls.length} foto(s) agregadas a la galería!`);
+        }
+      } catch (err: any) {
+        showToast('error', `Error al subir fotos: ${err.message}`);
+      } finally {
+        setIsUploadingSecondary(false);
+      }
+    }
+  };
+
+  const handleSecondaryFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (additionalImages.length >= 5) return;
+
+    if (e.target.files && e.target.files.length > 0) {
+      const remainingSlots = 5 - additionalImages.length;
+      if (remainingSlots <= 0) return;
+
+      setIsUploadingSecondary(true);
+      try {
+        const imageFiles = Array.from(e.target.files)
+          .filter((f) => f.type.startsWith('image/'))
+          .slice(0, remainingSlots);
+
+        const urls = await Promise.all(imageFiles.map((f) => uploadProductImageToStorage(f)));
+        if (urls.length > 0) {
+          setAdditionalImages((prev) => [...prev, ...urls].slice(0, 5));
+          showToast('success', `¡${urls.length} foto(s) agregadas a la galería!`);
+        }
+      } catch (err: any) {
+        showToast('error', `Error al subir fotos: ${err.message}`);
+      } finally {
+        setIsUploadingSecondary(false);
+        if (secondaryFileInputRef.current) {
+          secondaryFileInputRef.current.value = '';
+        }
+      }
+    }
+  };
+
+  const handleRemoveAdditionalImage = async (index: number) => {
+    const urlToRemove = additionalImages[index];
+    try {
+      if (urlToRemove) {
+        await deleteImageFromStorage(urlToRemove);
+      }
+    } catch (err: any) {
+      console.error('Error al eliminar foto secundaria de la nube:', err);
+    }
     setAdditionalImages((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -444,9 +580,9 @@ export const SupplierProducts: React.FC = () => {
 
       // Gallery array: primary image followed by additional images
       const allGalleryImages = [
-        imageUrl.trim() || 'https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?w=800',
+        imageUrl.trim(),
         ...additionalImages.filter(Boolean)
-      ];
+      ].filter(Boolean);
 
       // Real rating and reviews from verified buyer opinions (never fake/hardcoded, starts at 0.0)
       const realRating = editingProduct ? (editingProduct.rating ?? 0.0) : 0.0;
@@ -1058,12 +1194,19 @@ export const SupplierProducts: React.FC = () => {
                         {/* Producto & Thumbnail */}
                         <td className="py-4 px-6">
                           <div className="flex items-center gap-3.5 min-w-[240px]">
-                            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-black/50 border border-white/[0.1] shrink-0 group">
-                              <img
-                                src={p.image_url || 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=200'}
-                                alt={p.name}
-                                className="w-full h-full object-cover group-hover:scale-105 transition"
-                              />
+                            <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-black/50 border border-white/[0.1] shrink-0 group flex items-center justify-center">
+                              {p.image_url ? (
+                                <img
+                                  src={p.image_url}
+                                  alt={p.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition"
+                                  onError={(e) => {
+                                    (e.currentTarget as HTMLElement).style.display = 'none';
+                                  }}
+                                />
+                              ) : (
+                                <ImageIcon className="w-6 h-6 text-slate-500" />
+                              )}
                               {p.images && p.images.length > 1 && (
                                 <span className="absolute bottom-1 right-1 px-1 py-0.2 bg-black/80 text-[9px] font-mono text-white rounded">
                                   +{p.images.length - 1}
@@ -1355,7 +1498,7 @@ export const SupplierProducts: React.FC = () => {
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                         <div>
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                            Catálogo / Categoría Principal *
+                            Catálogo *
                           </label>
                           <select
                             value={category}
@@ -1377,7 +1520,7 @@ export const SupplierProducts: React.FC = () => {
 
                         <div>
                           <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                            Sub-Catálogo / Subcategoría *
+                            Categoría *
                           </label>
                           <select
                             value={subcategory}
@@ -1586,89 +1729,211 @@ export const SupplierProducts: React.FC = () => {
                 {/* TAB 3: GALERÍA DE FOTOS (CARRUSEL) */}
                 {modalTab === 'gallery' && (
                   <div className="space-y-6">
-                    
-                    {/* Imagen Principal */}
-                    <div className="space-y-2">
-                      <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
-                        Foto Principal de Portada (HTTPS) *
-                      </label>
-                      <input
-                        type="url"
-                        required
-                        placeholder="https://images.unsplash.com/..."
-                        value={imageUrl}
-                        onChange={(e) => setImageUrl(e.target.value)}
-                        className="w-full bg-[#060911] border border-white/[0.1] rounded-xl px-3.5 py-2.5 text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      />
-                    </div>
 
-                    {/* Lista Dinámica de Fotos Secundarias para el Carrusel */}
+                    {/* FOTO PRINCIPAL DE PORTADA */}
+                    {imageUrl ? (
+                      /* Si ya tenemos la portada: NO mostrar zona de arrastre, mostrar vista previa con botón para eliminar de la nube */
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider">
+                            Foto Principal de Portada
+                          </label>
+                          <button
+                            type="button"
+                            disabled={isDeletingMain}
+                            onClick={handleDeleteMainImage}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 text-xs font-bold transition shadow-sm active:scale-95 disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>{isDeletingMain ? 'Eliminando...' : 'Eliminar Portada'}</span>
+                          </button>
+                        </div>
+
+                        <div className="relative rounded-xl overflow-hidden bg-black/60 border-2 border-amber-400 p-1.5 w-48 sm:w-52 group shadow-lg shadow-amber-500/10">
+                          <img
+                            src={localPreviewUrl || imageUrl}
+                            alt="Portada Principal"
+                            className="w-full h-36 object-cover rounded-lg"
+                          />
+                          <span className="absolute top-3 left-3 px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[9px] font-black uppercase rounded shadow">
+                            Portada Actual
+                          </span>
+                          <button
+                            type="button"
+                            disabled={isDeletingMain}
+                            onClick={handleDeleteMainImage}
+                            className="absolute top-3 right-3 w-7 h-7 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center transition shadow-lg active:scale-95 disabled:opacity-50"
+                            title="Eliminar foto de portada de la nube"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Si NO hay portada: mostrar zona de arrastre y selección para subir una nueva portada */
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <label className="block text-xs font-bold text-slate-200 uppercase tracking-wider">
+                            Foto Principal de Portada *
+                          </label>
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            Formatos soportados: PNG, JPG, WEBP
+                          </span>
+                        </div>
+
+                        {/* ZONA DE ARRASTRE Y SOLTADO (DRAG & DROP) */}
+                        <div
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setIsDraggingMain(true);
+                          }}
+                          onDragLeave={() => setIsDraggingMain(false)}
+                          onDrop={handleMainDrop}
+                          onClick={() => mainFileInputRef.current?.click()}
+                          className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 text-center transition-all duration-200 group ${
+                            isDraggingMain
+                              ? 'border-amber-400 bg-amber-500/15 scale-[1.01] shadow-xl shadow-amber-500/10'
+                              : 'border-white/[0.15] bg-[#070b16] hover:border-amber-500/50 hover:bg-[#0c1224]'
+                          }`}
+                        >
+                          <input
+                            type="file"
+                            ref={mainFileInputRef}
+                            accept="image/*"
+                            onChange={handleMainFileSelect}
+                            className="hidden"
+                          />
+                          {isUploadingImage ? (
+                            <div className="flex flex-col items-center justify-center space-y-3 py-4">
+                              <div className="w-12 h-12 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-400">
+                                <Loader2 className="w-6 h-6 animate-spin text-amber-400" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-amber-400 animate-pulse">
+                                  Subiendo imagen...
+                                </p>
+                                <p className="text-[10px] text-slate-400 mt-0.5">
+                                  Guardando en el almacenamiento del sistema
+                                </p>
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center space-y-2">
+                              <div
+                                className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform ${
+                                  isDraggingMain
+                                    ? 'bg-amber-500 text-black scale-110'
+                                    : 'bg-amber-500/10 text-amber-400 group-hover:scale-105'
+                                }`}
+                              >
+                                <Cloud className="w-6 h-6 stroke-[2.2]" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-white group-hover:text-amber-400 transition">
+                                  Haz clic para seleccionar o arrastra y suelta tu imagen aquí
+                                </p>
+                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                  Esta imagen se mostrará como la foto principal de tu producto
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* LISTA DINÁMICA DE FOTOS SECUNDARIAS PARA EL CARRUSEL */}
                     <div className="p-5 rounded-2xl bg-[#070a14] border border-white/[0.08] space-y-4">
                       <div>
                         <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                           <Layers className="w-3.5 h-3.5 text-amber-400" />
-                          <span>Fotos Secundarias para el Carrusel de la Página de Detalle</span>
+                          <span>Fotos Secundarias para el Carrusel de Detalle</span>
                         </h4>
                         <p className="text-[11px] text-slate-400 mt-0.5">
-                          Los compradores podrán navegar entre estas imágenes mediante las flechas del carrusel en la página del producto.
+                          Los compradores podrán navegar entre estas imágenes en la página del producto.
                         </p>
                       </div>
 
-                      {/* Input para agregar nueva foto */}
-                      <div className="flex gap-2">
-                        <input
-                          type="url"
-                          placeholder="Pega la URL de una foto secundaria (https://...)"
-                          value={newImageUrlInput}
-                          onChange={(e) => setNewImageUrlInput(e.target.value)}
-                          className="flex-1 bg-[#060911] border border-white/[0.1] rounded-xl px-3.5 py-2 text-xs text-white font-mono placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleAddAdditionalImage}
-                          className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl transition shrink-0 flex items-center gap-1"
+                      {/* ZONA DE ARRASTRE Y CLIC PARA FOTOS SECUNDARIAS: Si ya hay 5 fotos, no mostrar */}
+                      {additionalImages.length < 5 && (
+                        <div
+                          onDragOver={(e) => {
+                            e.preventDefault();
+                            setIsDraggingSecondary(true);
+                          }}
+                          onDragLeave={() => setIsDraggingSecondary(false)}
+                          onDrop={handleSecondaryDrop}
+                          onClick={() => secondaryFileInputRef.current?.click()}
+                          className={`cursor-pointer rounded-2xl border-2 border-dashed p-5 text-center transition-all duration-200 group ${
+                            isDraggingSecondary
+                              ? 'border-amber-400 bg-amber-500/15 scale-[1.01] shadow-xl shadow-amber-500/10'
+                              : 'border-white/[0.15] bg-[#070b16] hover:border-amber-500/50 hover:bg-[#0c1224]'
+                          }`}
                         >
-                          <Plus className="w-3.5 h-3.5" />
-                          <span>Agregar Foto</span>
-                        </button>
-                      </div>
-
-                      {/* Galería en Miniatura con previews */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
-                        {/* Tarjeta de imagen principal */}
-                        <div className="relative rounded-xl overflow-hidden bg-black/50 border-2 border-amber-400 p-1">
-                          <img
-                            src={imageUrl || 'https://images.unsplash.com/photo-1622979135225-d2ba269bc1df?w=400'}
-                            alt="Principal"
-                            className="w-full h-24 object-cover rounded-lg"
+                          <input
+                            type="file"
+                            ref={secondaryFileInputRef}
+                            accept="image/*"
+                            multiple
+                            onChange={handleSecondaryFileSelect}
+                            className="hidden"
                           />
-                          <span className="absolute top-2 left-2 px-1.5 py-0.5 bg-amber-500 text-slate-950 text-[9px] font-black uppercase rounded shadow">
-                            Portada
-                          </span>
+                          {isUploadingSecondary ? (
+                            <div className="flex flex-col items-center justify-center space-y-2 py-2">
+                              <Loader2 className="w-5 h-5 animate-spin text-amber-400" />
+                              <span className="text-xs font-bold text-amber-400 animate-pulse">Subiendo fotos a la nube...</span>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center justify-center space-y-1.5">
+                              <div
+                                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-transform ${
+                                  isDraggingSecondary
+                                    ? 'bg-amber-500 text-black scale-110'
+                                    : 'bg-amber-500/10 text-amber-400 group-hover:scale-105'
+                                }`}
+                              >
+                                <Cloud className="w-5 h-5 stroke-[2.2]" />
+                              </div>
+                              <div>
+                                <p className="text-xs font-bold text-white group-hover:text-amber-400 transition">
+                                  Haz clic para seleccionar o arrastra fotos secundarias aquí
+                                </p>
+                                <p className="text-[10px] text-slate-400 mt-0.5">
+                                  Formatos soportados: PNG, JPG, WEBP
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
+                      )}
 
-                        {/* Tarjetas de fotos adicionales */}
-                        {additionalImages.map((imgUrl, idx) => (
-                          <div key={idx} className="relative rounded-xl overflow-hidden bg-black/50 border border-white/[0.1] p-1 group">
-                            <img
-                              src={imgUrl}
-                              alt={`Secundaria ${idx + 1}`}
-                              className="w-full h-24 object-cover rounded-lg"
-                            />
-                            <span className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/80 text-white text-[9px] font-mono rounded">
-                              Foto {idx + 2}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveAdditionalImage(idx)}
-                              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center opacity-80 group-hover:opacity-100 transition shadow"
-                              title="Eliminar foto de la galería"
-                            >
-                              <X className="w-3.5 h-3.5" />
-                            </button>
+                      {/* GALERÍA EN MINIATURA CON PREVIEWS DE FOTOS SECUNDARIAS */}
+                      {additionalImages.length > 0 && (
+                        <div>
+                          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                            {additionalImages.map((imgUrl, idx) => (
+                              <div key={idx} className="relative rounded-xl overflow-hidden bg-black/60 border border-white/[0.1] p-1 group">
+                                <img
+                                  src={imgUrl}
+                                  alt={`Secundaria ${idx + 1}`}
+                                  className="w-full h-28 object-cover rounded-lg"
+                                />
+                                <span className="absolute bottom-2 left-2 px-1.5 py-0.5 bg-black/80 text-white text-[9px] font-mono rounded">
+                                  Foto {idx + 1}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveAdditionalImage(idx)}
+                                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 hover:bg-red-500 text-white flex items-center justify-center opacity-80 group-hover:opacity-100 transition shadow"
+                                  title="Eliminar foto de la nube"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ))}
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      )}
                     </div>
 
                   </div>

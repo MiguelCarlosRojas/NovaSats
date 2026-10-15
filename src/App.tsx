@@ -14,8 +14,8 @@ const RouteTitleUpdater: React.FC = () => {
 
     const titleMap: Record<string, string> = {
       '/': 'NovaSats | Marketplace Web3 & Pagos Bitcoin',
-      '/catalogo': 'Catálogo de Productos | NovaSats Store',
-      '/tienda': 'Catálogo de Productos | NovaSats Store',
+      '/catalogo': 'Catálogo & Categorías | NovaSats',
+      '/productos': 'Productos & Filtros | NovaSats Store',
       '/donaciones': 'Donaciones & Apoyo Comunitario | NovaSats',
       '/trabaja-con-nosotros': 'Trabaja con Nosotros | NovaSats Marketplace',
       '/nosotros': 'Sobre Nosotros | NovaSats Ecosistema',
@@ -70,6 +70,7 @@ const RouteTitleUpdater: React.FC = () => {
 // Store Components
 import { StoreLanding } from './components/store/StoreLanding';
 import { CatalogPage } from './components/store/CatalogPage';
+import { ProductsPage } from './components/store/ProductsPage';
 import { DonacionesPage } from './components/store/DonacionesPage';
 import { ProductDetailPage } from './components/store/ProductDetailPage';
 
@@ -129,9 +130,11 @@ const App: React.FC = () => {
               {/* Store Landing Page (Default Home) */}
               <Route path="/" element={<StoreLanding />} />
 
-              {/* Dedicated Complete Catalog Page */}
+              {/* Dedicated Category & Catalog Tree Explorer Page */}
               <Route path="/catalogo" element={<CatalogPage />} />
-              <Route path="/tienda" element={<CatalogPage />} />
+
+              {/* Dedicated Full Products & 16-Filter Showcase Page */}
+              <Route path="/productos" element={<ProductsPage />} />
 
               {/* Dedicated Donations Page */}
               <Route path="/donaciones" element={<DonacionesPage />} />

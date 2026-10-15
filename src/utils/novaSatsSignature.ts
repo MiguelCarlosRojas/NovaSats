@@ -1,6 +1,10 @@
 import { ethers } from 'ethers';
 
-export const NOVASATS_CONTRACT_ADDRESS = import.meta.env.VITE_NOVASATS_CONTRACT_ADDRESS;
+export const NOVASATS_CONTRACT_ADDRESS: string = import.meta.env.VITE_NOVASATS_CONTRACT_ADDRESS;
+
+if (!NOVASATS_CONTRACT_ADDRESS) {
+  console.warn('⚠️ Variable VITE_NOVASATS_CONTRACT_ADDRESS no configurada en el archivo .env');
+}
 
 export interface NovaSatsSignatureResult {
   signature: string;

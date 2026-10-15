@@ -11,7 +11,6 @@ import { StoreFooter } from './StoreFooter';
 import {
   Bitcoin,
   ShoppingBag,
-  ArrowLeft,
   ChevronRight,
   ChevronLeft,
   Store,
@@ -28,11 +27,11 @@ import {
   Send,
   HelpCircle,
   Sparkles,
-  Receipt,
   CheckCircle2,
   Clock,
   User,
   ShieldCheck,
+  TrendingUp,
   X
 } from 'lucide-react';
 import {
@@ -69,6 +68,7 @@ export const ProductDetailPage: React.FC = () => {
 
   // Q&A state
   const [questionsList, setQuestionsList] = useState<ProductQuestion[]>([]);
+  const [showQuestionModal, setShowQuestionModal] = useState(false);
   const [userQuestion, setUserQuestion] = useState('');
   const [userName, setUserName] = useState('');
   const [userEmail, setUserEmail] = useState('');
@@ -137,6 +137,40 @@ export const ProductDetailPage: React.FC = () => {
     return allProducts.filter((p) => p.id !== product.id).reverse().slice(0, 4);
   }, [product, allProducts]);
 
+  // Estadísticas reales de productos más buscados / demandados
+  const mostSearchedItems = useMemo(() => {
+    if (!allProducts || allProducts.length === 0) return { products: [], categories: [] };
+    
+    // 1. Productos ordenados por puntuación estadística (reseñas, rating, descuento)
+    const rankedProducts = [...allProducts]
+      .sort((a, b) => {
+        const scoreA = (a.reviews_count || 0) * 10 + (a.rating || 0) * 5 + (a.discount_percent || 0);
+        const scoreB = (b.reviews_count || 0) * 10 + (b.rating || 0) * 5 + (b.discount_percent || 0);
+        return scoreB - scoreA;
+      })
+      .slice(0, 10);
+
+    // 2. Extraer categorías / subcategorías reales presentes en la tienda
+    const catMap = new Map<string, { cat: string; sub: string; count: number }>();
+    allProducts.forEach((p) => {
+      if (p.category && p.subcategory) {
+        const key = `${p.category}-${p.subcategory}`;
+        const existing = catMap.get(key) || { cat: p.category, sub: p.subcategory, count: 0 };
+        existing.count += 1;
+        catMap.set(key, existing);
+      }
+    });
+
+    const topCategories = Array.from(catMap.values())
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 6);
+
+    return {
+      products: rankedProducts,
+      categories: topCategories,
+    };
+  }, [allProducts]);
+
   const averageRating = useMemo(() => {
     if (reviewsList.length === 0) {
       return product?.rating !== undefined && product?.rating !== null ? Number(product.rating) : 0.0;
@@ -188,7 +222,10 @@ export const ProductDetailPage: React.FC = () => {
       setUserName('');
       setUserEmail('');
       setQuestionSuccess(true);
-      setTimeout(() => setQuestionSuccess(false), 4000);
+      setTimeout(() => {
+        setQuestionSuccess(false);
+        setShowQuestionModal(false);
+      }, 2000);
     } catch (err) {
       console.error('Error submitting question:', err);
     } finally {
@@ -249,8 +286,8 @@ export const ProductDetailPage: React.FC = () => {
 
   const inStock = product.stock > 0;
   const isFreeShipping = isFreeShippingProduct(product);
-  const supplierName = product.suppliers?.company_name || 'Proveedor Verificado NovaSats';
-  const supplierEmail = product.suppliers?.email || 'soporte@novasats.com';
+  const supplierName = product.suppliers?.company_name || 'Comercio Asociado';
+  const supplierEmail = product.suppliers?.email || '';
   const supplierWallet = product.suppliers?.wallet_address || 'No registrada';
 
   const shareUrl = window.location.href;
@@ -272,13 +309,6 @@ export const ProductDetailPage: React.FC = () => {
         </div>
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <span className="hidden md:inline text-slate-400">Smart Contract: NovaSats.sol v2.0</span>
-          <Link
-            to="/#consultar-voucher"
-            className="text-slate-300 hover:text-amber-400 transition flex items-center gap-1"
-          >
-            <Receipt className="w-3.5 h-3.5 text-amber-500" />
-            <span>Consultar Voucher</span>
-          </Link>
         </div>
       </div>
 
@@ -297,17 +327,6 @@ export const ProductDetailPage: React.FC = () => {
                 Store Marketplace
               </span>
             </div>
-          </Link>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            to="/catalogo"
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold text-slate-300 hover:text-white bg-[#0e1424] hover:bg-[#161f38] border border-white/[0.08] hover:border-amber-500/30 rounded-xl transition"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Volver al Catálogo</span>
-            <span className="sm:hidden text-[11px]">Catálogo</span>
           </Link>
         </div>
       </header>
@@ -662,14 +681,20 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
 
                 <div className="pt-2 border-t border-white/[0.06] flex items-center justify-between text-xs text-slate-400">
-                  <span>99.4% de calificaciones positivas</span>
-                  <a
-                    href={`mailto:${supplierEmail}?subject=Consulta sobre ${encodeURIComponent(product.name)}`}
-                    className="text-amber-400 hover:underline flex items-center gap-1 font-semibold"
-                  >
-                    <Mail className="w-3.5 h-3.5" />
-                    <span>Contactar</span>
-                  </a>
+                  <span>
+                    {product.reviews_count && product.reviews_count > 0
+                      ? `${Number(product.rating || 0).toFixed(1)} ★ (${product.reviews_count} opiniones)`
+                      : 'Comercio en línea'}
+                  </span>
+                  {supplierEmail && (
+                    <a
+                      href={`mailto:${supplierEmail}?subject=Consulta sobre ${encodeURIComponent(product.name)}`}
+                      className="text-amber-400 hover:underline flex items-center gap-1 font-semibold"
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Contactar</span>
+                    </a>
+                  )}
                 </div>
               </div>
 
@@ -786,7 +811,11 @@ export const ProductDetailPage: React.FC = () => {
             </div>
             <div className="p-4 rounded-xl bg-[#060911] border border-white/[0.06] flex justify-between">
               <span className="text-slate-400">Categoría</span>
-              <span className="font-bold text-white">{product.category || 'General'}</span>
+              <span className="font-bold text-white">
+                {product.subcategory && product.category && product.subcategory !== product.category
+                  ? `${product.category} - ${product.subcategory}`
+                  : product.subcategory || product.category || 'General'}
+              </span>
             </div>
             <div className="p-4 rounded-xl bg-[#060911] border border-white/[0.06] flex justify-between">
               <span className="text-slate-400">Código de Referencia / SKU</span>
@@ -828,7 +857,7 @@ export const ProductDetailPage: React.FC = () => {
 
         {/* SECTION: PREGUNTAS Y RESPUESTAS */}
         <section className="bg-[#090d19] border border-white/[0.08] rounded-3xl p-6 sm:p-10 shadow-2xl space-y-6">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-6">
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-white font-heading flex items-center gap-2">
                 <HelpCircle className="w-6 h-6 text-amber-400" />
@@ -838,83 +867,47 @@ export const ProductDetailPage: React.FC = () => {
                 ¿Tienes dudas sobre el producto, compatibilidad o envío? Pregúntale directamente al proveedor.
               </p>
             </div>
-            <span className="text-xs font-mono px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold self-start sm:self-auto">
-              {questionsList.length} pregunta(s)
-            </span>
+            <div className="flex items-center gap-3 self-start sm:self-auto">
+              <span className="text-xs font-mono px-3 py-1.5 rounded-xl bg-amber-500/10 text-amber-300 border border-amber-500/20 font-bold">
+                {questionsList.length} pregunta(s)
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setQuestionSuccess(false);
+                  setShowQuestionModal(true);
+                }}
+                className="px-5 py-3 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-2xl shadow-md shadow-amber-500/20 transition flex items-center justify-center gap-2 hover:shadow-lg active:scale-95 whitespace-nowrap"
+              >
+                <HelpCircle className="w-4 h-4 text-slate-950" />
+                <span>Hacer una Pregunta</span>
+              </button>
+            </div>
           </div>
 
-          {/* Ask Input Form */}
-          <form onSubmit={handleAddQuestion} className="space-y-3 bg-[#060911] border border-white/[0.06] rounded-2xl p-4 sm:p-5">
-            <div>
-              <label className="block text-xs font-bold text-slate-300 mb-1.5">
-                Escribe tu pregunta sobre este producto
-              </label>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <input
-                  type="text"
-                  required
-                  placeholder="Ej: ¿El producto incluye cable de conexión y garantía oficial del fabricante?"
-                  value={userQuestion}
-                  onChange={(e) => setUserQuestion(e.target.value)}
-                  className="flex-1 bg-[#090d19] border border-white/[0.1] rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                />
-                <button
-                  type="submit"
-                  disabled={isSubmittingQuestion || !userQuestion.trim()}
-                  className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-black font-black text-xs uppercase tracking-wider rounded-xl transition shrink-0 disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{isSubmittingQuestion ? 'Enviando...' : 'Preguntar'}</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-              <div>
-                <label className="block text-[11px] text-slate-400 mb-1">
-                  Tu nombre o alias (opcional)
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej: Satoshi Lover, Carlos R."
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  className="w-full bg-[#090d19] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] text-slate-400 mb-1">
-                  Tu correo electrónico (opcional, para avisarte cuando respondan)
-                </label>
-                <input
-                  type="email"
-                  placeholder="comprador@ejemplo.com"
-                  value={userEmail}
-                  onChange={(e) => setUserEmail(e.target.value)}
-                  className="w-full bg-[#090d19] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
-                />
-              </div>
-            </div>
-
-            {questionSuccess && (
-              <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2 animate-fade-in">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>¡Tu pregunta fue enviada al proveedor! Cuando responda desde su panel aparecerá aquí con la insignia oficial.</span>
-              </div>
-            )}
-          </form>
-
           {/* Questions List */}
-          <div className="space-y-4 pt-2">
+          <div className="space-y-4">
             <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
               Preguntas de compradores ({questionsList.length})
             </h4>
 
             {questionsList.length === 0 ? (
-              <div className="p-8 rounded-2xl bg-[#060911] border border-white/[0.06] text-center space-y-2">
+              <div className="p-8 rounded-2xl bg-[#060911] border border-white/[0.06] text-center space-y-3">
                 <HelpCircle className="w-8 h-8 text-slate-600 mx-auto" />
-                <p className="text-xs text-slate-400 font-medium">Aún no hay preguntas para este producto.</p>
-                <p className="text-[11px] text-slate-500">¿Tienes dudas sobre el envío, garantía o especificaciones? ¡Escribe la primera pregunta arriba!</p>
+                <h4 className="text-sm font-bold text-white">Aún no hay preguntas para este producto</h4>
+                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                  ¿Tienes dudas sobre el envío, garantía o especificaciones técnicas? Pregúntale directamente al proveedor.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuestionSuccess(false);
+                    setShowQuestionModal(true);
+                  }}
+                  className="mt-2 px-4 py-2 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs font-bold rounded-xl transition"
+                >
+                  Hacer la primera pregunta
+                </button>
               </div>
             ) : (
               questionsList.map((item) => (
@@ -1094,8 +1087,13 @@ export const ProductDetailPage: React.FC = () => {
 
         {/* REVIEW SUBMISSION MODAL */}
         {showReviewModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
-            <div className="bg-[#090d19] border border-white/[0.1] rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-5 shadow-2xl relative">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Fondo transparente (sin oscurecer la pantalla al abrir el modal) */}
+            <div
+              className="fixed inset-0 bg-transparent"
+              onClick={() => setShowReviewModal(false)}
+            />
+            <div className="bg-[#090d19] border border-white/[0.1] rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-5 shadow-[0_25px_70px_rgba(0,0,0,0.9)] relative z-10">
               <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
                 <div>
                   <h3 className="text-base sm:text-lg font-black text-white font-heading">
@@ -1223,6 +1221,112 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         )}
 
+        {/* QUESTION SUBMISSION MODAL */}
+        {showQuestionModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            {/* Fondo transparente (sin oscurecer la pantalla al abrir el modal) */}
+            <div
+              className="fixed inset-0 bg-transparent"
+              onClick={() => setShowQuestionModal(false)}
+            />
+            <div className="bg-[#090d19] border border-white/[0.1] rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-5 shadow-[0_25px_70px_rgba(0,0,0,0.9)] relative z-10">
+              <div className="flex items-center justify-between border-b border-white/[0.08] pb-4">
+                <div>
+                  <h3 className="text-base sm:text-lg font-black text-white font-heading flex items-center gap-2">
+                    <HelpCircle className="w-5 h-5 text-amber-400" />
+                    <span>Preguntar al Proveedor</span>
+                  </h3>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    {product.name} • {supplierName}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowQuestionModal(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-white transition"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {questionSuccess ? (
+                <div className="p-6 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-center space-y-2 animate-fade-in">
+                  <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
+                  <h4 className="text-sm font-bold text-white">¡Pregunta enviada con éxito!</h4>
+                  <p className="text-xs text-emerald-300">
+                    Tu pregunta fue enviada al proveedor. Cuando responda desde su panel aparecerá con la insignia oficial en esta página.
+                  </p>
+                </div>
+              ) : (
+                <form onSubmit={handleAddQuestion} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-300 mb-1.5">
+                      Escribe tu pregunta sobre este producto *
+                    </label>
+                    <textarea
+                      required
+                      rows={3}
+                      placeholder="Ej: ¿El producto incluye cable de conexión y garantía oficial del fabricante?"
+                      value={userQuestion}
+                      onChange={(e) => setUserQuestion(e.target.value)}
+                      className="w-full bg-[#060911] border border-white/[0.1] rounded-xl px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Tu nombre o alias (opcional)
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Ej: Satoshi Lover, Carlos R."
+                        value={userName}
+                        onChange={(e) => setUserName(e.target.value)}
+                        className="w-full bg-[#060911] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-slate-300 mb-1">
+                        Tu correo electrónico (opcional)
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="comprador@ejemplo.com"
+                        value={userEmail}
+                        onChange={(e) => setUserEmail(e.target.value)}
+                        className="w-full bg-[#060911] border border-white/[0.08] rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-amber-500"
+                      />
+                    </div>
+                  </div>
+
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    El proveedor recibirá una notificación inmediata y tu pregunta será publicada en el marketplace junto a su respuesta oficial.
+                  </p>
+
+                  <div className="flex items-center justify-end gap-3 pt-2 border-t border-white/[0.06]">
+                    <button
+                      type="button"
+                      onClick={() => setShowQuestionModal(false)}
+                      className="px-4 py-2.5 rounded-xl border border-white/[0.1] text-xs font-bold text-slate-300 hover:text-white hover:bg-white/[0.05] transition"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmittingQuestion || !userQuestion.trim()}
+                      className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-slate-950 font-black text-xs uppercase tracking-wider rounded-xl transition flex items-center gap-1.5 shadow-md shadow-amber-500/20 active:scale-95 disabled:opacity-50"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isSubmittingQuestion ? 'Enviando...' : 'Preguntar'}</span>
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* SECTION: PRODUCTOS RELACIONADOS */}
         {relatedProducts.length > 0 && (
           <section className="space-y-4">
@@ -1298,35 +1402,66 @@ export const ProductDetailPage: React.FC = () => {
           </section>
         )}
 
-        {/* SECTION: PRODUCTOS MÁS BUSCADOS */}
-        <section className="bg-[#090d19] border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-4">
-          <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
-            Productos más buscados en NovaSats
-          </h3>
-          <div className="flex flex-wrap gap-2 text-xs">
-            {[
-              'Hardware Wallet Ledger Nano',
-              'Billeteras frías Air-Gapped',
-              'Placas de titanio 24 palabras',
-              'Antminer S21 refrigeración líquida',
-              'Nodo Bitcoin Plug & Play',
-              'Polerón Crypto NFC',
-              'Lámpara de Neón Bitcoin',
-              'YubiKey FIDO2 USB-C',
-              'Bolsas Faraday militares',
-              'Anillo inteligente NFC Bitcoin',
-              'Libro The Bitcoin Standard'
-            ].map((tag, i) => (
-              <Link
-                key={i}
-                to="/"
-                className="px-3 py-1.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.07] border border-white/[0.06] text-slate-300 hover:text-amber-400 transition"
-              >
-                {tag}
-              </Link>
-            ))}
-          </div>
-        </section>
+        {/* SECTION: PRODUCTOS MÁS BUSCADOS (Con data real de estadísticas) */}
+        {mostSearchedItems.products.length > 0 && (
+          <section className="bg-[#090d19] border border-white/[0.08] rounded-3xl p-6 sm:p-8 space-y-4 shadow-xl">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/[0.06] pb-3">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-amber-400" />
+                <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-300">
+                  Productos más buscados en NovaSats
+                </h3>
+              </div>
+              <span className="text-[10px] font-mono text-slate-400">
+                Basado en visitas, valoraciones y volumen de catálogo
+              </span>
+            </div>
+
+            <div className="space-y-3.5">
+              <div className="flex flex-wrap gap-2 text-xs">
+                {mostSearchedItems.products.map((item, idx) => (
+                  <Link
+                    key={item.id}
+                    to={`/producto/${item.id}`}
+                    className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.08] hover:border-amber-500/40 text-slate-200 hover:text-white transition group"
+                  >
+                    <span className="w-4 h-4 rounded-full bg-amber-500/10 text-amber-400 font-mono text-[10px] flex items-center justify-center font-bold">
+                      {idx + 1}
+                    </span>
+                    <span className="font-medium group-hover:text-amber-400 transition truncate max-w-xs">
+                      {item.name}
+                    </span>
+                    {item.rating && item.rating > 0 ? (
+                      <span className="text-[10px] font-mono font-bold text-amber-400 flex items-center gap-0.5">
+                        <Star className="w-2.5 h-2.5 fill-amber-400" />
+                        {item.rating.toFixed(1)}
+                      </span>
+                    ) : item.discount_percent && item.discount_percent > 0 ? (
+                      <span className="text-[10px] font-mono font-bold text-rose-400">
+                        -{item.discount_percent}%
+                      </span>
+                    ) : null}
+                  </Link>
+                ))}
+              </div>
+
+              {mostSearchedItems.categories.length > 0 && (
+                <div className="pt-2 border-t border-white/[0.04] flex flex-wrap items-center gap-2">
+                  <span className="text-[11px] text-slate-400 font-mono">Categorías en tendencia:</span>
+                  {mostSearchedItems.categories.map((c, i) => (
+                    <Link
+                      key={i}
+                      to={`/catalogo?categoria=${encodeURIComponent(c.cat)}&subcategoria=${encodeURIComponent(c.sub)}`}
+                      className="px-2.5 py-1 rounded-lg bg-amber-500/5 hover:bg-amber-500/15 border border-amber-500/20 text-[11px] font-mono text-amber-300 hover:text-amber-200 transition"
+                    >
+                      {c.sub} ({c.count})
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        )}
 
       </main>
 

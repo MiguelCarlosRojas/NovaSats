@@ -6,7 +6,7 @@
 [![Vite](https://img.shields.io/badge/vite-4.3-646CFF.svg?style=flat-square&logo=vite)](https://vitejs.dev)
 [![Supabase](https://img.shields.io/badge/database-Supabase%20PostgreSQL-3ECF8E.svg?style=flat-square&logo=supabase)](https://supabase.com)
 [![Web3 AppKit](https://img.shields.io/badge/web3-Reown%20AppKit%20v1.8-3B82F6.svg?style=flat-square)](https://cloud.reown.com)
-[![Smart Contract](https://img.shields.io/badge/contract-Sepolia%200x71C2...C3a9-F59E0B.svg?style=flat-square&logo=ethereum)](https://sepolia.etherscan.io)
+[![Smart Contract](https://img.shields.io/badge/contract-Sepolia%20NovaSats.sol-F59E0B.svg?style=flat-square&logo=ethereum)](https://sepolia.etherscan.io)
 [![Tailwind CSS](https://img.shields.io/badge/style-Tailwind%20CSS%203.4-38B2AC.svg?style=flat-square&logo=tailwindcss)](https://tailwindcss.com)
 
 ---
@@ -34,7 +34,7 @@ Cuenta con integración nativa a contratos inteligentes (`NovaSats.sol`), verifi
 
 - **Frontend Core:** React 18, TypeScript, Vite, Tailwind CSS, Lucide React, Canvas Confetti.
 - **Web3 & Conectividad Multi-Chain:** `@reown/appkit` y `@reown/appkit-adapter-wagmi` sobre redes Ethereum, Arbitrum, Optimism, Polygon, Base, Sepolia y Bitcoin On-Chain.
-- **Capa de Contrato Inteligente:** Smart Contract `NovaSats.sol` desplegado en Sepolia (`0x71C260B543D75aF4D4B12DDe9B1D6F094593C3a9`) para el registro de órdenes, firmas digitales y garantía on-chain de 12 meses.
+- **Capa de Contrato Inteligente:** Smart Contract `NovaSats.sol` desplegado en Sepolia (`0x0000...0000`) para el registro de órdenes, firmas digitales y garantía on-chain de 12 meses.
 - **Backend & Base de Datos Relacional:** Supabase (PostgreSQL) con esquemas completos para persistencia sin almacenamiento en caché local.
 - **Identidad Generativa:** `@blobatar/react` y `blobatar/expression` para la generación de avatares reactivos y firmas de marca.
 - **Motor de Comprobantes & Reportes:** `jspdf` para generación instantánea de tickets térmicos de 80mm y documentos tributarios A4; `xlsx` para la exportación de libros contables en Excel.
@@ -161,14 +161,17 @@ Crea un archivo `.env` en la raíz del proyecto:
 
 ```env
 # Conexión Directa a Supabase
-VITE_SUPABASE_URL=https://mrshxjdvtnhsjtiiukiq.supabase.co
+VITE_SUPABASE_URL=https://tu-proyecto.supabase.co
 VITE_SUPABASE_ANON_KEY=tu-anon-key-de-supabase
 
 # Proyecto Reown AppKit / WalletConnect Cloud (https://cloud.reown.com)
 VITE_REOWN_PROJECT_ID=tu-reown-project-id
 
 # Smart Contract Oficial en Sepolia Testnet
-VITE_NOVASATS_CONTRACT_ADDRESS=0x71C260B543D75aF4D4B12DDe9B1D6F094593C3a9
+VITE_NOVASATS_CONTRACT_ADDRESS=0x0000000000000000000000000000000000000000
+
+# Supabase Storage Bucket para imágenes de catálogo
+VITE_SUPABASE_STORAGE_BUCKET=tu-bucket-storage
 ```
 
 > **Nota para Despliegues en Vercel:** Las variables de entorno en producción deben estar asignadas exclusivamente al entorno **Production**.

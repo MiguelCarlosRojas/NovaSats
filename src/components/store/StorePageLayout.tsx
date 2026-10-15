@@ -5,10 +5,8 @@ import { FloatingCartButton } from '../shared/FloatingCartButton';
 import { StoreFooter } from './StoreFooter';
 import {
   Bitcoin,
-  ArrowLeft,
   ChevronRight,
-  Store,
-  Receipt
+  Home
 } from 'lucide-react';
 
 interface StorePageLayoutProps {
@@ -41,17 +39,10 @@ export const StorePageLayout: React.FC<StorePageLayoutProps> = ({
         </div>
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <span className="hidden md:inline text-slate-400">Smart Contract: NovaSats.sol v2.0</span>
-          <Link
-            to="/#consultar-voucher"
-            className="text-slate-300 hover:text-amber-400 transition flex items-center gap-1"
-          >
-            <Receipt className="w-3.5 h-3.5 text-amber-500" />
-            <span>Consultar Voucher</span>
-          </Link>
         </div>
       </div>
 
-      {/* Main Navbar (Minimalist, without Wallet button, clean brand and return link) */}
+      {/* Main Navbar */}
       <header className="sticky top-0 z-40 bg-[#060911]/90 backdrop-blur-xl border-b border-white/[0.08] px-3 sm:px-8 lg:px-12 h-16 sm:h-20 flex items-center justify-between">
         <div className="flex items-center gap-4 sm:gap-6 min-w-0">
           <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
@@ -68,25 +59,14 @@ export const StorePageLayout: React.FC<StorePageLayoutProps> = ({
             </div>
           </Link>
         </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <Link
-            to="/"
-            className="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 sm:py-2 text-xs font-bold text-slate-300 hover:text-white bg-[#0e1424] hover:bg-[#161f38] border border-white/[0.08] hover:border-amber-500/30 rounded-xl transition"
-          >
-            <ArrowLeft className="w-3.5 h-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Volver a la Tienda</span>
-            <span className="sm:hidden text-[11px]">Volver</span>
-          </Link>
-        </div>
       </header>
 
       {/* Breadcrumb Bar */}
       <div className="bg-[#04060c] border-b border-white/[0.06] py-3.5 px-4 sm:px-8 lg:px-12">
         <div className="w-full flex items-center gap-2 text-xs text-slate-400 font-medium">
           <Link to="/" className="hover:text-amber-400 transition flex items-center gap-1">
-            <Store className="w-3.5 h-3.5 text-slate-500" />
-            <span>Tienda</span>
+            <Home className="w-3.5 h-3.5 text-slate-500" />
+            <span>Inicio</span>
           </Link>
           <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
           <span className="text-slate-400">{categoryName}</span>

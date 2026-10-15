@@ -13,7 +13,6 @@ import {
   Receipt,
   ChevronRight,
   Package,
-  Tag,
   Heart,
   ArrowRight,
   Lock,
@@ -113,19 +112,12 @@ export const StoreLanding: React.FC = () => {
         </div>
         <div className="flex items-center gap-3 sm:gap-4 shrink-0">
           <span className="hidden md:inline text-slate-400">Smart Contract: NovaSats.sol v2.0</span>
-          <a
-            href="#consultar-voucher"
-            className="text-slate-300 hover:text-amber-400 transition flex items-center gap-1"
-          >
-            <Receipt className="w-3.5 h-3.5 text-amber-500" />
-            <span>Consultar Voucher</span>
-          </a>
         </div>
       </div>
 
       {/* ENCABEZADO DE NAVEGACIÓN (Sin botón Portal Proveedores) */}
       <header className="sticky top-0 z-40 bg-[#060911]/90 backdrop-blur-xl border-b border-white/[0.08] px-3 sm:px-8 lg:px-12 h-16 sm:h-20 flex items-center justify-between">
-        <div className="flex items-center gap-4 sm:gap-8 min-w-0">
+        <div className="flex items-center gap-3 sm:gap-6 min-w-0">
           <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
             <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/20 group-hover:scale-105 transition">
               <Bitcoin className="w-5 h-5 sm:w-6 sm:h-6 text-black stroke-[2.5]" />
@@ -138,17 +130,6 @@ export const StoreLanding: React.FC = () => {
                 Store Marketplace
               </span>
             </div>
-          </Link>
-        </div>
-
-        {/* Enlaces de Cabecera (Sin botón de donar) */}
-        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-          <Link
-            to="/catalogo"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 text-xs font-bold text-black bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 rounded-xl shadow-md shadow-amber-500/15 transition active:scale-95"
-          >
-            <Tag className="w-3.5 h-3.5" />
-            <span>Catálogo Completo</span>
           </Link>
         </div>
       </header>
@@ -230,22 +211,13 @@ export const StoreLanding: React.FC = () => {
 
       {/* SECCIÓN CATEGORÍAS DESTACADAS (Ancho completo) */}
       <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 xl:px-12 w-full">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-          <div>
-            <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
-              Explora por Intereses
-            </span>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-heading mt-0.5">
-              Categorías en NovaSats
-            </h2>
-          </div>
-          <Link
-            to="/catalogo"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-400 hover:text-amber-300 transition"
-          >
-            <span>Ver todas las categorías en el Catálogo</span>
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+        <div className="mb-10">
+          <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
+            Explora por Intereses
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-heading mt-0.5">
+            Categorías en NovaSats
+          </h2>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
@@ -294,22 +266,13 @@ export const StoreLanding: React.FC = () => {
       {/* SECCIÓN PREVIEW DE PRODUCTOS DESTACADOS (Ancho completo) */}
       <section className="py-14 sm:py-20 px-4 sm:px-6 lg:px-8 xl:px-12 bg-[#04060c] border-y border-white/[0.06] w-full">
         <div className="w-full">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
-            <div>
-              <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
-                Vitrina Destacada
-              </span>
-              <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-heading mt-0.5">
-                Novedades & Más Vendidos
-              </h2>
-            </div>
-            <Link
-              to="/catalogo"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/20 text-xs font-bold text-amber-400 transition"
-            >
-              <span>Ver Catálogo Completo ({products.length} productos)</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </Link>
+          <div className="mb-10">
+            <span className="text-[11px] font-mono tracking-widest text-amber-400 uppercase font-bold">
+              Vitrina Destacada
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight font-heading mt-0.5">
+              Novedades & Más Vendidos
+            </h2>
           </div>
 
           {loading ? (
@@ -377,25 +340,6 @@ export const StoreLanding: React.FC = () => {
               ))}
             </div>
           )}
-
-          {/* Banner central de llamada al Catálogo completo */}
-          <div className="mt-12 p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/5 border border-amber-500/20 text-center space-y-4">
-            <h3 className="text-xl sm:text-2xl font-bold text-white font-heading">
-              ¿Buscando productos específicos, filtros avanzados o marcas?
-            </h3>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto">
-              Accede a nuestro catálogo completo con filtros por precio, stock, envío express, calificación de proveedores y ordenamiento personalizado.
-            </p>
-            <div className="pt-2">
-              <Link
-                to="/catalogo"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-black font-black text-xs uppercase tracking-wider rounded-xl shadow-lg transition active:scale-95"
-              >
-                <span>Ir a la Página Completa del Catálogo</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-          </div>
         </div>
       </section>
 

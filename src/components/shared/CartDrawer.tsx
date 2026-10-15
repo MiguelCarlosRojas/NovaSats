@@ -425,7 +425,7 @@ export const CartDrawer: React.FC = () => {
         throw new Error(payResult.error || 'Error al procesar la transferencia en blockchain');
       }
 
-      const txHash = payResult.txHash || `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+      const txHash = payResult.txHash || '';
       const orderNumber = `ORD-${Date.now().toString().slice(-6)}`;
       const voucherCode = `VOUCH-${Math.random().toString(36).substring(2, 7).toUpperCase()}-${Date.now().toString().slice(-4)}`;
 
@@ -597,7 +597,7 @@ export const CartDrawer: React.FC = () => {
             
             {/* Header con Stepper */}
             <div className="p-4 sm:p-5 border-b border-gray-200 dark:border-gray-800">
-              <div className="flex items-center justify-between mb-3">
+              <div className={`flex items-center justify-between ${step >= 2 ? 'mb-3' : ''}`}>
                 <div className="flex items-center gap-2">
                   <ShoppingBag className="w-5 h-5 text-amber-500" />
                   <h2 className="text-lg font-bold text-gray-900 dark:text-white">
@@ -614,53 +614,55 @@ export const CartDrawer: React.FC = () => {
                 </button>
               </div>
 
-              {/* Indicador de 3 Pasos */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
-                    step === 1
-                      ? 'bg-amber-500 text-black shadow-sm font-bold'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">1</span>
-                  <span>Carro</span>
-                </button>
+              {/* Indicador de 3 Pasos (Visible a partir de Paso 2: Entrega) */}
+              {step >= 2 && (
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                      step === 1
+                        ? 'bg-amber-500 text-black shadow-sm font-bold'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">1</span>
+                    <span>Carro</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (cart.length > 0) setStep(2);
-                  }}
-                  disabled={cart.length === 0}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
-                    step === 2
-                      ? 'bg-amber-500 text-black shadow-sm font-bold'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">2</span>
-                  <span>Entrega</span>
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (cart.length > 0) setStep(2);
+                    }}
+                    disabled={cart.length === 0}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                      step === 2
+                        ? 'bg-amber-500 text-black shadow-sm font-bold'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">2</span>
+                    <span>Entrega</span>
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (customerEmail && direccion) setStep(3);
-                  }}
-                  disabled={!customerEmail || !direccion}
-                  className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
-                    step === 3
-                      ? 'bg-amber-500 text-black shadow-sm font-bold'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  }`}
-                >
-                  <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">3</span>
-                  <span>Pago</span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (customerEmail && direccion) setStep(3);
+                    }}
+                    disabled={!customerEmail || !direccion}
+                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-lg text-xs font-semibold transition ${
+                      step === 3
+                        ? 'bg-amber-500 text-black shadow-sm font-bold'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 disabled:opacity-40 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    }`}
+                  >
+                    <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px] bg-black/20 font-bold">3</span>
+                    <span>Pago</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Error banner */}

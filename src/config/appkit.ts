@@ -3,8 +3,7 @@ import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
 import { mainnet, arbitrum, polygon, base, optimism, sepolia } from '@reown/appkit/networks';
 
 // 1. Get projectId strictly from environment variables (.env)
-const rawProjectId = import.meta.env.VITE_REOWN_PROJECT_ID || '';
-export const projectId = String(rawProjectId).replace(/[\uFEFF\r\n\t "']/g, '').trim();
+export const projectId: string = import.meta.env.VITE_REOWN_PROJECT_ID;
 
 if (!projectId) {
   console.warn('⚠️ Variable VITE_REOWN_PROJECT_ID no configurada en el archivo .env');

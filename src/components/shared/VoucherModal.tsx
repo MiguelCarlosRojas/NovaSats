@@ -358,7 +358,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({
     y += 2.8;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(5.4);
-    const contractFull = currentOrder.contract_address || NOVASATS_CONTRACT_ADDRESS || '0x71C260B543D75aF4D4B12DDe9B1D6F094593C3a9';
+    const contractFull = currentOrder.contract_address || NOVASATS_CONTRACT_ADDRESS;
     doc.text(contractFull, 4, y);
     y += 3.4;
 
@@ -368,7 +368,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({
     y += 2.8;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(5.2);
-    const txText = currentOrder.payment_tx_hash || '0x11a70acf45fadb85ceec739efe4dcb22fa1704ee51998068bf1fee264e95c933';
+    const txText = currentOrder.payment_tx_hash || 'No registrado';
     const txLines = doc.splitTextToSize(txText, 72);
     doc.text(txLines, 4, y);
     y += txLines.length * 2.6 + 0.8;
@@ -379,7 +379,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({
     y += 2.8;
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(5.2);
-    const sigText = currentOrder.signature_novasats || '0x3a4b9c8d7e6f5a4b3c2d1e0f9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b5c';
+    const sigText = currentOrder.signature_novasats || 'No registrada';
     const sigLines = doc.splitTextToSize(sigText, 72);
     doc.text(sigLines, 4, y);
     y += sigLines.length * 2.6 + 1.2;
@@ -563,10 +563,10 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7);
     doc.setTextColor(71, 85, 105);
-    doc.text(`TX Hash Bitcoin: ${currentOrder.payment_tx_hash || '0x...'}`, 18, y + 13);
+    doc.text(`TX Hash Bitcoin: ${currentOrder.payment_tx_hash || 'No registrado'}`, 18, y + 13);
     doc.text(`Wallet Pagadora: ${currentOrder.customer_wallet || 'No especificada'}`, 18, y + 19);
-    doc.text(`Contrato Inteligente: ${currentOrder.contract_address || NOVASATS_CONTRACT_ADDRESS || '0x71C260B543D75aF4D4B12DDe9B1D6F094593C3a9'} (NovaSats.sol)`, 18, y + 25);
-    doc.text(`Firma ECDSA: ${(currentOrder.signature_novasats || '0x3a4b9c8d...').substring(0, 85)}...`, 18, y + 30);
+    doc.text(`Contrato Inteligente: ${currentOrder.contract_address || NOVASATS_CONTRACT_ADDRESS} (NovaSats.sol)`, 18, y + 25);
+    doc.text(`Firma ECDSA: ${currentOrder.signature_novasats ? `${currentOrder.signature_novasats.substring(0, 85)}...` : 'No registrada'}`, 18, y + 30);
 
     // Footer
     doc.setFontSize(7.5);
