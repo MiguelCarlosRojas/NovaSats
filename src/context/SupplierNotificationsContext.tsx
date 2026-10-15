@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '../lib/supabaseClient';
 import { useSupplier } from './SupplierContext';
-import { fetchSupplierQuestions, fetchSupplierReviews } from '../lib/qaAndReviewsService';
+import { useSupplierData } from './SupplierDataContext';
 import {
   fetchSupplierReadNotificationIds,
   markSupplierNotificationAsReadInDb,
@@ -44,12 +43,9 @@ const SupplierNotificationsContext = createContext<SupplierNotificationsContextT
 
 export const SupplierNotificationsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { supplier } = useSupplier();
+  const { products, questions, reviews, orderItems, refreshSupplierData, loading: dataLoading } = useSupplierData();
   const [notifications, setNotifications] = useState<SupplierNotificationItem[]>([]);
   const [activeCategory, setActiveCategory] = useState<NotificationType>('low_stock');
-  const [loading, setLoading] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
-
-  // Supplier-isolated read IDs from Supabase database
   const [readIds, setReadIds] = useState<string[]>([]);
 
   // Reload readIds from Supabase whenever supplier changes
@@ -58,7 +54,6 @@ export const SupplierNotificationsProvider: React.FC<{ children: React.ReactNode
     if (!supplier?.id) {
       setReadIds([]);
       setNotifications([]);
-      setHasInitialized(false);
       return;
     }
     fetchSupplierReadNotificationIds(supplier.id).then((ids) => {
@@ -69,50 +64,44 @@ export const SupplierNotificationsProvider: React.FC<{ children: React.ReactNode
     };
   }, [supplier?.id]);
 
-  // Fetch logic with optional quiet background update
-  const fetchAllNotifications = useCallback(async (isQuiet = false) => {
-    if (!supplier?.id) return;
-    if (!isQuiet && !hasInitialized) {
-      setLoading(true);
+  // Derive notifications from SupplierData in-memory (0 extra queries!)
+  useEffect(() => {
+    if (!supplier?.id) {
+      setNotifications([]);
+      return;
     }
 
-    try {
-      const notifs: SupplierNotificationItem[] = [];
+    const notifs: SupplierNotificationItem[] = [];
 
-      // 1. Fetch supplier's products for Low Stock and Out of Stock
-      const { data: products } = await supabase
-        .from('products')
-        .select('id, name, stock, status')
-        .eq('supplier_id', supplier.id);
+    // 1. Low stock / Out of stock from products
+    if (products && products.length > 0) {
+      products.forEach((p) => {
+        if (p.stock === 0) {
+          notifs.push({
+            id: `stock-out-${p.id}`,
+            type: 'out_of_stock',
+            title: 'Producto Agotado',
+            description: `"${p.name}" tiene 0 unidades en inventario. Requiere reposición.`,
+            timestamp: 'Atención requerida',
+            link: `/proveedores/productos?filtro=desactivados&q=${encodeURIComponent(p.name)}`,
+            metadata: { stock: 0, productId: p.id, productName: p.name },
+          });
+        } else if (p.stock > 0 && p.stock <= 5) {
+          notifs.push({
+            id: `stock-low-${p.id}-${p.stock}`,
+            type: 'low_stock',
+            title: 'Por Agotarse',
+            description: `"${p.name}" tiene stock crítico: ¡solo quedan ${p.stock} unidades!`,
+            timestamp: 'Stock bajo',
+            link: `/proveedores/productos?filtro=activos&q=${encodeURIComponent(p.name)}`,
+            metadata: { stock: p.stock, productId: p.id, productName: p.name },
+          });
+        }
+      });
+    }
 
-      if (products && products.length > 0) {
-        products.forEach((p) => {
-          if (p.stock === 0) {
-            notifs.push({
-              id: `stock-out-${p.id}`,
-              type: 'out_of_stock',
-              title: 'Producto Agotado',
-              description: `"${p.name}" tiene 0 unidades en inventario. Requiere reposición.`,
-              timestamp: 'Atención requerida',
-              link: `/proveedores/productos?filtro=desactivados&q=${encodeURIComponent(p.name)}`,
-              metadata: { stock: 0, productId: p.id, productName: p.name },
-            });
-          } else if (p.stock > 0 && p.stock <= 5) {
-            notifs.push({
-              id: `stock-low-${p.id}-${p.stock}`,
-              type: 'low_stock',
-              title: 'Por Agotarse',
-              description: `"${p.name}" tiene stock crítico: ¡solo quedan ${p.stock} unidades!`,
-              timestamp: 'Stock bajo',
-              link: `/proveedores/productos?filtro=activos&q=${encodeURIComponent(p.name)}`,
-              metadata: { stock: p.stock, productId: p.id, productName: p.name },
-            });
-          }
-        });
-      }
-
-      // 2. Fetch unanswered questions for this supplier
-      const questions = await fetchSupplierQuestions(supplier.id);
+    // 2. Unanswered questions
+    if (questions && questions.length > 0) {
       questions.forEach((q) => {
         if (!q.answer) {
           notifs.push({
@@ -126,9 +115,10 @@ export const SupplierNotificationsProvider: React.FC<{ children: React.ReactNode
           });
         }
       });
+    }
 
-      // 3. Fetch reviews for this supplier
-      const reviews = await fetchSupplierReviews(supplier.id);
+    // 3. Reviews
+    if (reviews && reviews.length > 0) {
       reviews.slice(0, 10).forEach((r) => {
         notifs.push({
           id: `review-${r.id}`,
@@ -140,91 +130,49 @@ export const SupplierNotificationsProvider: React.FC<{ children: React.ReactNode
           metadata: { rating: r.rating, productName: r.product_name },
         });
       });
-
-      // 4. Fetch orders / sales for this supplier
-      const { data: orderItems } = await supabase
-        .from('order_items')
-        .select('*, orders(*)')
-        .eq('supplier_id', supplier.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (orderItems && orderItems.length > 0) {
-        const seenOrderIds = new Set<string>();
-        orderItems.forEach((item: any) => {
-          if (item.orders && !seenOrderIds.has(item.orders.id)) {
-            seenOrderIds.add(item.orders.id);
-            const ord = item.orders;
-            notifs.push({
-              id: `sale-${ord.id}`,
-              type: 'sale',
-              title: 'Nueva Venta en Bitcoin',
-              description: `Orden #${ord.order_number} de ${ord.customer_name} por $${Number(ord.total_usd).toFixed(2)} USD (${Number(ord.total_btc).toFixed(6)} BTC)`,
-              timestamp: new Date(ord.created_at).toLocaleDateString(),
-              link: `/proveedores/ventas?q=${encodeURIComponent(ord.voucher_code || ord.order_number)}`,
-              metadata: { orderNumber: ord.order_number },
-            });
-          }
-        });
-      }
-
-      setNotifications(notifs);
-      setHasInitialized(true);
-    } catch (err) {
-      console.warn('Error fetching notifications:', err);
-    } finally {
-      setLoading(false);
     }
-  }, [supplier?.id, hasInitialized]);
 
-  // Initial load only ONCE per session/supplier
-  useEffect(() => {
-    if (supplier?.id && !hasInitialized) {
-      fetchAllNotifications(false);
+    // 4. Sales from orderItems
+    if (orderItems && orderItems.length > 0) {
+      const seenOrderIds = new Set<string>();
+      orderItems.slice(0, 10).forEach((item: any) => {
+        if (item.orders && !seenOrderIds.has(item.orders.id)) {
+          seenOrderIds.add(item.orders.id);
+          const ord = item.orders;
+          notifs.push({
+            id: `sale-${ord.id}`,
+            type: 'sale',
+            title: 'Nueva Venta en Bitcoin',
+            description: `Orden #${ord.order_number} de ${ord.customer_name} por $${Number(ord.total_usd).toFixed(2)} USD (${Number(ord.total_btc).toFixed(6)} BTC)`,
+            timestamp: new Date(ord.created_at).toLocaleDateString(),
+            link: `/proveedores/ventas?q=${encodeURIComponent(ord.voucher_code || ord.order_number)}`,
+            metadata: { orderNumber: ord.order_number },
+          });
+        }
+      });
     }
-  }, [supplier?.id, hasInitialized, fetchAllNotifications]);
 
-  // WebSocket / Supabase Realtime Subscription for instant updates without reloads
+    setNotifications(notifs);
+  }, [supplier?.id, products, questions, reviews, orderItems]);
+
+  const refreshNotifications = useCallback(async () => {
+    await refreshSupplierData(true);
+  }, [refreshSupplierData]);
+
+  // Periodic sync for notifications
   useEffect(() => {
     if (!supplier?.id) return;
 
-    const channelName = `supplier-notifs-realtime-${supplier.id}`;
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'products', filter: `supplier_id=eq.${supplier.id}` },
-        () => {
-          fetchAllNotifications(true);
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'product_questions', filter: `supplier_id=eq.${supplier.id}` },
-        () => {
-          fetchAllNotifications(true);
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'product_reviews', filter: `supplier_id=eq.${supplier.id}` },
-        () => {
-          fetchAllNotifications(true);
-        }
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'order_items', filter: `supplier_id=eq.${supplier.id}` },
-        () => {
-          fetchAllNotifications(true);
-        }
-      )
-      .subscribe();
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        refreshSupplierData(true);
+      }
+    }, 45000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
-  }, [supplier?.id, fetchAllNotifications]);
+  }, [supplier?.id, refreshSupplierData]);
 
   // Actions
   const markAsRead = useCallback((id: string, e?: React.MouseEvent) => {
@@ -304,8 +252,8 @@ export const SupplierNotificationsProvider: React.FC<{ children: React.ReactNode
     markAsRead,
     markCategoryAsRead,
     markAllAsRead,
-    refreshNotifications: () => fetchAllNotifications(true),
-    loading,
+    refreshNotifications,
+    loading: dataLoading,
   };
 
   return (

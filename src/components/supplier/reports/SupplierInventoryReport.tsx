@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SupplierLayout } from '../SupplierLayout';
 import { useSupplier } from '../../../context/SupplierContext';
-import { supabase } from '../../../lib/supabaseClient';
-import { Product } from '../../../types/store';
+import { useSupplierData } from '../../../context/SupplierDataContext';
 import { useSearchParams, Link } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { exportLandscapePdfTable } from '../../../lib/pdfReportGenerator';
@@ -23,8 +22,7 @@ export const SupplierInventoryReport: React.FC = () => {
   const urlQ = searchParams.get('q') || searchParams.get('search') || '';
   const urlFiltro = (searchParams.get('filtro') || searchParams.get('filter') || 'all').toLowerCase();
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading } = useSupplierData();
   const [search, setSearch] = useState(urlQ);
   const [filterMode, setFilterMode] = useState<'all' | 'out_of_stock' | 'low_stock' | 'in_stock'>(() => {
     if (urlFiltro === 'agotados' || urlFiltro === 'out_of_stock') return 'out_of_stock';
@@ -61,29 +59,6 @@ export const SupplierInventoryReport: React.FC = () => {
     setFilterMode(mode);
     syncUrl(search, mode);
   };
-
-  useEffect(() => {
-    const fetchInventory = async () => {
-      if (!supplier) return;
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('supplier_id', supplier.id)
-          .order('stock', { ascending: true });
-
-        if (error) throw error;
-        setProducts(data || []);
-      } catch (err) {
-        console.error('Error fetching inventory:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchInventory();
-  }, [supplier]);
 
   const filteredProducts = products.filter((p) => {
     const term = search.toLowerCase().trim();

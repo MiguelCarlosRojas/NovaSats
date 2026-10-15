@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { SupplierLayout } from './SupplierLayout';
 import { useSupplier } from '../../context/SupplierContext';
-import { supabase } from '../../lib/supabaseClient';
+import { apiClient } from '../../lib/apiClient';
 import { Blobatar } from '../ui/blobatar';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
@@ -101,14 +101,11 @@ export const SupplierProfile: React.FC = () => {
   const handleExportInventoryBackup = async () => {
     if (!supplier) return;
     setIsExportingBackup(true);
-    setDeleteError(null);
     try {
-      const { data: prods, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('supplier_id', supplier.id);
-
-      if (error) throw error;
+      setDeleteError(null);
+      const res = await apiClient.get<{ success: boolean; products?: any[]; error?: string }>('/api/supplier/products');
+      if (!res?.success) throw new Error(res?.error || 'No se pudo obtener el inventario');
+      const prods = res.products || [];
 
       const rows = (prods || []).map((p: any) => ({
         SKU: p.sku || 'N/A',
@@ -160,28 +157,12 @@ export const SupplierProfile: React.FC = () => {
     setDeleteError(null);
 
     try {
-      // 1. Delete all products of this supplier
-      await supabase
-        .from('products')
-        .delete()
-        .eq('supplier_id', supplier.id);
+      const res = await apiClient.delete<{ success: boolean; message?: string; error?: string }>('/api/supplier/account');
+      if (!res?.success) {
+        throw new Error(res?.error || 'Error al procesar la eliminación de la cuenta en el servidor.');
+      }
 
-      // 2. Delete all related subtable records in Supabase
-      await Promise.allSettled([
-        supabase.from('supplier_wallets').delete().eq('supplier_id', supplier.id),
-        supabase.from('supplier_kyc_fiscal').delete().eq('supplier_id', supplier.id),
-        supabase.from('supplier_commercial_profiles').delete().eq('supplier_id', supplier.id),
-        supabase.from('supplier_voucher_configs').delete().eq('supplier_id', supplier.id),
-        supabase.from('supplier_notifications_read').delete().eq('supplier_id', supplier.id),
-      ]);
-
-      // 3. Delete supplier account from Supabase
-      await supabase
-        .from('suppliers')
-        .delete()
-        .eq('id', supplier.id);
-
-      // 4. Logout session
+      // Logout session
       logout();
 
       // 5. Navigate to the farewell page
@@ -368,7 +349,7 @@ export const SupplierProfile: React.FC = () => {
         if (walletsRes && walletsRes.length > 0) {
           const mappedWallets: PayoutWalletItem[] = walletsRes.map((w) => ({
             id: w.id,
-            address: w.address,
+            address: w.address || '',
             label: w.label,
             network: w.network,
             isPrimary: w.is_primary,
@@ -462,15 +443,12 @@ export const SupplierProfile: React.FC = () => {
     try {
       const res = await saveSupplierCommercialProfile(supplier.id, commercialProfile);
 
-      // Sincronizar en tiempo real con la tabla suppliers (marca, contacto, teléfono)
-      await supabase
-        .from('suppliers')
-        .update({
-          company_name: commercialProfile.brand_name.trim(),
-          contact_name: contactName.trim(),
-          phone: commercialProfile.whatsapp_number.trim() || commercialProfile.customer_phone.trim(),
-        })
-        .eq('id', supplier.id);
+      // Sincronizar en tiempo real con el servidor (marca, contacto, teléfono)
+      await apiClient.put('/api/supplier/profile', {
+        company_name: commercialProfile.brand_name.trim(),
+        contact_name: contactName.trim(),
+        phone: commercialProfile.whatsapp_number.trim() || commercialProfile.customer_phone.trim(),
+      });
 
       await refreshSupplier();
 
@@ -633,14 +611,11 @@ export const SupplierProfile: React.FC = () => {
         animMode: animationMode,
       });
 
-      const { error } = await supabase
-        .from('suppliers')
-        .update({
-          avatar_url: blobatarIdentifier,
-        })
-        .eq('id', supplier.id);
+      const res = await apiClient.put<{ success: boolean; error?: string }>('/api/supplier/profile', {
+        avatar_url: blobatarIdentifier,
+      });
 
-      if (error) throw error;
+      if (!res?.success) throw new Error(res?.error || 'Error al actualizar icono en el servidor.');
 
       setInitialBlobState(parseBlobatar(blobatarIdentifier, companyName || 'NovaSats'));
       await refreshSupplier();
@@ -669,14 +644,9 @@ export const SupplierProfile: React.FC = () => {
       const primaryWallet = wallets.find((w) => w.isPrimary);
       const activePayoutAddress = primaryWallet?.address || walletAddress.trim();
 
-      const { error } = await supabase
-        .from('suppliers')
-        .update({
-          wallet_address: activePayoutAddress,
-        })
-        .eq('id', supplier.id);
-
-      if (error) throw error;
+      await apiClient.put('/api/supplier/profile', {
+        wallet_address: activePayoutAddress,
+      });
 
       await persistWallets(wallets);
       setInitialWalletsJson(JSON.stringify(wallets));

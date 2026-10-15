@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Product } from '../../types/store';
-import { getProductById, fetchAllStoreProducts, BTC_PRICE_USD, isFreeShippingProduct } from '../../data/productsData';
+import { fetchAllStoreProducts, fetchProductDetailFull, BTC_PRICE_USD, isFreeShippingProduct } from '../../data/productsData';
 import { useCart } from '../../context/CartContext';
 import { Blobatar } from '../ui/blobatar';
 import { parseBlobatar } from '../../lib/blobatarHelper';
@@ -35,10 +35,8 @@ import {
   X
 } from 'lucide-react';
 import {
-  fetchProductQuestions,
   submitProductQuestion,
   ProductQuestion,
-  fetchProductReviews,
   submitProductReview,
   ProductReview
 } from '../../lib/qaAndReviewsService';
@@ -93,20 +91,19 @@ export const ProductDetailPage: React.FC = () => {
       setLoading(true);
       window.scrollTo(0, 0);
 
-      const [foundProduct, catalog, questions, reviews] = await Promise.all([
-        getProductById(id),
-        fetchAllStoreProducts(),
-        fetchProductQuestions(id),
-        fetchProductReviews(id)
+      const [detailResult, catalog] = await Promise.all([
+        fetchProductDetailFull(id),
+        fetchAllStoreProducts()
       ]);
 
+      const foundProduct = detailResult.product;
       setProduct(foundProduct);
       if (foundProduct?.name) {
         document.title = `${foundProduct.name} | NovaSats Marketplace`;
       }
       setAllProducts(catalog);
-      setQuestionsList(questions);
-      setReviewsList(reviews);
+      setQuestionsList(detailResult.questions);
+      setReviewsList(detailResult.reviews);
       setActiveImageIndex(0);
       setQuantity(1);
       setLoading(false);

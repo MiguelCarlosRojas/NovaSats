@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { apiClient } from './apiClient';
 
 export interface ProductQuestion {
   id: string;
@@ -28,39 +28,18 @@ export interface ProductReview {
   created_at: string;
 }
 
-// Limpiar inmediatamente cualquier rastro previo en localStorage (datos solo en Supabase)
-if (typeof window !== 'undefined' && window.localStorage) {
-  try {
-    const keysToRemove: string[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && (key.startsWith('novasats_qa_') || key.startsWith('novasats_reviews_'))) {
-        keysToRemove.push(key);
-      }
-    }
-    keysToRemove.forEach((k) => localStorage.removeItem(k));
-  } catch {}
-}
-
 // -------------------------------------------------------------
-// QUESTIONS (Q&A) - 100% SUPABASE (SIN LOCAL STORAGE)
+// QUESTIONS (Q&A) - SECURE BACKEND API (ZERO LOCAL STORAGE)
 // -------------------------------------------------------------
 
 export async function fetchProductQuestions(productId: string): Promise<ProductQuestion[]> {
   try {
-    const { data, error } = await supabase
-      .from('product_questions')
-      .select('*')
-      .eq('product_id', productId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error al consultar product_questions en Supabase:', error);
-      return [];
-    }
-    return data || [];
+    const res = await apiClient.get<{ success: boolean; questions: ProductQuestion[] }>(
+      `/api/qa?productId=${encodeURIComponent(productId)}`
+    );
+    return res?.questions || [];
   } catch (err) {
-    console.error('Error de red al consultar preguntas:', err);
+    console.error('Error al consultar preguntas en Backend API:', err);
     return [];
   }
 }
@@ -73,47 +52,25 @@ export async function submitProductQuestion(payload: {
   userEmail?: string;
   question: string;
 }): Promise<ProductQuestion> {
-  const insertPayload = {
-    product_id: payload.productId,
-    supplier_id: payload.supplierId || null,
-    product_name: payload.productName,
-    user_name: payload.userName.trim() || 'Comprador Web3',
-    user_email: payload.userEmail?.trim() || null,
-    question: payload.question.trim(),
-    answer: null,
-    answered_at: null,
-    created_at: new Date().toISOString(),
-  };
+  const res = await apiClient.post<{ success: boolean; question: ProductQuestion; error?: string }>(
+    '/api/qa',
+    payload
+  );
 
-  const { data, error } = await supabase
-    .from('product_questions')
-    .insert([insertPayload])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error al insertar pregunta en Supabase:', error);
-    throw new Error(error.message || 'No se pudo guardar la pregunta en la base de datos');
+  if (res?.question) {
+    return res.question;
   }
-
-  return data;
+  throw new Error(res?.error || 'No se pudo guardar la pregunta en el servidor.');
 }
 
-export async function fetchSupplierQuestions(supplierId: string): Promise<ProductQuestion[]> {
+export async function fetchSupplierQuestions(_supplierId?: string): Promise<ProductQuestion[]> {
   try {
-    const { data, error } = await supabase
-      .from('product_questions')
-      .select('id, product_id, supplier_id, product_name, user_name, user_email, question, answer, answered_at, created_at')
-      .eq('supplier_id', supplierId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error al obtener preguntas del proveedor desde Supabase:', error);
-      return [];
-    }
-    return data || [];
+    const res = await apiClient.get<{ success: boolean; questions: ProductQuestion[] }>(
+      '/api/supplier/questions'
+    );
+    return res?.questions || [];
   } catch (err) {
-    console.error('Error de red en fetchSupplierQuestions:', err);
+    console.error('Error al obtener preguntas del proveedor en Backend API:', err);
     return [];
   }
 }
@@ -122,43 +79,29 @@ export async function answerProductQuestion(
   questionId: string,
   answerText: string
 ): Promise<boolean> {
-  const answeredAt = new Date().toISOString();
+  const res = await apiClient.post<{ success: boolean; error?: string }>(
+    `/api/supplier/questions/${encodeURIComponent(questionId)}/answer`,
+    { answer: answerText }
+  );
 
-  const { error } = await supabase
-    .from('product_questions')
-    .update({
-      answer: answerText.trim(),
-      answered_at: answeredAt,
-    })
-    .eq('id', questionId);
-
-  if (error) {
-    console.error('Error al registrar respuesta en Supabase:', error);
-    throw new Error(error.message || 'No se pudo actualizar la respuesta en la base de datos');
+  if (res?.success) {
+    return true;
   }
-
-  return true;
+  throw new Error(res?.error || 'No se pudo registrar la respuesta en el servidor.');
 }
 
 // -------------------------------------------------------------
-// REVIEWS & RATINGS (OPINIONES) - 100% SUPABASE (SIN LOCAL STORAGE)
+// REVIEWS & RATINGS (OPINIONES) - SECURE BACKEND API (ZERO LOCAL STORAGE)
 // -------------------------------------------------------------
 
 export async function fetchProductReviews(productId: string): Promise<ProductReview[]> {
   try {
-    const { data, error } = await supabase
-      .from('product_reviews')
-      .select('*')
-      .eq('product_id', productId)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error al consultar product_reviews en Supabase:', error);
-      return [];
-    }
-    return data || [];
+    const res = await apiClient.get<{ success: boolean; reviews: ProductReview[] }>(
+      `/api/reviews?productId=${encodeURIComponent(productId)}`
+    );
+    return res?.reviews || [];
   } catch (err) {
-    console.error('Error de red al consultar opiniones:', err);
+    console.error('Error al consultar opiniones en Backend API:', err);
     return [];
   }
 }
@@ -174,109 +117,29 @@ export async function submitProductReview(payload: {
   voucherCode?: string;
   verifiedPurchase?: boolean;
 }): Promise<ProductReview> {
-  const insertPayload = {
-    product_id: payload.productId,
-    supplier_id: payload.supplierId || null,
-    user_name: payload.userName.trim() || 'Comprador Bitcoin',
-    user_email: payload.userEmail?.trim() || null,
-    user_wallet: payload.userWallet?.trim() || null,
-    rating: Math.max(1, Math.min(5, Math.round(payload.rating))),
-    comment: payload.comment.trim(),
-    voucher_code: payload.voucherCode?.trim() || null,
-    verified_purchase: Boolean(payload.verifiedPurchase || payload.voucherCode),
-    created_at: new Date().toISOString(),
-  };
+  const res = await apiClient.post<{ success: boolean; review: ProductReview; error?: string }>(
+    '/api/reviews',
+    payload
+  );
 
-  const { data, error } = await supabase
-    .from('product_reviews')
-    .insert([insertPayload])
-    .select()
-    .single();
-
-  if (error) {
-    console.error('Error al registrar opinión en Supabase:', error);
-    throw new Error(error.message || 'No se pudo guardar la calificación en la base de datos');
+  if (res?.review) {
+    return res.review;
   }
-
-  // Recalcular calificación promedio real del producto directamente en la base de datos
-  await recalculateProductRating(payload.productId);
-
-  return data;
+  throw new Error(res?.error || 'No se pudo guardar la calificación en el servidor.');
 }
 
-export async function recalculateProductRating(productId: string) {
-  try {
-    const { data: reviews, error } = await supabase
-      .from('product_reviews')
-      .select('rating')
-      .eq('product_id', productId);
-
-    if (error) {
-      console.error('Error al obtener opiniones para recalcular promedio:', error);
-      return;
-    }
-
-    if (reviews && reviews.length > 0) {
-      const avg = reviews.reduce((acc, r) => acc + Number(r.rating), 0) / reviews.length;
-      await supabase
-        .from('products')
-        .update({
-          rating: parseFloat(avg.toFixed(1)),
-          reviews_count: reviews.length,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', productId);
-    } else {
-      // Si no tiene opiniones de compradores reales, la calificación es estrictamente 0.0
-      await supabase
-        .from('products')
-        .update({
-          rating: 0.0,
-          reviews_count: 0,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', productId);
-    }
-  } catch (err) {
-    console.error('Error al actualizar rating del producto en Supabase:', err);
-  }
+export async function recalculateProductRating(_productId: string) {
+  // Server automatically recalculates product rating upon review insertion in /api/reviews
 }
 
-export async function fetchSupplierReviews(supplierId: string): Promise<ProductReview[]> {
+export async function fetchSupplierReviews(_supplierId?: string): Promise<ProductReview[]> {
   try {
-    // 1. Obtener productos pertenecientes al proveedor
-    const { data: prods } = await supabase
-      .from('products')
-      .select('id, name')
-      .eq('supplier_id', supplierId);
-
-    const productIds = (prods || []).map((p) => p.id);
-    const prodNameMap: Record<string, string> = {};
-    (prods || []).forEach((p) => {
-      prodNameMap[p.id] = p.name;
-    });
-
-    let query = supabase.from('product_reviews').select('id, product_id, supplier_id, user_name, user_email, user_wallet, rating, comment, voucher_code, verified_purchase, created_at');
-
-    if (productIds.length > 0) {
-      query = query.or(`supplier_id.eq.${supplierId},product_id.in.(${productIds.join(',')})`);
-    } else {
-      query = query.eq('supplier_id', supplierId);
-    }
-
-    const { data, error } = await query.order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error al consultar opiniones del proveedor en Supabase:', error);
-      return [];
-    }
-
-    return (data || []).map((r) => ({
-      ...r,
-      product_name: prodNameMap[r.product_id] || (r as any).product_name || 'Producto del Catálogo',
-    }));
+    const res = await apiClient.get<{ success: boolean; reviews: ProductReview[] }>(
+      '/api/supplier/reviews'
+    );
+    return res?.reviews || [];
   } catch (err) {
-    console.error('Error de red en fetchSupplierReviews:', err);
+    console.error('Error al consultar opiniones del proveedor en Backend API:', err);
     return [];
   }
 }

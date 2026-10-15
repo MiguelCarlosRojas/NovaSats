@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Supplier } from '../types/store';
-import { supabase } from '../lib/supabaseClient';
+import { apiClient } from '../lib/apiClient';
 import { getSupplierSession, setSupplierSession, clearSupplierSession } from '../lib/cookieSession';
 
 interface SupplierContextType {
@@ -8,7 +8,7 @@ interface SupplierContextType {
   loading: boolean;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (data: Partial<Supplier> & { password: string }) => Promise<{ success: boolean; error?: string }>;
-  logout: () => void;
+  logout: () => Promise<void>;
   refreshSupplier: () => Promise<void>;
 }
 
@@ -18,6 +18,7 @@ export const SupplierProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [supplier, setSupplier] = useState<Supplier | null>(() => getSupplierSession());
   const [loading, setLoading] = useState(false);
 
+  // Sync memory supplier state to cookie session for instant page refreshes
   useEffect(() => {
     if (supplier) {
       setSupplierSession(supplier);
@@ -26,138 +27,89 @@ export const SupplierProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [supplier]);
 
-  // Real-time socket subscription for supplier profile updates
+  // Verify JWT session with backend on initial load and keep in sync
   useEffect(() => {
-    if (!supplier?.id) return;
-    const channel = supabase
-      .channel(`supplier-profile-socket-${supplier.id}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'suppliers', filter: `id=eq.${supplier.id}` },
-        (payload) => {
-          if (payload.new) {
-            const { password: _, ...supplierWithoutPass } = payload.new as any;
-            setSupplier(supplierWithoutPass as Supplier);
+    let isMounted = true;
+
+    async function checkSession() {
+      try {
+        const res = await apiClient.get<{ authenticated: boolean; supplier: Supplier | null }>('/api/auth/me');
+        if (isMounted) {
+          if (res?.authenticated && res.supplier) {
+            setSupplier(res.supplier);
+          } else {
+            setSupplier(null);
           }
         }
-      )
-      .subscribe();
+      } catch {
+        // If offline or network slow, keep current optimistic session
+      }
+    }
+
+    checkSession();
 
     return () => {
-      supabase.removeChannel(channel);
+      isMounted = false;
     };
-  }, [supplier?.id]);
+  }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('suppliers')
-        .select('id, email, password, company_name, phone, wallet_address, avatar_url, blobatar_identifier, created_at')
-        .eq('email', email.trim().toLowerCase())
-        .single();
+      const res = await apiClient.post<{ success: boolean; supplier?: Supplier; error?: string }>('/api/auth/login', {
+        email: email.trim().toLowerCase(),
+        password,
+      });
 
-      if (error || !data) {
-        setLoading(false);
-        return { success: false, error: 'Proveedor no encontrado con este correo.' };
-      }
-
-      if (data.password !== password) {
-        setLoading(false);
-        return { success: false, error: 'Contraseña incorrecta.' };
-      }
-
-      const { password: _, ...supplierWithoutPass } = data;
-      setSupplier(supplierWithoutPass as Supplier);
       setLoading(false);
-      return { success: true };
+
+      if (res?.success && res.supplier) {
+        setSupplier(res.supplier);
+        return { success: true };
+      }
+
+      return { success: false, error: res?.error || 'Credenciales inválidas.' };
     } catch (err: any) {
       setLoading(false);
-      return { success: false, error: err.message || 'Error al iniciar sesión' };
+      return { success: false, error: err.message || 'Error al iniciar sesión con el backend.' };
     }
   };
 
   const register = async (data: Partial<Supplier> & { password: string }): Promise<{ success: boolean; error?: string }> => {
     setLoading(true);
     try {
-      const newSupplier = {
-        company_name: data.company_name,
-        contact_name: data.contact_name || '',
-        email: data.email?.trim().toLowerCase(),
-        password: data.password,
-        phone: data.phone || '',
-        wallet_address: data.wallet_address || '',
-        avatar_url: data.avatar_url || '',
-      };
+      const res = await apiClient.post<{ success: boolean; supplier?: Supplier; error?: string }>('/api/auth/register', data);
 
-      const { data: inserted, error } = await supabase
-        .from('suppliers')
-        .insert([newSupplier])
-        .select('id, email, company_name, phone, wallet_address, avatar_url, blobatar_identifier, created_at')
-        .single();
-
-      if (error) {
-        setLoading(false);
-        return { success: false, error: error.message };
-      }
-
-      // Sincronizar automáticamente con Datos Comerciales de la Empresa / Marca
-      try {
-        await supabase.from('supplier_commercial_profiles').upsert({
-          supplier_id: inserted.id,
-          brand_name: inserted.company_name,
-          commercial_activity: 'Comercio Electrónico y Productos Tecnológicos',
-          support_email: inserted.email,
-          customer_phone: inserted.phone || '',
-          whatsapp_number: inserted.phone || '',
-          commercial_address: '',
-          website_url: '',
-          commercial_description: `Tienda oficial de ${inserted.company_name} en NovaSats.`,
-          updated_at: new Date().toISOString()
-        }, { onConflict: 'supplier_id' });
-      } catch (commErr) {
-        console.warn('Could not auto-create commercial profile:', commErr);
-      }
-
-      // Si se vinculó billetera durante el registro, crearla como billetera principal de cobro
-      if (data.wallet_address) {
-        try {
-          await supabase.from('supplier_wallets').upsert({
-            supplier_id: inserted.id,
-            address: data.wallet_address,
-            label: 'Billetera Principal de Recaudación',
-            network: data.wallet_address.startsWith('0x') ? 'Ethereum / EVM' : 'Bitcoin Native',
-            is_primary: true
-          });
-        } catch (wallErr) {
-          console.warn('Could not auto-create wallet entry:', wallErr);
-        }
-      }
-
-      setSupplier(inserted as Supplier);
       setLoading(false);
-      return { success: true };
+
+      if (res?.success && res.supplier) {
+        setSupplier(res.supplier);
+        return { success: true };
+      }
+
+      return { success: false, error: res?.error || 'Error al registrar proveedor.' };
     } catch (err: any) {
       setLoading(false);
-      return { success: false, error: err.message || 'Error al registrarse' };
+      return { success: false, error: err.message || 'Error al registrarse con el backend.' };
     }
   };
 
-  const logout = () => {
-    setSupplier(null);
-    clearSupplierSession();
-  };
+  const logout = useCallback(async () => {
+    try {
+      await apiClient.post('/api/auth/logout', {});
+    } catch {
+      // ignore network errors on logout
+    } finally {
+      setSupplier(null);
+      clearSupplierSession();
+    }
+  }, []);
 
   const refreshSupplier = async () => {
-    if (!supplier?.id) return;
     try {
-      const { data } = await supabase
-        .from('suppliers')
-        .select('id, email, company_name, phone, wallet_address, avatar_url, blobatar_identifier, created_at')
-        .eq('id', supplier.id)
-        .single();
-      if (data) {
-        setSupplier(data as Supplier);
+      const res = await apiClient.get<{ authenticated: boolean; supplier: Supplier | null }>('/api/auth/me');
+      if (res?.authenticated && res.supplier) {
+        setSupplier(res.supplier);
       }
     } catch {
       // ignore

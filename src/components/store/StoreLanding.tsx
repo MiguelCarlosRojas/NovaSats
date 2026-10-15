@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { apiClient } from '../../lib/apiClient';
 import { Product, Order } from '../../types/store';
 import { useCart } from '../../context/CartContext';
 import { CartDrawer } from '../shared/CartDrawer';
@@ -64,29 +64,17 @@ export const StoreLanding: React.FC = () => {
     setIsLookingUp(true);
     setLookupError('');
     try {
-      const { data: orderData, error: orderErr } = await supabase
-        .from('orders')
-        .select('*')
-        .or(`voucher_code.eq.${lookupVoucherCode.trim()},order_number.eq.${lookupVoucherCode.trim()}`)
-        .single();
+      const res = await apiClient.get<{ success: boolean; order: Order; error?: string }>(
+        `/api/orders/lookup?code=${encodeURIComponent(lookupVoucherCode.trim())}`
+      );
 
-      if (orderErr || !orderData) {
-        setLookupError('No se encontró ningún voucher con ese código o número de orden.');
+      if (!res?.success || !res.order) {
+        setLookupError(res?.error || 'No se encontró ningún voucher con ese código o número de orden.');
         setIsLookingUp(false);
         return;
       }
 
-      const { data: itemsData } = await supabase
-        .from('order_items')
-        .select('*')
-        .eq('order_id', orderData.id);
-
-      const fullOrder: Order = {
-        ...orderData,
-        items: itemsData || [],
-      };
-
-      setLookupResult(fullOrder);
+      setLookupResult(res.order);
       setShowLookupModal(true);
     } catch (err: any) {
       console.error('Error looking up voucher:', err);

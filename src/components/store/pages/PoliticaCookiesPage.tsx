@@ -24,7 +24,7 @@ export const PoliticaCookiesPage: React.FC = () => {
           <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] space-y-2">
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">1. ¿Qué información almacenamos en tu navegador?</h3>
             <p>
-              NovaSats no utiliza cookies de seguimiento publicitario de terceros ni píxeles invasivos. Utilizamos exclusivamente almacenamiento local (`localStorage`) en tu propio navegador con fines estrictamente funcionales:
+              NovaSats no utiliza cookies de seguimiento publicitario de terceros ni píxeles invasivos. Utilizamos exclusivamente cookies técnicas y de sesión seguras en tu propio navegador con fines estrictamente funcionales:
             </p>
             <ul className="list-disc list-inside space-y-1 pl-2 text-slate-400">
               <li><strong>Carrito de Compras:</strong> Recordar los artículos, cantidades y precios agregados a tu bolsa.</li>

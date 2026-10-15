@@ -31,8 +31,7 @@ export function removeCookie(name: string): void {
 }
 
 /**
- * Retrieve supplier session strictly from browser cookies
- * (Cleans up any legacy localStorage entry)
+ * Retrieve supplier session strictly from browser cookies (zero localStorage)
  */
 export function getSupplierSession(): Supplier | null {
   try {
@@ -40,26 +39,7 @@ export function getSupplierSession(): Supplier | null {
     if (cookieVal) {
       const parsed = JSON.parse(cookieVal);
       if (parsed && typeof parsed === 'object' && parsed.id && parsed.email) {
-        // Clean any legacy localStorage
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem('novasats_supplier');
-          localStorage.removeItem('supabase_supplier_session');
-        }
         return parsed as Supplier;
-      }
-    }
-
-    // Migration fallback: if cookie doesn't exist but legacy localStorage exists, migrate to cookie
-    if (typeof localStorage !== 'undefined') {
-      const legacy = localStorage.getItem('novasats_supplier');
-      if (legacy) {
-        const parsed = JSON.parse(legacy);
-        localStorage.removeItem('novasats_supplier');
-        localStorage.removeItem('supabase_supplier_session');
-        if (parsed && parsed.id) {
-          setSupplierSession(parsed);
-          return parsed as Supplier;
-        }
       }
     }
   } catch (err) {
@@ -69,29 +49,20 @@ export function getSupplierSession(): Supplier | null {
 }
 
 /**
- * Save supplier session into browser cookies (never into localStorage)
+ * Save supplier session into browser cookies
  */
 export function setSupplierSession(supplier: Supplier): void {
   try {
     const raw = JSON.stringify(supplier);
     setCookie(COOKIE_NAME, raw, COOKIE_MAX_AGE_DAYS);
-    // Ensure localStorage is cleared to adhere to cookie-only storage requirement
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('novasats_supplier');
-      localStorage.removeItem('supabase_supplier_session');
-    }
   } catch (err) {
     console.error('Error storing supplier cookie session:', err);
   }
 }
 
 /**
- * Clear supplier session from cookies and local storage
+ * Clear supplier session from cookies
  */
 export function clearSupplierSession(): void {
   removeCookie(COOKIE_NAME);
-  if (typeof localStorage !== 'undefined') {
-    localStorage.removeItem('novasats_supplier');
-    localStorage.removeItem('supabase_supplier_session');
-  }
 }

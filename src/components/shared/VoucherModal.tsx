@@ -13,9 +13,8 @@ import {
 } from 'lucide-react';
 import { NOVASATS_CONTRACT_ADDRESS } from '../../utils/novaSatsSignature';
 import { getSupplierVoucherConfig } from '../../lib/voucherConfigHelper';
-import { getSupplierVerification, SupplierVerificationInfo } from '../../lib/supplierVerificationHelper';
+import { getSupplierVerification, fetchSupplierVerificationFromDb, SupplierVerificationInfo } from '../../lib/supplierVerificationHelper';
 import { getSupplierSession } from '../../lib/cookieSession';
-import { supabase } from '../../lib/supabaseClient';
 
 // INFORMACIÓN FISCAL Y DATOS COMERCIALES BASE / FALLBACK
 export const NOVASATS_FISCAL_INFO = {
@@ -57,7 +56,7 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({
   const [supplierVerification, setSupplierVerification] = useState<SupplierVerificationInfo>(() =>
     getSupplierVerification(resolvedSupplierId)
   );
-  const [supplierProfile, setSupplierProfile] = useState<any>(() => {
+  const [supplierProfile] = useState<any>(() => {
     if (sessionSupplier && (!resolvedSupplierId || sessionSupplier.id === resolvedSupplierId)) {
       return sessionSupplier;
     }
@@ -73,19 +72,13 @@ export const VoucherModal: React.FC<VoucherModalProps> = ({
       const verif = getSupplierVerification(currentId);
       if (isMounted) setSupplierVerification(verif);
 
-      if (!supplierProfile || supplierProfile.id !== currentId) {
-        try {
-          const { data } = await supabase
-            .from('suppliers')
-            .select('*')
-            .eq('id', currentId)
-            .maybeSingle();
-          if (data && isMounted) {
-            setSupplierProfile(data);
-          }
-        } catch (err) {
-          console.error('Error fetching supplier fiscal profile:', err);
+      try {
+        const fullVerif = await fetchSupplierVerificationFromDb(currentId);
+        if (isMounted && fullVerif) {
+          setSupplierVerification(fullVerif);
         }
+      } catch (err) {
+        console.error('Error fetching supplier fiscal profile:', err);
       }
     };
 

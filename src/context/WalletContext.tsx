@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { getCookie, setCookie, removeCookie } from '../lib/cookieSession';
 
 interface WalletContextType {
   walletAddress: string | null;
@@ -15,16 +16,16 @@ const WalletContext = createContext<WalletContextType | undefined>(undefined);
 
 export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [walletAddress, setWalletAddress] = useState<string | null>(() => {
-    return localStorage.getItem('novasats_customer_wallet') || null;
+    return getCookie('novasats_customer_wallet');
   });
   const [isConnecting, setIsConnecting] = useState(false);
   const [balanceBtc] = useState<string>('0.00000000');
 
   useEffect(() => {
     if (walletAddress) {
-      localStorage.setItem('novasats_customer_wallet', walletAddress);
+      setCookie('novasats_customer_wallet', walletAddress, 7);
     } else {
-      localStorage.removeItem('novasats_customer_wallet');
+      removeCookie('novasats_customer_wallet');
     }
   }, [walletAddress]);
 
@@ -54,7 +55,7 @@ export const WalletProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const disconnectWallet = () => {
     setWalletAddress(null);
-    localStorage.removeItem('novasats_customer_wallet');
+    removeCookie('novasats_customer_wallet');
   };
 
   const sendBtcPayment = async (

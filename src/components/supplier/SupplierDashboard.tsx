@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SupplierLayout } from './SupplierLayout';
 import { useSupplier } from '../../context/SupplierContext';
-import { supabase } from '../../lib/supabaseClient';
+import { apiClient } from '../../lib/apiClient';
 import { Product, Order } from '../../types/store';
 import { VoucherModal } from '../shared/VoucherModal';
 import { Link } from 'react-router-dom';
@@ -16,27 +16,19 @@ import {
   Star,
   Package
 } from 'lucide-react';
-import { fetchSupplierReviews } from '../../lib/qaAndReviewsService';
-
-interface SoldProductSummary {
-  productId: string;
-  name: string;
-  category: string;
-  unitsSold: number;
-  revenueUsd: number;
-  revenueBtc: number;
-  currentStock: number;
-}
+import { useSupplierData } from '../../context/SupplierDataContext';
 
 export const SupplierDashboard: React.FC = () => {
   const { supplier } = useSupplier();
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [soldProducts, setSoldProducts] = useState<SoldProductSummary[]>([]);
-  const [supplierRating, setSupplierRating] = useState<number>(0.0);
-  const [supplierReviewsCount, setSupplierReviewsCount] = useState<number>(0);
-  const [_loading, setLoading] = useState(true);
+  const {
+    products,
+    orders,
+    soldProducts,
+    supplierRating,
+    supplierReviewsCount,
+    loading: _loading,
+    updateProduct
+  } = useSupplierData();
 
   // Voucher modal state
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
@@ -46,95 +38,6 @@ export const SupplierDashboard: React.FC = () => {
   const [editingStockProduct, setEditingStockProduct] = useState<Product | null>(null);
   const [newStockValue, setNewStockValue] = useState<number>(10);
   const [isUpdatingStock, setIsUpdatingStock] = useState(false);
-
-  const fetchDashboardData = async () => {
-    if (!supplier) return;
-    setLoading(true);
-
-    try {
-      // 1. Fetch supplier products
-      const { data: prodsData, error: prodsError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('supplier_id', supplier.id)
-        .order('created_at', { ascending: false });
-
-      if (prodsError) throw prodsError;
-      const supplierProducts = prodsData || [];
-      setProducts(supplierProducts);
-
-      // 2. Fetch order items for this supplier
-      const { data: itemsData, error: itemsError } = await supabase
-        .from('order_items')
-        .select('*, orders(*)')
-        .eq('supplier_id', supplier.id);
-
-      if (itemsError) throw itemsError;
-
-      // Group sold products
-      const soldMap: { [id: string]: SoldProductSummary } = {};
-      const orderMap: { [orderId: string]: Order } = {};
-
-      if (itemsData && itemsData.length > 0) {
-        itemsData.forEach((item: any) => {
-          // Accumulate sold product
-          const pId = item.product_id || item.product_name;
-          if (!soldMap[pId]) {
-            const matchedProd = supplierProducts.find((p) => p.id === pId);
-            soldMap[pId] = {
-              productId: pId,
-              name: item.product_name,
-              category: matchedProd?.category || 'General',
-              unitsSold: 0,
-              revenueUsd: 0,
-              revenueBtc: 0,
-              currentStock: matchedProd?.stock ?? 0,
-            };
-          }
-          soldMap[pId].unitsSold += Number(item.quantity);
-          soldMap[pId].revenueUsd += Number(item.total_usd);
-          soldMap[pId].revenueBtc += Number(item.total_btc);
-
-          // Accumulate order
-          if (item.orders) {
-            if (!orderMap[item.orders.id]) {
-              orderMap[item.orders.id] = {
-                ...item.orders,
-                items: [],
-              };
-            }
-            orderMap[item.orders.id].items?.push(item);
-          }
-        });
-      }
-
-      setSoldProducts(Object.values(soldMap).sort((a, b) => b.unitsSold - a.unitsSold));
-      setOrders(Object.values(orderMap).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
-
-      // 3. Fetch real ratings & reviews for this supplier
-      try {
-        const revs = await fetchSupplierReviews(supplier.id);
-        if (revs && revs.length > 0) {
-          const sum = revs.reduce((acc, r) => acc + r.rating, 0);
-          setSupplierRating(Number((sum / revs.length).toFixed(1)));
-          setSupplierReviewsCount(revs.length);
-        } else {
-          setSupplierRating(0.0);
-          setSupplierReviewsCount(0);
-        }
-      } catch (revErr) {
-        console.error('Error fetching supplier reviews in dashboard:', revErr);
-      }
-    } catch (err) {
-      console.error('Error fetching supplier dashboard data:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, [supplier]);
 
   // Derived stats
   const totalRevenueUsd = orders.reduce((sum, ord) => sum + Number(ord.total_usd), 0);
@@ -152,14 +55,19 @@ export const SupplierDashboard: React.FC = () => {
 
     setIsUpdatingStock(true);
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({ stock: newStockValue, updated_at: new Date().toISOString() })
-        .eq('id', editingStockProduct.id);
+      const res = await apiClient.patch<{ success: boolean; product?: any; error?: string }>(
+        `/api/supplier/products/${editingStockProduct.id}/stock`,
+        { stock: newStockValue }
+      );
 
-      if (error) throw error;
+      if (!res?.success) {
+        throw new Error(res?.error || 'Error al actualizar stock');
+      }
+      updateProduct({
+        ...editingStockProduct,
+        stock: newStockValue,
+      });
       setEditingStockProduct(null);
-      await fetchDashboardData();
     } catch (err: any) {
       alert(`Error al actualizar stock: ${err.message}`);
     } finally {

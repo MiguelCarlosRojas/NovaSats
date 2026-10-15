@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SupplierLayout } from './SupplierLayout';
 import { useSupplier } from '../../context/SupplierContext';
-import { supabase } from '../../lib/supabaseClient';
+import { useSupplierData } from '../../context/SupplierDataContext';
 import { Order } from '../../types/store';
 import { VoucherModal } from '../shared/VoucherModal';
 import { useSearchParams } from 'react-router-dom';
@@ -22,8 +22,7 @@ export const SupplierOrders: React.FC = () => {
   const urlQ = searchParams.get('q') || searchParams.get('search') || '';
   const urlFiltro = (searchParams.get('filtro') || searchParams.get('filter') || 'todos').toLowerCase();
 
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { orders, loading, refreshSupplierData } = useSupplierData();
   const [search, setSearch] = useState(urlQ);
   const [dateFilter, setDateFilter] = useState<'todos' | 'hoy' | 'semana' | 'mes'>(() => {
     if (urlFiltro === 'hoy' || urlFiltro === 'today') return 'hoy';
@@ -66,61 +65,24 @@ export const SupplierOrders: React.FC = () => {
 
   const fetchOrders = async () => {
     if (!supplier?.id) return;
-    setLoading(true);
     try {
-      // Fetch only necessary order items and order fields
-      const { data: itemsData, error: itemsErr } = await supabase
-        .from('order_items')
-        .select('id, order_id, product_id, supplier_id, product_name, quantity, unit_price_usd, unit_price_btc, total_usd, total_btc, created_at, orders(id, order_number, customer_name, customer_email, customer_wallet, payment_tx_hash, payment_currency, total_usd, total_btc, status, voucher_code, signature_novasats, contract_address, created_at)')
-        .eq('supplier_id', supplier.id);
-
-      if (itemsErr) throw itemsErr;
-
-      // Group by order
-      const ordersMap: { [orderId: string]: Order } = {};
-      if (itemsData && itemsData.length > 0) {
-        itemsData.forEach((item: any) => {
-          if (item.orders) {
-            if (!ordersMap[item.orders.id]) {
-              ordersMap[item.orders.id] = {
-                ...item.orders,
-                items: [],
-              };
-            }
-            ordersMap[item.orders.id].items?.push(item);
-          }
-        });
-      }
-
-      const list = Object.values(ordersMap).sort(
-        (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-      );
-      setOrders(list);
+      await refreshSupplierData(true);
     } catch (err) {
-      console.error('Error fetching orders:', err);
-    } finally {
-      setLoading(false);
+      console.error('Error refreshing orders:', err);
     }
   };
 
   useEffect(() => {
     if (!supplier?.id) return;
-    fetchOrders();
 
-    // Real-time socket subscription
-    const channel = supabase
-      .channel(`supplier-orders-rt-${supplier.id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'order_items', filter: `supplier_id=eq.${supplier.id}` },
-        () => {
-          fetchOrders();
-        }
-      )
-      .subscribe();
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        fetchOrders();
+      }
+    }, 45000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, [supplier?.id]);
 

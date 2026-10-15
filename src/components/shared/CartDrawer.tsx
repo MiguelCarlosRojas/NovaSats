@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useCart } from '../../context/CartContext';
 import { useWallet } from '../../context/WalletContext';
 import { useAppKit, useAppKitAccount } from '@reown/appkit/react';
-import { supabase } from '../../lib/supabaseClient';
+import { apiClient } from '../../lib/apiClient';
 import { VoucherModal } from './VoucherModal';
 import { Order } from '../../types/store';
 import { signPurchaseWithNovaSats, NOVASATS_CONTRACT_ADDRESS } from '../../utils/novaSatsSignature';
@@ -451,62 +451,24 @@ export const CartDrawer: React.FC = () => {
 
       const fullDeliveryAddress = `${direccion}${deptoInterior ? `, ${deptoInterior}` : ''}, ${distrito}, ${provincia}, ${departamento} [${deliveryDetails}]`;
 
-      // 3. Insertar orden en Supabase
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert([
-          {
-            order_number: orderNumber,
-            customer_name: customerName,
-            customer_email: customerEmail,
-            customer_wallet: payerWalletAddress,
-            delivery_address: fullDeliveryAddress,
-            payment_tx_hash: txHash,
-            payment_currency: 'BTC',
-            total_usd: grandTotalUsd,
-            total_btc: grandTotalBtc,
-            status: 'completed',
-            voucher_code: voucherCode,
-            signature_novasats: signResult.signature,
-            contract_address: NOVASATS_CONTRACT_ADDRESS,
-          },
-        ])
-        .select()
-        .single();
+      // 3. Insertar orden e ítems mediante Backend API seguro
+      const orderPayload = {
+        order_number: orderNumber,
+        customer_name: customerName,
+        customer_email: customerEmail,
+        customer_wallet: payerWalletAddress,
+        delivery_address: fullDeliveryAddress,
+        payment_tx_hash: txHash,
+        payment_currency: 'BTC',
+        total_usd: grandTotalUsd,
+        total_btc: grandTotalBtc,
+        status: 'completed',
+        voucher_code: voucherCode,
+        signature_novasats: signResult.signature,
+        contract_address: NOVASATS_CONTRACT_ADDRESS,
+      };
 
-      if (orderError) {
-        // En caso que la columna delivery_address no exista en la tabla remota, intentar sin ella
-        const fallbackRes = await supabase
-          .from('orders')
-          .insert([
-            {
-              order_number: orderNumber,
-              customer_name: customerName,
-              customer_email: customerEmail,
-              customer_wallet: payerWalletAddress,
-              payment_tx_hash: txHash,
-              payment_currency: 'BTC',
-              total_usd: grandTotalUsd,
-              total_btc: grandTotalBtc,
-              status: 'completed',
-              voucher_code: voucherCode,
-              signature_novasats: signResult.signature,
-              contract_address: NOVASATS_CONTRACT_ADDRESS,
-            },
-          ])
-          .select()
-          .single();
-
-        if (fallbackRes.error) {
-          throw new Error(`Error registrando la orden: ${fallbackRes.error.message}`);
-        }
-      }
-
-      const activeOrderData = orderData || { id: orderNumber };
-
-      // 4. Insertar ítems de la orden
       const orderItems = cart.map((item) => ({
-        order_id: activeOrderData.id,
         product_id: item.product.id,
         supplier_id: item.product.supplier_id,
         product_name: item.product.name,
@@ -517,19 +479,16 @@ export const CartDrawer: React.FC = () => {
         total_btc: Number(item.product.price_btc) * item.quantity,
       }));
 
-      const { error: itemsError } = await supabase.from('order_items').insert(orderItems);
-      if (itemsError) {
-        console.warn('Warning inserting order items:', itemsError);
+      const res = await apiClient.post<{ success: boolean; order: any; error?: string }>('/api/orders', {
+        order: orderPayload,
+        items: orderItems,
+      });
+
+      if (!res?.success || !res.order) {
+        throw new Error(res?.error || 'Error registrando la orden en el servidor.');
       }
 
-      // 5. Actualizar stock en Supabase
-      for (const item of cart) {
-        const remainingStock = Math.max(0, item.product.stock - item.quantity);
-        await supabase
-          .from('products')
-          .update({ stock: remainingStock, updated_at: new Date().toISOString() })
-          .eq('id', item.product.id);
-      }
+      const activeOrderData = res.order;
 
       // 6. Confeti de celebración
       try {

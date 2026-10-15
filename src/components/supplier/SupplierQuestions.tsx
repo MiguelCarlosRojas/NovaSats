@@ -1,11 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SupplierLayout } from './SupplierLayout';
-import { useSupplier } from '../../context/SupplierContext';
-import {
-  fetchSupplierQuestions,
-  answerProductQuestion,
-  ProductQuestion
-} from '../../lib/qaAndReviewsService';
+import { useSupplierData } from '../../context/SupplierDataContext';
+import { answerProductQuestion } from '../../lib/qaAndReviewsService';
 import {
   MessageSquare,
   Search,
@@ -17,7 +13,6 @@ import {
 import { Link, useSearchParams } from 'react-router-dom';
 
 export const SupplierQuestions: React.FC = () => {
-  const { supplier } = useSupplier();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const urlFiltro = (searchParams.get('filtro') || searchParams.get('filter') || '').toLowerCase();
@@ -29,8 +24,7 @@ export const SupplierQuestions: React.FC = () => {
     return 'all';
   };
 
-  const [questions, setQuestions] = useState<ProductQuestion[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { questions, loading, updateQuestionAnswer } = useSupplierData();
   const [search, setSearch] = useState(urlQ);
   const [filterTab, setFilterTab] = useState<'all' | 'pending' | 'answered'>(getInitialFilterTab(urlFiltro));
 
@@ -59,23 +53,6 @@ export const SupplierQuestions: React.FC = () => {
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const loadQuestions = async () => {
-    if (!supplier) return;
-    setLoading(true);
-    try {
-      const data = await fetchSupplierQuestions(supplier.id);
-      setQuestions(data);
-    } catch (err) {
-      console.error('Error loading supplier questions:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadQuestions();
-  }, [supplier]);
-
   const handleAnswerSubmit = async (questionId: string) => {
     const text = answerDrafts[questionId]?.trim();
     if (!text) return;
@@ -86,14 +63,9 @@ export const SupplierQuestions: React.FC = () => {
       setToastMessage('Respuesta enviada y publicada con éxito en la tienda');
       setTimeout(() => setToastMessage(null), 3000);
       
-      // Update local state
-      setQuestions((prev) =>
-        prev.map((q) =>
-          q.id === questionId
-            ? { ...q, answer: text, answered_at: new Date().toISOString() }
-            : q
-        )
-      );
+      // Update shared state
+      updateQuestionAnswer(questionId, text, new Date().toISOString());
+
       // Clear draft
       setAnswerDrafts((prev) => ({ ...prev, [questionId]: '' }));
     } catch (err) {

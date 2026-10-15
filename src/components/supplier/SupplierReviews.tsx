@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SupplierLayout } from './SupplierLayout';
-import { useSupplier } from '../../context/SupplierContext';
-import { fetchSupplierReviews, ProductReview } from '../../lib/qaAndReviewsService';
+import { useSupplierData } from '../../context/SupplierDataContext';
 import {
   Star,
   Search,
@@ -13,7 +12,6 @@ import {
 import { Link, useSearchParams } from 'react-router-dom';
 
 export const SupplierReviews: React.FC = () => {
-  const { supplier } = useSupplier();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const urlFiltro = (searchParams.get('filtro') || searchParams.get('filter') || '').toLowerCase();
@@ -27,8 +25,7 @@ export const SupplierReviews: React.FC = () => {
     return 'all';
   };
 
-  const [reviews, setReviews] = useState<ProductReview[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { reviews, loading } = useSupplierData();
   const [search, setSearch] = useState(urlQ);
   const [ratingFilter, setRatingFilter] = useState<'all' | '5' | '4' | '3' | 'verified'>(getInitialRatingFilter(urlFiltro));
 
@@ -53,23 +50,6 @@ export const SupplierReviews: React.FC = () => {
     setSearch(newSearch);
     syncUrlParams(ratingFilter, newSearch);
   };
-
-  const loadReviews = async () => {
-    if (!supplier) return;
-    setLoading(true);
-    try {
-      const data = await fetchSupplierReviews(supplier.id);
-      setReviews(data);
-    } catch (err) {
-      console.error('Error loading supplier reviews:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadReviews();
-  }, [supplier]);
 
   // Overall statistics (defaults to 0.0 if no reviews exist)
   const stats = useMemo(() => {

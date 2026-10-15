@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, CartItem } from '../types/store';
+import { getCookie, setCookie, removeCookie } from '../lib/cookieSession';
 
 interface CartContextType {
   cart: CartItem[];
@@ -19,7 +20,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>(() => {
     try {
-      const saved = localStorage.getItem('novasats_cart');
+      const saved = getCookie('novasats_cart');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -28,7 +29,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem('novasats_cart', JSON.stringify(cart));
+    if (cart.length > 0) {
+      setCookie('novasats_cart', JSON.stringify(cart), 7);
+    } else {
+      removeCookie('novasats_cart');
+    }
   }, [cart]);
 
   const addToCart = (product: Product, quantity: number = 1): boolean => {

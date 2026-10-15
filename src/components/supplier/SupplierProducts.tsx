@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SupplierLayout } from './SupplierLayout';
 import { useSupplier } from '../../context/SupplierContext';
-import { supabase } from '../../lib/supabaseClient';
+import { useSupplierData } from '../../context/SupplierDataContext';
+import { apiClient } from '../../lib/apiClient';
 import { Product } from '../../types/store';
 import { encodeProductDescription, parseProductDescription } from '../../lib/productMeta';
 import { CATEGORY_NAMES, getSubcategoriesForCategory } from '../../data/categories';
@@ -59,8 +60,7 @@ export const SupplierProducts: React.FC = () => {
   const urlQ = searchParams.get('q') || searchParams.get('search') || '';
   const urlCategoria = searchParams.get('categoria') || searchParams.get('category') || 'all';
 
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { products, loading, refreshSupplierData } = useSupplierData();
   const [search, setSearch] = useState(urlQ);
   const [filterTab, setFilterTab] = useState<'all' | 'active' | 'low_stock' | 'archived'>(getInitialFilterTab(urlFiltro));
   const [selectedCategory, setSelectedCategory] = useState<string>(urlCategoria);
@@ -225,60 +225,28 @@ export const SupplierProducts: React.FC = () => {
 
   const fetchProducts = async () => {
     if (!supplier?.id) return;
-    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('id, supplier_id, name, description, category, price_usd, price_btc, stock, image_url, images, status, sku, discount_percent, original_price_usd, free_shipping, shipping_type, rating, reviews_count, warranty, condition, is_featured, created_at')
-        .eq('supplier_id', supplier.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      const parsed = (data || []).map((p) => {
-        const { cleanDescription, meta } = parseProductDescription(p.description);
-        return {
-          ...p,
-          description: cleanDescription || p.description,
-          images: meta.images && meta.images.length > 0 ? meta.images : (p.image_url ? [p.image_url] : []),
-          discount_percent: meta.discount_percent ?? (p.discount_percent ?? 0),
-          original_price_usd: meta.original_price_usd ?? (p.original_price_usd ?? p.price_usd),
-          free_shipping: meta.free_shipping ?? (meta.shipping_type === 'free' || p.price_usd >= 100),
-          shipping_type: meta.shipping_type ?? (p.shipping_type ?? 'free'),
-          rating: meta.rating !== undefined && meta.rating !== null ? Number(meta.rating) : (p.rating !== undefined && p.rating !== null ? Number(p.rating) : 0.0),
-          reviews_count: meta.reviews_count ?? (p.reviews_count ?? 0)
-        };
-      });
-
-      setProducts(parsed);
+      await refreshSupplierData(true);
     } catch (err: any) {
-      console.error('Error fetching products:', err);
-      showToast('error', 'Error al cargar catálogo de productos');
-    } finally {
-      setLoading(false);
+      console.error('Error refreshing products:', err);
+      showToast('error', 'Error al sincronizar productos');
     }
   };
 
   useEffect(() => {
     if (!supplier?.id) return;
-    fetchProducts();
 
-    // Real-time socket subscription to avoid multiple HTTP requests
-    const channel = supabase
-      .channel(`supplier-products-rt-${supplier.id}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'products', filter: `supplier_id=eq.${supplier.id}` },
-        () => {
-          fetchProducts();
-        }
-      )
-      .subscribe();
+    // Periodic refresh while active to keep state synchronized
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        refreshSupplierData(true);
+      }
+    }, 45000);
 
     return () => {
-      supabase.removeChannel(channel);
+      clearInterval(interval);
     };
-  }, [supplier?.id]);
+  }, [supplier?.id, refreshSupplierData]);
 
   // Open modal for Adding new product
   const handleOpenAddModal = () => {
@@ -627,50 +595,24 @@ export const SupplierProducts: React.FC = () => {
         condition: condition.trim()
       };
 
-      // Fallback payload (for older schema before migration)
-      const fallbackPayload: any = {
-        supplier_id: supplier.id,
-        name: name.trim(),
-        description: fullDescription,
-        category: category.trim(),
-        price_usd: parsedPriceUsd,
-        price_btc: parsedPriceBtc,
-        stock: parsedStock,
-        image_url: imageUrl.trim() || allGalleryImages[0],
-        sku: sku.trim() || `NEX-${Date.now().toString().slice(-5)}`,
-        status: formStatus,
-        updated_at: new Date().toISOString(),
-      };
-
       if (editingProduct) {
-        const { error: directErr } = await supabase
-          .from('products')
-          .update(directPayload)
-          .eq('id', editingProduct.id);
+        const res = await apiClient.put<{ success: boolean; product?: any; error?: string }>(
+          `/api/supplier/products/${editingProduct.id}`,
+          directPayload
+        );
 
-        if (directErr) {
-          const { error: fallbackErr } = await supabase
-            .from('products')
-            .update(fallbackPayload)
-            .eq('id', editingProduct.id);
-
-          if (fallbackErr) throw fallbackErr;
+        if (!res?.success) {
+          throw new Error(res?.error || 'Error al actualizar el producto');
         }
         showToast('success', `Producto "${name}" actualizado con éxito`);
       } else {
-        directPayload.created_at = new Date().toISOString();
-        fallbackPayload.created_at = directPayload.created_at;
+        const res = await apiClient.post<{ success: boolean; product?: any; error?: string }>(
+          '/api/supplier/products',
+          directPayload
+        );
 
-        const { error: directErr } = await supabase
-          .from('products')
-          .insert([directPayload]);
-
-        if (directErr) {
-          const { error: fallbackErr } = await supabase
-            .from('products')
-            .insert([fallbackPayload]);
-
-          if (fallbackErr) throw fallbackErr;
+        if (!res?.success) {
+          throw new Error(res?.error || 'Error al publicar el producto');
         }
         showToast('success', `Producto "${name}" publicado en la tienda`);
       }
@@ -692,12 +634,14 @@ export const SupplierProducts: React.FC = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({ status: 'archived', updated_at: new Date().toISOString() })
-        .eq('id', id);
+      const res = await apiClient.put<{ success: boolean; error?: string }>(
+        `/api/supplier/products/${id}`,
+        { status: 'archived' }
+      );
 
-      if (error) throw error;
+      if (!res?.success) {
+        throw new Error(res?.error || 'Error al archivar');
+      }
       showToast('success', `"${prodName}" fue archivado.`);
       await fetchProducts();
     } catch (err: any) {
@@ -708,12 +652,14 @@ export const SupplierProducts: React.FC = () => {
   // Reactivate Product
   const handleReactivateProduct = async (id: string, prodName: string) => {
     try {
-      const { error } = await supabase
-        .from('products')
-        .update({ status: 'active', updated_at: new Date().toISOString() })
-        .eq('id', id);
+      const res = await apiClient.put<{ success: boolean; error?: string }>(
+        `/api/supplier/products/${id}`,
+        { status: 'active' }
+      );
 
-      if (error) throw error;
+      if (!res?.success) {
+        throw new Error(res?.error || 'Error al reactivar');
+      }
       showToast('success', `"${prodName}" volvió a estar activo.`);
       await fetchProducts();
     } catch (err: any) {

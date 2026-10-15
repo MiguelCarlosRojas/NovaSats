@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SupplierLayout } from '../SupplierLayout';
 import { useSupplier } from '../../../context/SupplierContext';
-import { supabase } from '../../../lib/supabaseClient';
+import { useSupplierData } from '../../../context/SupplierDataContext';
 import { useSearchParams } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { exportLandscapePdfTable } from '../../../lib/pdfReportGenerator';
@@ -20,8 +20,7 @@ export const SupplierSalesReport: React.FC = () => {
   const urlQ = searchParams.get('q') || searchParams.get('search') || '';
   const urlFiltro = (searchParams.get('filtro') || searchParams.get('filter') || 'all').toLowerCase();
 
-  const [items, setItems] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { orderItems: items, loading } = useSupplierData();
   const [search, setSearch] = useState(urlQ);
   const [dateRange, setDateRange] = useState<'all' | '30d' | '7d'>(() => {
     if (urlFiltro === '7d' || urlFiltro === 'semana') return '7d';
@@ -56,29 +55,6 @@ export const SupplierSalesReport: React.FC = () => {
     setDateRange(r);
     syncUrl(search, r);
   };
-
-  useEffect(() => {
-    const fetchSales = async () => {
-      if (!supplier) return;
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('order_items')
-          .select('*, orders(*)')
-          .eq('supplier_id', supplier.id)
-          .order('created_at', { ascending: false });
-
-        if (error) throw error;
-        setItems(data || []);
-      } catch (err) {
-        console.error('Error fetching sales report:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSales();
-  }, [supplier]);
 
   const filteredItems = items.filter((item) => {
     const term = search.toLowerCase().trim();

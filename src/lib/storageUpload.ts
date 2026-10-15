@@ -1,14 +1,4 @@
-import { supabase } from './supabaseClient';
-
-// El nombre del bucket se obtiene estrictamente de las variables de entorno (.env) sin valores por defecto
-export const BUCKET_NAME: string = import.meta.env.VITE_SUPABASE_STORAGE_BUCKET;
-
-export function getBucketName(): string {
-  if (!BUCKET_NAME) {
-    throw new Error('Variable de entorno VITE_SUPABASE_STORAGE_BUCKET no configurada en el archivo .env');
-  }
-  return BUCKET_NAME;
-}
+import { apiClient } from './apiClient';
 
 /**
  * Renderiza la imagen en canvas con escalado y calidad WebP ultra-reducida
@@ -113,8 +103,21 @@ export async function compressImageFile(
   });
 }
 
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const dataUrl = reader.result as string;
+      const base64 = dataUrl.split(',')[1] || '';
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
 /**
- * Procesa la imagen con máxima reducción de peso y la sube al bucket de Supabase.
+ * Procesa la imagen con máxima reducción de peso y la sube mediante el Backend seguro.
  * Devuelve la URL pública permanente en la nube.
  */
 export async function uploadProductImageToStorage(file: File): Promise<string> {
@@ -122,71 +125,46 @@ export async function uploadProductImageToStorage(file: File): Promise<string> {
     throw new Error('No se seleccionó ningún archivo de imagen');
   }
 
-  const bucket = getBucketName();
-
-  // 1. Compresión ultra-reducida silenciosa
+  // 1. Compresión ultra-reducida silenciosa en cliente (reduce a 3-9KB para internet lento)
   const compressedBlob = await compressImageFile(file);
+  const base64Data = await blobToBase64(compressedBlob);
 
-  // 2. Nombre limpio y único
   const cleanBaseName = file.name
     .replace(/\.[^/.]+$/, '')
     .replace(/[^a-zA-Z0-9_-]/g, '_')
     .slice(0, 24);
 
-  const timestamp = Date.now();
-  const randomSuffix = Math.random().toString(36).substring(2, 7);
-  const filePath = `products/${timestamp}_${randomSuffix}_${cleanBaseName}.webp`;
+  // 2. Subida segura a través del Backend API
+  const res = await apiClient.post<{ success: boolean; url: string; error?: string }>(
+    '/api/supplier/storage/upload',
+    {
+      base64Data,
+      fileName: `${cleanBaseName}.webp`,
+      contentType: 'image/webp',
+    }
+  );
 
-  // 3. Subir archivo a Supabase Storage
-  const { data, error } = await supabase.storage
-    .from(bucket)
-    .upload(filePath, compressedBlob, {
-      cacheControl: '31536000',
-      upsert: true,
-      contentType: 'image/webp'
-    });
-
-  if (error) {
-    console.error('Error al subir imagen a Supabase Storage:', error);
-    throw new Error(`Error en el almacenamiento en la nube: ${error.message}`);
+  if (res?.url) {
+    return res.url;
   }
 
-  // 4. Obtener URL pública
-  const { data: publicUrlData } = supabase.storage
-    .from(bucket)
-    .getPublicUrl(data.path);
-
-  return publicUrlData.publicUrl;
+  throw new Error(res?.error || 'Error en el servidor al subir la imagen');
 }
 
 /**
- * Elimina una imagen directamente del Bucket Público en Supabase Storage
- * para liberar almacenamiento en la nube cuando el proveedor la descarta.
- * 
- * @param imageUrl URL pública completa de la imagen almacenada
- * @returns true si se eliminó de Supabase Storage, false si no pertenecía al bucket
+ * Elimina una imagen a través del Backend seguro para proteger las credenciales.
  */
 export async function deleteImageFromStorage(imageUrl: string): Promise<boolean> {
   if (!imageUrl || typeof imageUrl !== 'string') return false;
 
-  const bucket = getBucketName();
-  const prefix = `/storage/v1/object/public/${bucket}/`;
-  const index = imageUrl.indexOf(prefix);
-  if (index === -1) {
+  try {
+    const res = await apiClient.post<{ success: boolean; error?: string }>(
+      '/api/supplier/storage/delete',
+      { imageUrl }
+    );
+    return Boolean(res?.success);
+  } catch (err) {
+    console.error('Error al solicitar eliminación de imagen en Backend API:', err);
     return false;
   }
-
-  const filePath = imageUrl.substring(index + prefix.length);
-  if (!filePath) return false;
-
-  const { error } = await supabase.storage
-    .from(bucket)
-    .remove([filePath]);
-
-  if (error) {
-    console.error('Error eliminando archivo de Supabase Storage:', error);
-    throw new Error(`Error eliminando archivo de la nube: ${error.message}`);
-  }
-
-  return true;
 }

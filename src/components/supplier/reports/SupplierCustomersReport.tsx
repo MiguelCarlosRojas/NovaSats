@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SupplierLayout } from '../SupplierLayout';
 import { useSupplier } from '../../../context/SupplierContext';
-import { supabase } from '../../../lib/supabaseClient';
+import { useSupplierData } from '../../../context/SupplierDataContext';
 import { Order } from '../../../types/store';
 import { VoucherModal } from '../../shared/VoucherModal';
 import { useSearchParams } from 'react-router-dom';
@@ -35,8 +35,7 @@ export const SupplierCustomersReport: React.FC = () => {
   const urlQ = searchParams.get('q') || searchParams.get('search') || '';
   const urlFiltro = (searchParams.get('filtro') || searchParams.get('filter') || 'all').toLowerCase();
 
-  const [customers, setCustomers] = useState<CustomerSummary[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { orderItems, loading } = useSupplierData();
   const [search, setSearch] = useState(urlQ);
   const [filterMode, setFilterMode] = useState<'all' | 'top_buyers' | 'frequent'>(() => {
     if (urlFiltro === 'top' || urlFiltro === 'top_buyers') return 'top_buyers';
@@ -75,56 +74,38 @@ export const SupplierCustomersReport: React.FC = () => {
     syncUrl(search, mode);
   };
 
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      if (!supplier) return;
-      setLoading(true);
-      try {
-        const { data: itemsData, error } = await supabase
-          .from('order_items')
-          .select('*, orders(*)')
-          .eq('supplier_id', supplier.id);
+  // Derive customers directly from orderItems in memory (0 network queries)
+  const customers = useMemo<CustomerSummary[]>(() => {
+    const custMap: { [email: string]: CustomerSummary } = {};
 
-        if (error) throw error;
+    if (orderItems) {
+      orderItems.forEach((item: any) => {
+        const ord = item.orders;
+        if (!ord) return;
 
-        const custMap: { [email: string]: CustomerSummary } = {};
-
-        if (itemsData) {
-          itemsData.forEach((item: any) => {
-            const ord = item.orders;
-            if (!ord) return;
-
-            const emailKey = ord.customer_email ? ord.customer_email.trim().toLowerCase() : (ord.customer_wallet || ord.id);
-            if (!custMap[emailKey]) {
-              custMap[emailKey] = {
-                email: ord.customer_email || 'Sin correo registrado',
-                name: ord.customer_name || 'Cliente Web3',
-                wallet: ord.customer_wallet || '',
-                totalOrders: 0,
-                totalSpentUsd: 0,
-                totalSpentBtc: 0,
-                lastOrderDate: ord.created_at,
-                lastVoucherCode: ord.voucher_code,
-                latestOrder: ord,
-              };
-            }
-
-            custMap[emailKey].totalOrders += 1;
-            custMap[emailKey].totalSpentUsd += Number(item.total_usd);
-            custMap[emailKey].totalSpentBtc += Number(item.total_btc);
-          });
+        const emailKey = ord.customer_email ? ord.customer_email.trim().toLowerCase() : (ord.customer_wallet || ord.id);
+        if (!custMap[emailKey]) {
+          custMap[emailKey] = {
+            email: ord.customer_email || 'Sin correo registrado',
+            name: ord.customer_name || 'Cliente Web3',
+            wallet: ord.customer_wallet || '',
+            totalOrders: 0,
+            totalSpentUsd: 0,
+            totalSpentBtc: 0,
+            lastOrderDate: ord.created_at,
+            lastVoucherCode: ord.voucher_code,
+            latestOrder: ord,
+          };
         }
 
-        setCustomers(Object.values(custMap).sort((a, b) => b.totalSpentUsd - a.totalSpentUsd));
-      } catch (err) {
-        console.error('Error fetching customers report:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
+        custMap[emailKey].totalOrders += 1;
+        custMap[emailKey].totalSpentUsd += Number(item.total_usd || 0);
+        custMap[emailKey].totalSpentBtc += Number(item.total_btc || 0);
+      });
+    }
 
-    fetchCustomers();
-  }, [supplier]);
+    return Object.values(custMap).sort((a, b) => b.totalSpentUsd - a.totalSpentUsd);
+  }, [orderItems]);
 
   const filtered = customers.filter((c) => {
     const term = search.toLowerCase().trim();
