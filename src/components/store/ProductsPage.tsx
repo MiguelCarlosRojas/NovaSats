@@ -750,12 +750,16 @@ export const ProductsPage: React.FC = () => {
             </Link>
             <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
             <Link to="/catalogo" className="hover:text-amber-400 transition">
-              Catálogo & Categorías
+              Catálogo
             </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
-            <span className="text-slate-300 font-medium">
-              {familyInfo.categoryTitle}
-            </span>
+            {familyInfo.categoryTitle && (
+              <>
+                <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                <span className="text-slate-300 font-medium">
+                  {familyInfo.categoryTitle}
+                </span>
+              </>
+            )}
             {familyInfo.subcategoryTitle && (
               <>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
@@ -777,9 +781,6 @@ export const ProductsPage: React.FC = () => {
               Resultados ({filteredProducts.length})
             </span>
           </div>
-          <span className="font-mono text-[11px] text-slate-400 hidden sm:inline">
-            {filteredProducts.length} productos disponibles
-          </span>
         </div>
       </div>
 
@@ -809,41 +810,19 @@ export const ProductsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Barra superior de herramientas: Botón de filtro móvil, contador y ordenamiento */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-white/[0.06]">
-          
-          <div className="flex items-center justify-between sm:justify-start gap-2">
-            {/* Botón Filtros móvil */}
-            <button
-              type="button"
-              onClick={() => setShowMobileFilters(true)}
-              className="lg:hidden inline-flex items-center gap-1.5 px-3 py-2 bg-[#0d1222] border border-white/[0.1] rounded-xl text-xs font-bold text-amber-400 active:scale-95 transition"
-            >
-              <Filter className="w-3.5 h-3.5" />
-              <span>Filtros ({activeFiltersCount})</span>
-            </button>
-
-            <span className="text-xs text-slate-400">
-              Mostrando {filteredProducts.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)} de {filteredProducts.length}
-            </span>
-          </div>
-
-          {/* Ordenar por */}
-          <div className="flex items-center justify-end gap-2">
-            <span className="text-xs text-slate-400 shrink-0">Ordenar por:</span>
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
-              className="w-full sm:w-auto bg-[#0d1222] border border-white/[0.1] rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-amber-500 font-medium cursor-pointer"
-            >
-              <option value="featured">Destacados</option>
-              <option value="price-asc">Menor precio</option>
-              <option value="price-desc">Mayor precio</option>
-              <option value="discount">Mayor descuento</option>
-              <option value="rating">Mejor calificación</option>
-              <option value="newest">Más recientes</option>
-            </select>
-          </div>
+        {/* Botón Filtros para móvil (solo en pantallas pequeñas) */}
+        <div className="lg:hidden mb-4 pb-3 border-b border-white/[0.06] flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setShowMobileFilters(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-[#0d1222] border border-white/[0.1] rounded-xl text-xs font-bold text-amber-400 active:scale-95 transition"
+          >
+            <Filter className="w-3.5 h-3.5" />
+            <span>Filtros ({activeFiltersCount})</span>
+          </button>
+          <span className="text-xs font-mono text-amber-400 font-semibold">
+            {filteredProducts.length} resultados
+          </span>
         </div>
 
         {/* Chips de filtros activos */}

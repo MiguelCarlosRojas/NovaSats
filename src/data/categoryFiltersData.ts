@@ -997,13 +997,16 @@ export const detectCategoryFamily = (
   if (
     combined.includes('laptop') ||
     combined.includes('notebook') ||
+    combined.includes('cómputo') ||
+    combined.includes('computo') ||
     combined.includes('computación y laptops') ||
     combined.includes('computacion y laptops') ||
     (combined.includes('comput') && !combined.includes('celular'))
   ) {
+    const isComputadorasGroup = cat.includes('comput') || cat.includes('tecnología') || cat.includes('tecnologia');
     return {
       family: 'laptops',
-      categoryTitle: 'Computadoras',
+      categoryTitle: isComputadorasGroup && category && category !== 'Todas' ? (cat.includes('comput') ? category : 'Computadoras') : 'Computadoras',
       subcategoryTitle: sub && sub !== 'todas' ? subcategory : 'Laptops'
     };
   }
@@ -1222,7 +1225,7 @@ export const detectCategoryFamily = (
   // General por defecto
   return {
     family: 'general',
-    categoryTitle: category && category !== 'Todas' ? category : 'Catálogo General',
-    subcategoryTitle: subcategory && subcategory !== 'Todas' ? subcategory : 'Todos los Productos'
+    categoryTitle: category && category !== 'Todas' ? category : '',
+    subcategoryTitle: subcategory && subcategory !== 'Todas' ? subcategory : ''
   };
 };
